@@ -1,0 +1,607 @@
+﻿Proyecto 1 — Plataforma API de IA para Respuestas de Venta
+
+
+1. Introducción
+En la actualidad, miles de emprendedores y pequeños comerciantes venden sus productos exclusivamente a través de marketplaces como Facebook Marketplace, Mercado Libre o similares. Aunque estos canales ofrecen visibilidad, limitan la identidad de marca, generan dependencia de las políticas de terceros y no permiten personalizar la experiencia de compra.
+Este proyecto propone un ecommerce multiusuario que permita a cualquier persona o negocio tener su propia tienda en línea, de manera sencilla, económica y totalmente gestionable, con funciones avanzadas como gestión de inventario, catálogo, control de stock y un asistente inteligente en WhatsApp integrado con inteligencia artificial.
+El sistema ofrecerá a cada usuario una URL única de su tienda, por ejemplo:
+ecommerce.premiumsho.com/:idproveedor
+ donde podrá mostrar su catálogo, recibir pedidos y atender clientes sin necesidad de conocimientos técnicos.
+________________
+
+
+2. Objetivo General
+Desarrollar una plataforma ecommerce intuitiva, escalable y accesible para pequeños y medianos comerciantes, que les permita digitalizar y automatizar sus ventas, gestionando todo desde una interfaz sencilla y ofreciendo a sus clientes una experiencia de compra directa y personalizada.
+________________
+
+
+3. Objetivos Específicos
+1. Proporcionar a cada usuario un sitio web único para mostrar y vender sus productos.
+
+2. Integrar un sistema de gestión de inventario que permita agregar, editar y eliminar productos, categorías y precios fácilmente.
+
+3. Ofrecer una interfaz administrativa simple para que cualquier persona, sin conocimientos técnicos, pueda gestionar su tienda.
+
+4. Incorporar un asistente virtual con IA en WhatsApp que atienda consultas de clientes basándose en el inventario actualizado del comerciante.
+
+5. Facilitar la transición de vendedores en marketplaces a tener su propia tienda digital, manteniendo costos accesibles.
+
+________________
+
+
+4. Alcance del Proyecto
+Incluye:
+   * Plataforma web multiusuario.
+
+   * Panel administrativo para gestión de productos, stock, categorías y pedidos.
+
+   * Página pública para cada tienda con URL personalizada.
+
+   * Integración con WhatsApp y chatbot con IA entrenada con el inventario de cada usuario.
+
+   * Soporte para múltiples métodos de pago (definir según mercado).
+
+   * Configuración básica de personalización de tienda (logo, colores, descripción).
+
+No incluye en la primera versión:
+      * Aplicaciones móviles nativas (se contemplan en versiones futuras).
+
+      * Integraciones avanzadas con logística y envíos (se pueden añadir posteriormente).
+
+________________
+
+
+5. Público Objetivo
+         * Pequeños y medianos comerciantes.
+
+         * Emprendedores que venden en redes sociales y marketplaces.
+
+         * Tiendas físicas que desean digitalizar su catálogo.
+
+         * Personas que buscan una solución económica para iniciar ventas en línea sin conocimientos técnicos.
+
+________________
+
+
+6. Características Principales
+Vista Administrativa
+            * Gestión de productos: alta, baja, modificación.
+
+            * Control de inventario y stock.
+
+            * Creación de categorías y subcategorías.
+
+            * Gestión de precios y promociones.
+
+            * Configuración de logo, colores y datos de la tienda.
+
+            * Panel de pedidos y clientes.
+
+Vista Pública de la Tienda
+               * Catálogo de productos navegable.
+
+               * Filtros y búsqueda de productos.
+
+               * Carrito de compras.
+
+               * Botón de compra directa vía WhatsApp.
+
+               * Integración con el asistente de IA para responder dudas automáticamente.
+
+Integración con WhatsApp e IA
+                  * Respuestas automáticas basadas en inventario y catálogo del usuario.
+
+                  * Capacidad de recibir y procesar pedidos desde WhatsApp.
+
+                  * Posibilidad de adaptar el tono y estilo de respuesta de la IA a cada negocio.
+
+________________
+
+
+7. Beneficios
+                     * Bajo costo frente a soluciones tradicionales como Shopify o desarrollos a medida.
+
+                     * Facilidad de uso, sin requerir conocimientos técnicos.
+
+                     * Ahorro de tiempo con automatización de atención al cliente.
+
+                     * Escalabilidad para crecer junto con el negocio del cliente.
+
+                     * Identidad de marca propia con URL personalizada.
+
+________________
+
+
+8. Tecnología Base (propuesta inicial)
+                        * Backend: NestJS + PostgresSQL.
+
+                        * Frontend: React.
+
+                        * Integraciones: API de WhatsApp (whatsapp-web.js), pasarelas de pago (MercadoPago, PayPal, Stripe, qr).
+
+                        * Infraestructura: Nginx + Hosting en la nube (DigitalOcean).
+
+
+9. Modelo de Datos y Relaciones
+El sistema estará diseñado para que cada usuario registrado tenga automáticamente una sola tienda asociada a su cuenta. No existirá la opción de que un mismo usuario cree múltiples tiendas; en cambio, podrá personalizar la que se le asigna, configurando nombre, logo, descripción, colores y datos de contacto.
+La estructura de datos se basa en un modelo relacional en PostgreSQL, donde cada entidad clave se relaciona con las demás para garantizar integridad, escalabilidad y facilidad de consulta.
+________________
+
+
+Usuarios (Users)
+Cada usuario representa a un comerciante que gestionará su propia tienda. Contendrá información personal, credenciales de acceso y datos de contacto, incluido su número de WhatsApp para integraciones con el asistente de inteligencia artificial.
+________________
+
+
+Tiendas (Stores)
+Cada usuario tendrá asociada una única tienda. Esta contendrá datos de personalización como nombre comercial, descripción, URL personalizada, logo, colores y otros parámetros visuales. A nivel técnico, la relación es uno a uno: un usuario → una tienda.
+________________
+
+
+Categorías (Categories)
+Las categorías organizan el catálogo de productos dentro de cada tienda. Cada categoría pertenece a una única tienda y un producto puede pertenecer a una sola categoría.
+________________
+
+
+Marcas (Brands)
+El sistema soportará marcas de productos. Una marca puede estar registrada para una tienda o ser global para todo el sistema, según el modelo de negocio. Un producto puede pertenecer a una marca o no, manteniendo así flexibilidad para comerciantes que no trabajan con marcas específicas.
+________________
+
+
+Productos (Products)
+Los productos son el núcleo del inventario. Cada producto pertenece a una categoría y puede opcionalmente estar asociado a una marca. Contiene información como nombre, descripción, precio, stock, SKU, imagen y demás atributos necesarios para mostrar en el catálogo público y para la administración del inventario.
+________________
+
+
+Pedidos (Orders)
+Los pedidos registran las solicitudes realizadas por los clientes desde la tienda en línea. Cada pedido almacena información del cliente, estado del pedido, monto total y fecha de creación. Se vincula a los detalles del pedido para saber qué productos fueron solicitados.
+________________
+
+
+Detalle de Pedidos (Order Items)
+Aquí se almacena el desglose de cada pedido: productos incluidos, cantidades y precios unitarios. Esto permite conocer con precisión qué se vendió en cada operación.
+________________
+
+
+Ventas (Sales)
+Además del registro de pedidos, el sistema llevará una tabla de ventas que se genera cada vez que un pedido se completa y se confirma el pago o entrega. Una venta estará asociada a un pedido y contendrá información adicional relevante para reportes, como método de pago, fecha de pago y total final recibido. Esta separación permite diferenciar entre pedidos generados y ventas efectivamente concretadas.
+________________
+
+
+Sesiones de WhatsApp (WhatsApp Sessions)
+Para integrar el asistente virtual con IA, cada tienda tendrá una sesión de WhatsApp asociada que contendrá la información técnica para mantener la conexión activa y habilitar respuestas automáticas basadas en el inventario del comerciante.
+________________
+
+
+Relaciones Clave
+                           * Usuarios → Tiendas: relación uno a uno. Cada usuario tiene una única tienda.
+
+                           * Tiendas → Categorías: relación uno a muchos. Una tienda puede tener múltiples categorías.
+
+                           * Tiendas → Marcas: relación uno a muchos. Una tienda puede tener varias marcas.
+
+                           * Categorías → Productos: relación uno a muchos. Una categoría puede contener varios productos.
+
+                           * Marcas → Productos: relación uno a muchos opcional. Un producto puede pertenecer a una marca o no tener marca asociada.
+
+                           * Tiendas → Pedidos: relación uno a muchos. Una tienda puede recibir múltiples pedidos.
+
+                           * Pedidos  → Detalle de pedidos: relación uno a muchos. Un pedido contiene varios productos.
+
+                           * Pedidos → Ventas: relación uno a uno. Una venta se genera a partir de un pedido completado.
+
+                           * Tiendas → Sesiones de WhatsApp: relación uno a uno. Una tienda tiene una sesión activa para el bot con IA.
+10. Módulos y relaciones
+1. Users Module
+Tablas:
+                              * users
+
+Responsabilidades:
+                                 * Registro de nuevos usuarios.
+
+                                 * Autenticación (login) y gestión de sesiones.
+
+                                 * Recuperación y cambio de contraseña.
+
+                                 * Roles de usuario (seller, admin).
+
+                                 * Perfil de usuario (nombre, teléfono, correo).
+
+Submódulos opcionales:
+                                    * auth (JWT, estrategias de login).
+
+________________
+
+
+2. Company Module
+Tablas:
+                                       * stores
+
+                                       * brands
+
+                                       * sales
+
+Responsabilidades:
+                                          * Configuración de la tienda (nombre, logo, descripción, colores, URL personalizada).
+
+                                          * Gestión de marcas.
+
+                                          * Registro y consulta de ventas.
+
+________________
+
+
+3. Inventory Module
+Tablas:
+                                             * categories
+
+                                             * products
+
+                                             * orders
+
+                                             * order_items
+
+Responsabilidades:
+                                                * Gestión de categorías.
+
+                                                * Gestión de productos (CRUD, stock, imágenes, precios).
+
+                                                * Gestión de pedidos y sus detalles.
+
+                                                * Reportes de inventario y ventas desde el inventario.
+
+________________
+
+
+4. WhatsApp Module
+Tablas:
+                                                   * whatsapp_sessions
+
+Responsabilidades:
+                                                      * Conexión y gestión de sesiones de WhatsApp.
+
+                                                      * Configuración del bot con IA (entrenamiento según inventario del usuario).
+
+                                                      * Recepción y envío de mensajes.
+
+________________
+
+
+5. Admin Module (opcional, solo para ti o futuros administradores)
+Tablas: (puede leer de todas las demás)
+Responsabilidades:
+                                                         * Gestión global de usuarios y tiendas.
+
+                                                         * Moderación de contenido (productos, descripciones, etc.).
+
+                                                         * Estadísticas globales del sistema.
+
+
+Sesión = {
+  userId: "user123",
+  storeId: "store456", 
+  whatsappNumber: "+123456789",
+  sessionId: "session_user123",
+  isActive: true,
+  qrCode: "data:image/png;base64...",
+  clientInfo: { /* info del cliente que escribió */ }
+}
+
+
+
+
+
+
+POSIBLES NOMBRES:
+
+
+
+
+SnapStore.- Tienda rápida, instalación en un 'snap', Muy ágil y memorable.
+OwnCart.- "Tu carrito propio"; empodera al comerciante, Minimalista, directo, poderoso.
+Alora.- Significado: en latín “ahora mismo”, en español suena elegante y positivo. Transmite inmediatez y modernidad.
+
+
+
+
+HAY QUE VENDER EL ENRIQUECIDO CON IA        
+POSIBLE LOGO:
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POSIBLES COLORES:
+Negro azulado:
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.3s ease-out",
+        "accordion-up": "accordion-up 0.3s ease-out",
+      },
+      colors: {
+        // === Paleta Elegante / Premium ===
+        primary: '#0F172A',            // negro azulado
+        'primary-light': '#1E293B',
+        'primary-hover': '#334155',
+        'primary-dark': '#020617',
+
+
+        secondary: '#22C55E',          // verde WhatsApp
+        'secondary-light': '#86EFAC',
+        'secondary-dark': '#15803D',
+
+
+        accent: '#EAB308',             // dorado
+        'accent-light': '#FDE047',
+        'accent-dark': '#CA8A04',
+
+
+        // Texto y fondos
+        'text-primary': '#1E293B',
+        'text-secondary': '#475569',
+        'bg-primary': '#FFFFFF',
+        'bg-secondary': '#F9FAFB',
+        'bg-muted': '#F3F4F6',
+        'border-default': '#E2E8F0',
+
+
+        // Estados
+        success: '#16A34A',
+        'success-bg': '#ECFDF5',
+        error: '#DC2626',
+        'error-bg': '#FEF2F2',
+        warning: '#D97706',
+        'warning-bg': '#FFFBEB',
+        info: '#0EA5E9',
+        'info-bg': '#F0F9FF',
+
+
+        muted: '#94A3B8',
+        dark: '#0B1220',
+        whatsapp: '#25D366',
+      },
+      borderRadius: {
+        DEFAULT: 'var(--radius)',
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+
+
+Negro menos azulado:
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.3s ease-out",
+        "accordion-up": "accordion-up 0.3s ease-out",
+      },
+      colors: {
+        // === Paleta Elegante / Premium (ajustada, más clara) ===
+        primary: '#1E293B',            // slate-800 (azulado grisáceo, más claro que negro)
+        'primary-light': '#334155',    // slate-700
+        'primary-hover': '#0F172A',    // slate-900 (para hover, más profundo)
+        'primary-dark': '#020617',     // casi negro (solo para contraste extremo)
+
+
+        secondary: '#22C55E',          // verde WhatsApp
+        'secondary-light': '#86EFAC',
+        'secondary-dark': '#15803D',
+
+
+        accent: '#EAB308',             // dorado
+        'accent-light': '#FDE047',
+        'accent-dark': '#CA8A04',
+
+
+        // Texto y fondos
+        'text-primary': '#1E293B',
+        'text-secondary': '#475569',
+        'bg-primary': '#FFFFFF',
+        'bg-secondary': '#F9FAFB',
+        'bg-muted': '#F3F4F6',
+        'border-default': '#E2E8F0',
+
+
+        // Estados
+        success: '#16A34A',
+        'success-bg': '#ECFDF5',
+        error: '#DC2626',
+        'error-bg': '#FEF2F2',
+        warning: '#D97706',
+        'warning-bg': '#FFFBEB',
+        info: '#0EA5E9',
+        'info-bg': '#F0F9FF',
+
+
+        muted: '#94A3B8',
+        dark: '#0B1220',
+        whatsapp: '#25D366',
+      },
+      borderRadius: {
+        DEFAULT: 'var(--radius)',
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+
+
+Violeta:
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.3s ease-out",
+        "accordion-up": "accordion-up 0.3s ease-out",
+      },
+      colors: {
+        // === Paleta para el proyecto Multi-Store Ecommerce ===
+
+
+        // Primario (branding innovador, CTA)
+        primary: '#7C3AED',            // violet-600
+        'primary-light': '#A78BFA',    // violet-400
+        'primary-hover': '#6D28D9',    // violet-700
+        'primary-dark': '#4C1D95',     // violet-900
+
+
+        // Secundario (confianza, WhatsApp vibe)
+        secondary: '#22C55E',          // verde fresco
+        'secondary-light': '#86EFAC',
+        'secondary-dark': '#15803D',
+
+
+        // Acentos (promociones, dinamismo)
+        accent: '#EAB308',             // amarillo lima
+        'accent-light': '#FDE047',
+        'accent-dark': '#CA8A04',
+
+
+        // Texto y fondos (legibilidad AA/AAA)
+        'text-primary': '#1E293B',     // gris fuerte
+        'text-secondary': '#475569',   // gris medio
+        'bg-primary': '#FFFFFF',
+        'bg-secondary': '#F9FAFB',
+        'bg-muted': '#F3F4F6',
+        'border-default': '#E2E8F0',
+
+
+        // Estados (feedback del sistema)
+        success: '#16A34A',
+        'success-bg': '#ECFDF5',
+        error: '#DC2626',
+        'error-bg': '#FEF2F2',
+        warning: '#D97706',
+        'warning-bg': '#FFFBEB',
+        info: '#0EA5E9',
+        'info-bg': '#F0F9FF',
+
+
+        // Extras útiles
+        muted: '#94A3B8',              // slate-400
+        dark: '#0B1220',               // fondos oscuros densos
+
+
+        // Marcas/redes
+        whatsapp: '#25D366',           // verde oficial de WhatsApp
+      },
+      borderRadius: {
+        DEFAULT: 'var(--radius)',
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+
+
+QUE FLUJO TENDRA EL USUARIO:
+
+     -     PRIMERO DEBE REGISTRARSE
+                                                            * COMPLETAR ONBOARDING
+                                                            * Ingresa al dashboard:
