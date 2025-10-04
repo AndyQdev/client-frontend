@@ -1,12 +1,13 @@
 import { Store, Product, Category } from '@/lib/types'
-import { SerializableProfessionalTheme, CustomColors } from '@/lib/themes'
+import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
+import { CartProvider } from '@/lib/cart-context'
 
 // Importar componentes de cada tema
 import { ModernStorePage } from './modern'
 import { EleganteStorePage } from './elegante'
 import { MinimalStorePage } from './minimal'
 import { ClassicStorePage } from './classic'
-import { EditorialStorePage } from './editorial'
+import DarkModeStorePage from './darkmode/DarkModeStorePage'
 import { CreativeStorePage } from './creative'
 
 interface ThemeComponentSelectorProps {
@@ -24,65 +25,74 @@ export default function ThemeComponentSelector({
   categories,
   serializableTheme
 }: ThemeComponentSelectorProps) {
+  // Envolver todo con CartProvider para que todos los temas tengan acceso al carrito
+  let ThemeComponent
+
   // Selector dinámico de componentes basado en el tema
   switch (themeId) {
     case 'modern':
-      return (
+      ThemeComponent = (
         <ModernStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
     case 'elegante':
-      return (
+      ThemeComponent = (
         <EleganteStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
     case 'minimal':
-      return (
+      ThemeComponent = (
         <MinimalStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
     case 'classic':
-      return (
+      ThemeComponent = (
         <ClassicStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
-    case 'editorial':
-      return (
-        <EditorialStorePage
+    case 'darkmode':
+      ThemeComponent = (
+        <DarkModeStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
     case 'creative':
-      return (
+      ThemeComponent = (
         <CreativeStorePage
           store={store}
           products={products}
           categories={categories}
         />
       )
+      break
 
     default:
       // Fallback para temas no implementados
-      return (
+      ThemeComponent = (
         <div className="p-8 text-center">
           <h2 className="text-2xl mb-4">Tema: {themeId}</h2>
           <p className="text-red-600 mb-4">Tema no encontrado. Usando vista por defecto.</p>
@@ -97,4 +107,6 @@ export default function ThemeComponentSelector({
         </div>
       )
   }
+
+  return <CartProvider>{ThemeComponent}</CartProvider>
 }

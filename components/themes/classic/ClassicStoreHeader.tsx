@@ -1,13 +1,18 @@
+'use client'
+
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, Mail, MapPin, User, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface ClassicStoreHeaderProps {
   store: Store
+  onCartClick?: () => void
 }
 
-export default function ClassicStoreHeader({ store }: ClassicStoreHeaderProps) {
+export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreHeaderProps) {
+  const { getTotalItems } = useCart()
   return (
     <>
       {/* Barra superior clásica */}
@@ -88,11 +93,16 @@ export default function ClassicStoreHeader({ store }: ClassicStoreHeaderProps) {
                   Account
                 </span>
               </button>
-              <button className="text-amber-800 hover:text-amber-600 transition-colors p-2 relative group">
+              <button
+                onClick={onCartClick}
+                className="text-amber-800 hover:text-amber-600 transition-colors p-2 relative group"
+              >
                 <ShoppingBag className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-serif">
-                  2
-                </span>
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-serif">
+                    {getTotalItems()}
+                  </span>
+                )}
                 <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-serif opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Shopping Bag
                 </span>

@@ -1,13 +1,18 @@
+'use client'
+
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, Phone, Mail } from 'lucide-react'
+import { Menu, Phone, Mail, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface EleganteStoreHeaderProps {
   store: Store
+  onCartClick: () => void
 }
 
-export default function EleganteStoreHeader({ store }: EleganteStoreHeaderProps) {
+export default function EleganteStoreHeader({ store, onCartClick }: EleganteStoreHeaderProps) {
+  const { getTotalItems } = useCart()
   return (
     <>
       {/* Barra superior elegante */}
@@ -91,8 +96,12 @@ export default function EleganteStoreHeader({ store }: EleganteStoreHeaderProps)
               <button className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
                 Cuenta
               </button>
-              <button className="relative text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Carrito (0)
+              <button
+                onClick={onCartClick}
+                className="relative text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light flex items-center space-x-2"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                <span>Carrito ({getTotalItems()})</span>
               </button>
             </div>
           </div>

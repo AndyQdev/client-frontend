@@ -1,12 +1,27 @@
+'use client'
+
 import { Product } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useCart } from '@/lib/cart-context'
+import { ShoppingBag, Check } from 'lucide-react'
+import { useState } from 'react'
 
 interface EleganteProductCardProps {
   product: Product
+  storeSlug: string
 }
 
-export default function EleganteProductCard({ product }: EleganteProductCardProps) {
+export default function EleganteProductCard({ product, storeSlug }: EleganteProductCardProps) {
+  const { addToCart, isInCart } = useCart()
+  const [showAdded, setShowAdded] = useState(false)
+
+  const handleAddToCart = () => {
+    addToCart(product)
+    setShowAdded(true)
+    setTimeout(() => setShowAdded(false), 2000)
+  }
+
   return (
     <div className="group cursor-pointer">
       {/* Imagen del producto con overlay elegante */}
@@ -30,13 +45,31 @@ export default function EleganteProductCard({ product }: EleganteProductCardProp
 
         {/* Información de hover elegante */}
         <div className="absolute inset-x-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-          <div className="bg-white/95 backdrop-blur-sm p-4 text-center">
-            <p className="text-xs text-gray-600 mb-2 uppercase tracking-widest">
-              Vista rápida
-            </p>
+          <div className="bg-white/95 backdrop-blur-sm p-4 text-center space-y-2">
+            <button
+              onClick={handleAddToCart}
+              className="w-full py-3 bg-black text-white text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors duration-300 flex items-center justify-center space-x-2"
+            >
+              {showAdded ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Agregado</span>
+                </>
+              ) : isInCart(product.id) ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>En el carrito</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Añadir al carrito</span>
+                </>
+              )}
+            </button>
             <Link
-              href={`/${product.storeId}/productos/${product.slug}`}
-              className="inline-block w-full py-2 bg-black text-white text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors duration-300"
+              href={`/${storeSlug}/productos/${product.slug}`}
+              className="inline-block w-full py-3 border border-black text-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors duration-300"
             >
               Ver detalles
             </Link>
@@ -54,7 +87,7 @@ export default function EleganteProductCard({ product }: EleganteProductCardProp
         )}
 
         {/* Nombre del producto */}
-        <Link href={`/${product.storeId}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.slug}`}>
           <h3 className="text-sm text-gray-900 hover:text-black transition-colors duration-300 line-clamp-2 font-light">
             {product.name}
           </h3>

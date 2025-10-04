@@ -1,13 +1,18 @@
+'use client'
+
 import { Product } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, Crown } from 'lucide-react'
+import { Star, Crown, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface ClassicProductCardProps {
   product: Product
+  storeSlug: string
 }
 
-export default function ClassicProductCard({ product }: ClassicProductCardProps) {
+export default function ClassicProductCard({ product, storeSlug }: ClassicProductCardProps) {
+  const { addToCart, isInCart } = useCart()
   return (
     <div className="group bg-white border border-amber-100 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500 relative">
       {/* Marco dorado clásico */}
@@ -35,13 +40,23 @@ export default function ClassicProductCard({ product }: ClassicProductCardProps)
 
         {/* Información de hover elegante */}
         <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-          <div className="bg-white/95 backdrop-blur-sm p-4 rounded border border-amber-200">
+          <div className="bg-white/95 backdrop-blur-sm p-4 rounded border border-amber-200 space-y-2">
             <p className="text-xs text-amber-800 mb-2 font-serif text-center">
               Handcrafted Excellence
             </p>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                addToCart(product)
+              }}
+              className="block w-full py-2 bg-amber-600 text-white text-sm text-center font-serif hover:bg-amber-700 transition-colors duration-300 rounded flex items-center justify-center space-x-2"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>{isInCart(product.id) ? 'Add More' : 'Add to Bag'}</span>
+            </button>
             <Link
-              href={`/${product.storeId}/productos/${product.slug}`}
-              className="block w-full py-2 bg-amber-600 text-white text-sm text-center font-serif hover:bg-amber-700 transition-colors duration-300 rounded"
+              href={`/${storeSlug}/productos/${product.slug}`}
+              className="block w-full py-2 border border-amber-600 text-amber-600 text-sm text-center font-serif hover:bg-amber-50 transition-colors duration-300 rounded"
             >
               View Details
             </Link>
@@ -59,7 +74,7 @@ export default function ClassicProductCard({ product }: ClassicProductCardProps)
         </div>
 
         {/* Nombre del producto */}
-        <Link href={`/${product.storeId}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.slug}`}>
           <h3 className="text-lg font-serif text-amber-900 mb-2 line-clamp-2 hover:text-amber-700 transition-colors duration-300">
             {product.name}
           </h3>

@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { Theme } from './types'
-import { ProfessionalTheme, CustomColors, generateThemeCSS as generateProfessionalThemeCSS, DEFAULT_CUSTOM_COLORS, generateThemeColors } from './themes'
+import type { ProfessionalTheme, CustomColors } from './themes/types'
+import { generateThemeColors } from './themes/color-generator'
+import { DEFAULT_CUSTOM_COLORS } from './themes/index'
 
 // Helper function to convert legacy Theme to CSS variables
 function legacyThemeToCSS(theme: Theme): Record<string, string> {

@@ -1,13 +1,27 @@
+'use client'
+
 import { Product } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Star, ShoppingCart } from 'lucide-react'
+import { Heart, Star, ShoppingCart, Check } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
 
 interface ModernProductCardProps {
   product: Product
+  storeSlug: string
 }
 
-export default function ModernProductCard({ product }: ModernProductCardProps) {
+export default function ModernProductCard({ product, storeSlug }: ModernProductCardProps) {
+  const { addToCart, isInCart } = useCart()
+  const [showAdded, setShowAdded] = useState(false)
+
+  const handleAddToCart = () => {
+    addToCart(product)
+    setShowAdded(true)
+    setTimeout(() => setShowAdded(false), 2000)
+  }
+
   return (
     <div className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2">
       {/* Imagen del producto */}
@@ -33,9 +47,32 @@ export default function ModernProductCard({ product }: ModernProductCardProps) {
 
         {/* Botón de añadir al carrito - aparece en hover */}
         <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
-          <button className="w-full bg-black text-white py-3 px-4 rounded-2xl font-medium flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors duration-200">
-            <ShoppingCart className="w-5 h-5" />
-            <span>Añadir al carrito</span>
+          <button
+            onClick={handleAddToCart}
+            className={`w-full py-3 px-4 rounded-2xl font-medium flex items-center justify-center space-x-2 transition-all duration-200 ${
+              showAdded
+                ? 'bg-green-500 text-white'
+                : isInCart(product.id)
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-black text-white hover:bg-gray-800'
+            }`}
+          >
+            {showAdded ? (
+              <>
+                <Check className="w-5 h-5" />
+                <span>¡Agregado!</span>
+              </>
+            ) : isInCart(product.id) ? (
+              <>
+                <Check className="w-5 h-5" />
+                <span>En el carrito</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5" />
+                <span>Añadir al carrito</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -50,7 +87,7 @@ export default function ModernProductCard({ product }: ModernProductCardProps) {
         </div>
 
         {/* Nombre del producto */}
-        <Link href={`/${product.storeId}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.slug}`}>
           <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors duration-200">
             {product.name}
           </h3>

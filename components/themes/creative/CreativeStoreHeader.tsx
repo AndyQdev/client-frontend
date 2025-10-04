@@ -1,13 +1,18 @@
+'use client'
+
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Sparkles, Palette, Zap, Star } from 'lucide-react'
+import { Sparkles, Palette, Zap, Star, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface CreativeStoreHeaderProps {
   store: Store
+  onCartClick: () => void
 }
 
-export default function CreativeStoreHeader({ store }: CreativeStoreHeaderProps) {
+export default function CreativeStoreHeader({ store, onCartClick }: CreativeStoreHeaderProps) {
+  const { getTotalItems } = useCart()
   return (
     <header className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Elementos decorativos animados */}
@@ -49,7 +54,7 @@ export default function CreativeStoreHeader({ store }: CreativeStoreHeaderProps)
               </h1>
               <p className="text-sm text-gray-300 font-medium flex items-center space-x-1">
                 <Palette className="w-4 h-4" />
-                <span>Creative Space</span>
+                <span>Espacio Creativo</span>
                 <Star className="w-3 h-3 text-yellow-400" />
               </p>
             </div>
@@ -57,7 +62,7 @@ export default function CreativeStoreHeader({ store }: CreativeStoreHeaderProps)
 
           {/* Navegación creativa */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {['Gallery', 'Collections', 'Artists', 'Experiments', 'Studio'].map((item, index) => (
+            {['Galería', 'Colecciones', 'Artistas', 'Experimentos', 'Estudio'].map((item, index) => (
               <Link
                 key={item}
                 href="#"
@@ -74,13 +79,21 @@ export default function CreativeStoreHeader({ store }: CreativeStoreHeaderProps)
 
           {/* Acciones creativas */}
           <div className="flex items-center space-x-4">
-            <button className="relative p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white hover:from-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12">
-              <Zap className="w-5 h-5" />
+            <button
+              onClick={onCartClick}
+              className="relative p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white hover:from-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12 group"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center animate-bounce border-2 border-white">
+                  {getTotalItems()}
+                </span>
+              )}
               <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-30 animate-pulse"></div>
             </button>
-            <button className="relative px-6 py-3 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-full text-white font-bold hover:from-green-400 hover:via-blue-500 hover:to-purple-600 transition-all duration-500 transform hover:scale-105">
-              <span className="relative z-10">Create Magic</span>
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-full blur opacity-40 animate-pulse"></div>
+            <button className="relative p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12">
+              <Zap className="w-5 h-5" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 animate-pulse"></div>
             </button>
           </div>
         </div>

@@ -28,7 +28,7 @@ export interface ThemeTypography {
 
 export interface ThemeLayout {
   productCard: {
-    style: 'minimal' | 'classic' | 'modern' | 'luxury' | 'editorial' | 'magazine'
+    style: 'minimal' | 'classic' | 'modern' | 'luxury' | 'darkmode' | 'magazine' | 'creative'
     imageRatio: 'square' | 'portrait' | 'landscape'
     textAlignment: 'left' | 'center' | 'right'
     spacing: 'tight' | 'normal' | 'relaxed' | 'loose'
@@ -46,7 +46,7 @@ export interface ThemeLayout {
     gap: 'sm' | 'md' | 'lg' | 'xl'
   }
   header: {
-    style: 'minimal' | 'classic' | 'bold' | 'editorial'
+    style: 'minimal' | 'classic' | 'bold' | 'darkmode' | 'creative' | 'modern'
     logoPosition: 'left' | 'center'
     navStyle: 'horizontal' | 'minimal' | 'none'
   }
@@ -90,7 +90,7 @@ export interface ProfessionalTheme {
   id: string
   name: string
   description: string
-  category: 'luxury' | 'minimal' | 'editorial' | 'modern' | 'classic' | 'creative'
+  category: 'luxury' | 'minimal' | 'darkmode' | 'modern' | 'classic' | 'creative'
   preview: string
 
   // Función para generar colores basado en colores personalizados
@@ -130,7 +130,7 @@ export interface SerializableProfessionalTheme {
   id: string
   name: string
   description: string
-  category: 'luxury' | 'minimal' | 'editorial' | 'modern' | 'classic' | 'creative'
+  category: 'luxury' | 'minimal' | 'darkmode' | 'modern' | 'classic' | 'creative'
   preview: string
   typography: ThemeTypography
   layout: ThemeLayout

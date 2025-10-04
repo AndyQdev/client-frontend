@@ -1,13 +1,18 @@
+'use client'
+
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Search, User, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface ModernStoreHeaderProps {
   store: Store
+  onCartClick: () => void
 }
 
-export default function ModernStoreHeader({ store }: ModernStoreHeaderProps) {
+export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHeaderProps) {
+  const { getTotalItems } = useCart()
   return (
     <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,11 +59,16 @@ export default function ModernStoreHeader({ store }: ModernStoreHeaderProps) {
             <button className="p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300">
               <User className="w-6 h-6" />
             </button>
-            <button className="relative p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300">
+            <button
+              onClick={onCartClick}
+              className="relative p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+            >
               <ShoppingCart className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                  {getTotalItems()}
+                </span>
+              )}
             </button>
           </div>
         </div>

@@ -1,3 +1,7 @@
 export { default as ClassicStoreHeader } from './ClassicStoreHeader'
 export { default as ClassicProductCard } from './ClassicProductCard'
 export { default as ClassicStorePage } from './ClassicStorePage'
+export { default as ClassicCartSheet } from './ClassicCartSheet'
+export { default as ClassicProductDetail } from './ClassicProductDetail'
+export { default as ClassicCheckout } from './ClassicCheckout'
+export { default as ClassicOrderTracking } from './ClassicOrderTracking'

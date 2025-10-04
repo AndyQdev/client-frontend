@@ -1,6 +1,10 @@
+'use client'
+
 import { Store, Product, Category } from '@/lib/types'
 import MinimalStoreHeader from './MinimalStoreHeader'
 import MinimalProductCard from './MinimalProductCard'
+import MinimalCartSheet from './MinimalCartSheet'
+import { useState } from 'react'
 
 interface MinimalStorePageProps {
   store: Store
@@ -9,13 +13,24 @@ interface MinimalStorePageProps {
 }
 
 export default function MinimalStorePage({ store, products, categories }: MinimalStorePageProps) {
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  // Filtrar productos por categoría
+  const filteredProducts = selectedCategory
+    ? products.filter(p => p.category.slug === selectedCategory)
+    : products
+
   return (
     <div className="min-h-screen bg-white">
-      <MinimalStoreHeader store={store} />
+      <MinimalStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
 
-      {/* Hero ultra minimal */}
+      {/* Cart Sheet */}
+      <MinimalCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+
+      {/* Hero ultra minimal - REDUCIDO para priorizar productos */}
       <section className="bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
           <div className="max-w-2xl">
             <h1 className="text-4xl lg:text-5xl font-light text-gray-900 mb-8 leading-tight">
               {store.description || "Simple. Clean. Essential."}
@@ -33,28 +48,44 @@ export default function MinimalStorePage({ store, products, categories }: Minima
       </section>
 
       {/* Productos con máximo espacio */}
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-16 lg:pb-24">
         {/* Filtros ultra simples */}
         <div className="mb-16">
           <div className="flex flex-wrap gap-8 text-sm">
-            <button className="text-gray-900 border-b border-gray-900 pb-1">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`pb-1 transition-colors ${
+                selectedCategory === null
+                  ? 'text-gray-900 border-b border-gray-900'
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
               All
             </button>
             {categories.map((category) => (
               <button
                 key={category.id}
-                className="text-gray-500 hover:text-gray-900 transition-colors pb-1"
+                onClick={() => setSelectedCategory(category.slug)}
+                className={`pb-1 transition-colors ${
+                  selectedCategory === category.slug
+                    ? 'text-gray-900 border-b border-gray-900'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
               >
                 {category.name}
               </button>
             ))}
           </div>
+          <p className="text-sm text-gray-500 mt-4">
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+            {selectedCategory && ` in ${categories.find(c => c.slug === selectedCategory)?.name}`}
+          </p>
         </div>
 
         {/* Grid con espacios generosos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
-          {products.map((product) => (
-            <MinimalProductCard key={product.id} product={product} />
+          {filteredProducts.map((product) => (
+            <MinimalProductCard key={product.id} product={product} storeSlug={store.slug} />
           ))}
         </div>
 

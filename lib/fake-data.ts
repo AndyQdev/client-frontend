@@ -192,10 +192,10 @@ export const FAKE_STORES: Store[] = [
     banner: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=400&fit=crop',
     theme: THEMES.moderno, // Legacy support
     professionalTheme: {
-      themeId: 'editorial',
+      themeId: 'darkmode',
       customColors: {
-        primary: '#EF4444',
-        secondary: '#F97316'
+        primary: '#EAB308',
+        secondary: '#CA8A04'
       }
     },
     isActive: true,
@@ -281,6 +281,12 @@ export const FAKE_CATEGORIES: Category[] = [
   { id: '14', name: 'Fútbol', slug: 'futbol', productCount: 20, isActive: true, storeId: '5' },
   { id: '15', name: 'Running', slug: 'running', productCount: 25, isActive: true, storeId: '5' },
   { id: '16', name: 'Gimnasio', slug: 'gimnasio', productCount: 22, isActive: true, storeId: '5' },
+
+  // Creative Studio
+  { id: '17', name: 'Arte Digital', slug: 'arte-digital', productCount: 12, isActive: true, storeId: '6' },
+  { id: '18', name: 'Ilustración', slug: 'ilustracion', productCount: 15, isActive: true, storeId: '6' },
+  { id: '19', name: 'Diseño Gráfico', slug: 'diseno-grafico', productCount: 10, isActive: true, storeId: '6' },
+  { id: '20', name: 'Fotografía', slug: 'fotografia', productCount: 8, isActive: true, storeId: '6' },
 ]
 
 export const FAKE_PRODUCTS: Product[] = [
@@ -505,6 +511,222 @@ export const FAKE_PRODUCTS: Product[] = [
     createdAt: new Date('2024-09-03'),
     updatedAt: new Date('2024-09-17'),
   },
+
+  // Creative Studio - Arte Digital
+  {
+    id: '101',
+    name: 'Colección NFT Galaxias',
+    slug: 'nft-galaxias',
+    description: 'Colección exclusiva de 10 obras de arte digital únicas inspiradas en el cosmos',
+    price: 299,
+    originalPrice: 499,
+    stock: 3,
+    sku: 'NFT-GAL-001',
+    images: [
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[16],
+    isActive: true,
+    isFeatured: true,
+    tags: ['arte-digital', 'nft', 'cosmos', 'exclusivo'],
+    specifications: {
+      'Formato': 'NFT (ERC-721)',
+      'Resolución': '4K (3840x2160)',
+      'Edición': 'Limitada a 10 piezas',
+      'Blockchain': 'Ethereum',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-09-15'),
+    updatedAt: new Date('2024-09-20'),
+  },
+  {
+    id: '102',
+    name: 'Arte Generativo "Fractales"',
+    slug: 'arte-generativo-fractales',
+    description: 'Pieza de arte generativo única creada con algoritmos matemáticos',
+    price: 450,
+    stock: 5,
+    sku: 'ART-FRAC-002',
+    images: [
+      'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[16],
+    isActive: true,
+    isFeatured: true,
+    tags: ['arte-generativo', 'fractales', 'matemáticas'],
+    specifications: {
+      'Tipo': 'Arte Generativo',
+      'Algoritmo': 'Mandelbrot Set',
+      'Formato': 'PNG de alta resolución',
+      'Tamaño': '6000x6000px',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-09-10'),
+    updatedAt: new Date('2024-09-18'),
+  },
+
+  // Creative Studio - Ilustración
+  {
+    id: '103',
+    name: 'Ilustración Personalizada Retrato',
+    slug: 'ilustracion-retrato',
+    description: 'Retrato personalizado en estilo acuarela digital hecho a mano',
+    price: 180,
+    originalPrice: 250,
+    stock: 15,
+    sku: 'ILL-RET-001',
+    images: [
+      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1579762715459-5a068c289fda?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[17],
+    isActive: true,
+    isFeatured: true,
+    tags: ['ilustración', 'retrato', 'acuarela', 'personalizado'],
+    specifications: {
+      'Estilo': 'Acuarela Digital',
+      'Tiempo de entrega': '7-10 días',
+      'Formato final': 'JPEG de alta resolución',
+      'Revisiones': '2 rondas incluidas',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-09-08'),
+    updatedAt: new Date('2024-09-19'),
+  },
+  {
+    id: '104',
+    name: 'Pack Stickers Animales Kawaii',
+    slug: 'stickers-animales-kawaii',
+    description: 'Set de 50 stickers digitales de animales en estilo kawaii para redes sociales',
+    price: 25,
+    stock: 100,
+    sku: 'STK-KAW-001',
+    images: [
+      'https://images.unsplash.com/photo-1618412960209-274e6d70e14e?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[17],
+    isActive: true,
+    isFeatured: false,
+    tags: ['stickers', 'kawaii', 'animales', 'digital'],
+    specifications: {
+      'Cantidad': '50 stickers únicos',
+      'Formato': 'PNG con transparencia',
+      'Tamaño': '512x512px cada uno',
+      'Uso': 'Comercial permitido',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-08-25'),
+    updatedAt: new Date('2024-09-15'),
+  },
+
+  // Creative Studio - Diseño Gráfico
+  {
+    id: '105',
+    name: 'Pack Identidad Visual Completa',
+    slug: 'identidad-visual-completa',
+    description: 'Identidad visual profesional: logo, paleta de colores, tipografía y guía de marca',
+    price: 850,
+    originalPrice: 1200,
+    stock: 8,
+    sku: 'DIS-ID-001',
+    images: [
+      'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[18],
+    isActive: true,
+    isFeatured: true,
+    tags: ['diseño', 'branding', 'identidad', 'profesional'],
+    specifications: {
+      'Incluye': 'Logo + Paleta + Tipografía + Manual',
+      'Formatos': 'AI, PNG, SVG, PDF',
+      'Revisiones': '3 rondas incluidas',
+      'Tiempo': '10-14 días',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-09-12'),
+    updatedAt: new Date('2024-09-20'),
+  },
+  {
+    id: '106',
+    name: 'Plantillas Instagram Feed Aesthetic',
+    slug: 'plantillas-instagram-aesthetic',
+    description: 'Pack de 30 plantillas editables para Instagram con estilo minimalista',
+    price: 45,
+    stock: 50,
+    sku: 'PLA-IG-001',
+    images: [
+      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[18],
+    isActive: true,
+    isFeatured: false,
+    tags: ['plantillas', 'instagram', 'social-media', 'minimalista'],
+    specifications: {
+      'Cantidad': '30 plantillas únicas',
+      'Formato': 'PSD + Canva',
+      'Tamaño': '1080x1080px',
+      'Personalizable': 'Totalmente editable',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-08-30'),
+    updatedAt: new Date('2024-09-16'),
+  },
+
+  // Creative Studio - Fotografía
+  {
+    id: '107',
+    name: 'Preset Pack Pro Lightroom',
+    slug: 'preset-pack-lightroom',
+    description: 'Colección de 25 presets profesionales para Adobe Lightroom estilo cinematográfico',
+    price: 65,
+    originalPrice: 95,
+    stock: 200,
+    sku: 'PRE-LR-001',
+    images: [
+      'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1601758063541-d2f50b4aafb2?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[19],
+    isActive: true,
+    isFeatured: true,
+    tags: ['presets', 'lightroom', 'fotografía', 'cinematográfico'],
+    specifications: {
+      'Cantidad': '25 presets profesionales',
+      'Compatible': 'Lightroom CC y Classic',
+      'Formatos': 'XMP + DNG',
+      'Incluye': 'Tutorial de instalación',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-09-05'),
+    updatedAt: new Date('2024-09-19'),
+  },
+  {
+    id: '108',
+    name: 'Stock Photos Abstracto',
+    slug: 'stock-photos-abstracto',
+    description: 'Pack de 100 fotografías abstractas en alta resolución para diseño',
+    price: 120,
+    stock: 30,
+    sku: 'PHO-ABS-001',
+    images: [
+      'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=600&h=600&fit=crop',
+    ],
+    category: FAKE_CATEGORIES[19],
+    isActive: true,
+    isFeatured: false,
+    tags: ['fotografía', 'stock', 'abstracto', 'texturas'],
+    specifications: {
+      'Cantidad': '100 imágenes únicas',
+      'Resolución': '6K (6000x4000px)',
+      'Formato': 'JPEG de alta calidad',
+      'Licencia': 'Uso comercial incluido',
+    },
+    storeId: '6',
+    createdAt: new Date('2024-08-20'),
+    updatedAt: new Date('2024-09-14'),
+  },
 ]
 
 // Funciones helper para obtener datos
@@ -590,6 +812,10 @@ export function getStoreProducts(storeId: string): Product[] {
 
 export function getProductById(id: string): Product | null {
   return FAKE_PRODUCTS.find(product => product.id === id) || null
+}
+
+export function getProductBySlug(slug: string): Product | null {
+  return FAKE_PRODUCTS.find(product => product.slug === slug) || null
 }
 
 export function getStoreCategories(storeId: string): Category[] {

@@ -1,6 +1,10 @@
+'use client'
+
 import { Store, Product, Category } from '@/lib/types'
 import EleganteStoreHeader from './EleganteStoreHeader'
 import EleganteProductCard from './EleganteProductCard'
+import EleganteCartSheet from './EleganteCartSheet'
+import { useState } from 'react'
 
 interface EleganteStorePageProps {
   store: Store
@@ -9,13 +13,24 @@ interface EleganteStorePageProps {
 }
 
 export default function EleganteStorePage({ store, products, categories }: EleganteStorePageProps) {
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  // Filtrar productos por categoría
+  const filteredProducts = selectedCategory
+    ? products.filter(p => p.category.slug === selectedCategory)
+    : products
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header elegante */}
-      <EleganteStoreHeader store={store} />
+      <EleganteStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
 
-      {/* Banner hero minimalista y elegante */}
-      <section className="relative h-screen flex items-center justify-center">
+      {/* Cart Sheet */}
+      <EleganteCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+
+      {/* Banner hero minimalista y elegante - REDUCIDO para priorizar productos */}
+      <section className="relative h-96 flex items-center justify-center">
         <div className="absolute inset-0 bg-gray-50"></div>
 
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
@@ -46,13 +61,25 @@ export default function EleganteStorePage({ store, products, categories }: Elega
           {/* Navegación de categorías elegante */}
           <div className="text-center mb-16">
             <div className="flex flex-wrap justify-center gap-12">
-              <button className="text-sm text-black border-b border-black pb-1 uppercase tracking-widest font-light">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 ${
+                  selectedCategory === null
+                    ? 'text-black border-b border-black'
+                    : 'text-gray-500 hover:text-black hover:border-b hover:border-gray-300'
+                }`}
+              >
                 Todos
               </button>
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  className="text-sm text-gray-500 hover:text-black pb-1 uppercase tracking-widest font-light transition-colors duration-300 hover:border-b hover:border-gray-300"
+                  onClick={() => setSelectedCategory(category.slug)}
+                  className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 ${
+                    selectedCategory === category.slug
+                      ? 'text-black border-b border-black'
+                      : 'text-gray-500 hover:text-black hover:border-b hover:border-gray-300'
+                  }`}
                 >
                   {category.name}
                 </button>
@@ -68,13 +95,18 @@ export default function EleganteStorePage({ store, products, categories }: Elega
               </h2>
               <div className="w-16 h-px bg-gray-300 mx-auto mb-6"></div>
               <p className="text-gray-600 font-light tracking-wide">
-                {products.length} piezas cuidadosamente seleccionadas
+                {filteredProducts.length} {filteredProducts.length === 1 ? 'pieza' : 'piezas'} cuidadosamente {filteredProducts.length === 1 ? 'seleccionada' : 'seleccionadas'}
+                {selectedCategory && (
+                  <span className="ml-2">
+                    en <span className="font-normal">{categories.find(c => c.slug === selectedCategory)?.name}</span>
+                  </span>
+                )}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
-              {products.map((product) => (
-                <EleganteProductCard key={product.id} product={product} />
+              {filteredProducts.map((product) => (
+                <EleganteProductCard key={product.id} product={product} storeSlug={store.slug} />
               ))}
             </div>
           </div>

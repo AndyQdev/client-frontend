@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Theme } from '@/lib/types'
-import { SerializableProfessionalTheme, CustomColors } from '@/lib/themes'
+import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
 import { useApplyTheme } from '@/lib/theming'
 
 interface LegacyThemeProviderProps {

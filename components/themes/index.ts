@@ -3,7 +3,7 @@ export * from './modern'
 export * from './elegante'
 export * from './minimal'
 export * from './classic'
-export * from './editorial'
+export * from './darkmode'
 export * from './creative'
 
 // Selector principal

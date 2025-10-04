@@ -1,23 +1,24 @@
 // Professional Theme System
-export { type ProfessionalTheme, type CustomColors, type ThemeColors, type ThemeTypography, type ThemeLayout, type SerializableProfessionalTheme } from './types'
+export type { ProfessionalTheme, CustomColors, ThemeColors, ThemeTypography, ThemeLayout, SerializableProfessionalTheme } from './types'
 export { generateThemeColors, validateColorContrast } from './color-generator'
+import type { ProfessionalTheme, CustomColors } from './types'
 
 // Theme Imports
 import { ELEGANTE_THEME } from './elegante'
 import { MINIMAL_THEME } from './minimal'
-import { EDITORIAL_THEME } from './editorial'
+import { DARKMODE_THEME } from './darkmode'
 import { MODERN_THEME } from './modern'
 import { CLASSIC_THEME } from './classic'
 import { CREATIVE_THEME } from './creative'
 
 // Re-export individual themes
-export { ELEGANTE_THEME, MINIMAL_THEME, EDITORIAL_THEME, MODERN_THEME, CLASSIC_THEME, CREATIVE_THEME }
+export { ELEGANTE_THEME, MINIMAL_THEME, DARKMODE_THEME, MODERN_THEME, CLASSIC_THEME, CREATIVE_THEME }
 
 // Professional Themes Collection
 export const PROFESSIONAL_THEMES = [
   ELEGANTE_THEME,
   MINIMAL_THEME,
-  EDITORIAL_THEME,
+  DARKMODE_THEME,
   MODERN_THEME,
   CLASSIC_THEME,
   CREATIVE_THEME,
@@ -54,10 +55,10 @@ export const THEME_PREVIEWS = {
     colors: ['#1A1A1A', '#3B82F6'],
     features: ['Ultra limpio', 'Tipografía Inter', 'Espacios generosos']
   },
-  editorial: {
-    description: 'Estilo revista con layouts dinámicos',
-    colors: ['#1C1C1C', '#E63946'],
-    features: ['Tipografía mixta', 'Layouts asimétricos', 'Estilo revista']
+  darkmode: {
+    description: 'Tema oscuro elegante y sofisticado con acentos dorados',
+    colors: ['#171717', '#EAB308'],
+    features: ['Dark mode premium', 'Acentos dorados', 'Diseño minimalista']
   },
   modern: {
     description: 'Contemporáneo con gradientes y animaciones',

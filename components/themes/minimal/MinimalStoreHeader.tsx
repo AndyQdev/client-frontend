@@ -1,13 +1,18 @@
+'use client'
+
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, Menu } from 'lucide-react'
+import { Search, Menu, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface MinimalStoreHeaderProps {
   store: Store
+  onCartClick: () => void
 }
 
-export default function MinimalStoreHeader({ store }: MinimalStoreHeaderProps) {
+export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreHeaderProps) {
+  const { getTotalItems } = useCart()
   return (
     <header className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -50,8 +55,12 @@ export default function MinimalStoreHeader({ store }: MinimalStoreHeaderProps) {
             <button className="text-gray-600 hover:text-gray-900 transition-colors">
               <Search className="w-5 h-5" />
             </button>
-            <button className="text-gray-600 hover:text-gray-900 transition-colors hidden sm:block text-sm font-medium">
-              Cart (0)
+            <button
+              onClick={onCartClick}
+              className="text-gray-600 hover:text-gray-900 transition-colors hidden sm:flex items-center space-x-2 text-sm font-medium"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              <span>Cart ({getTotalItems()})</span>
             </button>
             <button className="md:hidden text-gray-600 hover:text-gray-900 transition-colors">
               <Menu className="w-5 h-5" />

@@ -1,13 +1,20 @@
+'use client'
+
 import { Product } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Sparkles, Zap, Heart, Eye } from 'lucide-react'
+import { Sparkles, Zap, Heart, Eye, ShoppingCart, Star } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
 
 interface CreativeProductCardProps {
   product: Product
+  storeSlug: string
 }
 
-export default function CreativeProductCard({ product }: CreativeProductCardProps) {
+export default function CreativeProductCard({ product, storeSlug }: CreativeProductCardProps) {
+  const { addToCart } = useCart()
+  const [isAdding, setIsAdding] = useState(false)
   const randomRotation = Math.random() * 6 - 3 // -3 to 3 degrees
   const randomColors = [
     'from-pink-500 to-purple-600',
@@ -18,6 +25,12 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
     'from-purple-500 to-blue-600'
   ]
   const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)]
+
+  const handleAddToCart = () => {
+    setIsAdding(true)
+    addToCart(product, 1)
+    setTimeout(() => setIsAdding(false), 1000)
+  }
 
   return (
     <div
@@ -49,7 +62,7 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
         {/* Badge creativo */}
         {product.isFeatured && (
           <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transform -rotate-12 animate-pulse">
-            ✨ Featured
+            ✨ Destacado
           </div>
         )}
 
@@ -57,10 +70,25 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300">
           <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
             <div className="flex space-x-2">
-              <button className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-full text-sm font-bold hover:from-purple-500 hover:to-blue-600 transition-all duration-300 transform hover:scale-105">
+              <button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0 || isAdding}
+                className={`flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-full text-sm font-bold hover:from-purple-500 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isAdding ? 'animate-pulse' : ''
+                }`}
+              >
                 <span className="flex items-center justify-center space-x-1">
-                  <Zap className="w-4 h-4" />
-                  <span>Get It!</span>
+                  {isAdding ? (
+                    <>
+                      <Sparkles className="w-4 h-4 animate-spin" />
+                      <span>¡Agregando Magia!</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>{product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}</span>
+                    </>
+                  )}
                 </span>
               </button>
               <button className="bg-white/90 backdrop-blur-sm text-gray-800 p-2 rounded-full hover:bg-white transition-colors duration-300">
@@ -81,7 +109,7 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
         </div>
 
         {/* Nombre del producto */}
-        <Link href={`/${product.storeId}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.slug}`}>
           <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-purple-600 transition-colors duration-300 transform hover:scale-105 origin-left">
             {product.name}
           </h3>
@@ -90,7 +118,7 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
         {/* Marca con estilo */}
         {product.brand && (
           <p className="text-sm text-gray-500 mb-3 font-medium flex items-center space-x-1">
-            <span>by</span>
+            <span>por</span>
             <span className="text-purple-600 font-bold">{product.brand.name}</span>
             <Star className="w-3 h-3 text-yellow-400" />
           </p>
@@ -109,7 +137,7 @@ export default function CreativeProductCard({ product }: CreativeProductCardProp
             </div>
           </div>
           <div className="text-green-600 font-bold">
-            {product.stock > 0 ? '✓ Available' : '✗ Sold Out'}
+            {product.stock > 0 ? '✓ Disponible' : '✗ Agotado'}
           </div>
         </div>
 
