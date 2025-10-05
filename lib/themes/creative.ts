@@ -13,13 +13,16 @@ export const CREATIVE_THEME: ProfessionalTheme = {
 
     return {
       ...generated,
-      // Override para estética creativa
-      background: '#FFFEF9',
+      // Override para estética artística y creativa
+      background: '#FDFBF7', // Blanco cálido tipo papel
       surface: '#FFFFFF',
-      border: '#E0E7FF',
-      borderLight: '#F0F4FF',
+      border: '#E9D5FF', // Púrpura muy claro
+      borderLight: '#FAF5FF',
       textMuted: '#64748B',
-      text: '#0F172A',
+      text: '#1E1B4B', // Índigo muy oscuro
+      primary: customColors.primary || '#F59E0B', // Naranja vibrante (amber-500)
+      secondary: customColors.secondary || '#8B5CF6', // Púrpura vibrante (violet-500)
+      accent: '#EC4899', // Rosa vibrante (pink-500)
     }
   },
 

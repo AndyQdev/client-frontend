@@ -38,16 +38,17 @@ Un **marketplace multi-tienda** profesional construido con Next.js 14, diseñado
 - Integración con WhatsApp para consultas
 - Breadcrumb navigation
 
-### 🎨 **Sistema de Temas Dinámicos**
-- 6 temas predefinidos profesionales:
-  - **Elegante** (Premium - Negro/Dorado)
-  - **Natural** (Eco-friendly - Verde/Marrón)
-  - **Corporativo** (Profesional - Azul/Gris)
-  - **Femenino** (Delicado - Rosa/Violeta)
-  - **Moderno** (Tech - Violeta/Negro)
-  - **Clásico** (Tradicional - Rojo/Blanco)
+### 🎨 **Sistema de Temas Profesionales**
+- 6 temas predefinidos organizados por categoría de negocio:
+  - **Elegante** → Moda y Estilo de Vida (Sofisticado - Beige/Dorado)
+  - **Minimal** → Belleza y Cuidado Personal (Limpio - Verdes/Rosas suaves)
+  - **DarkMode** → Deportes y Bienestar (Oscuro - Negro/Dorado energético)
+  - **Modern** → Tecnología y Electrónicos (Contemporáneo - Gradientes/Índigo)
+  - **Classic** → Hogar y Alimentación (Tradicional - Marrón/Beige)
+  - **Creative** → Arte, Cultura y Servicios (Experimental - Colorido/Efectos únicos)
 - CSS Variables dinámicas
 - Cambio de tema instantáneo sin recarga
+- Componentes especializados por categoría
 
 ### ⚡ **Performance y UX**
 - Next.js 14 con App Router
@@ -142,21 +143,63 @@ web-client/
     └── api-integration.md     # Integración con backend
 ```
 
-## 🎯 Datos de Prueba
+## 🎯 Categorización de Tiendas
 
-### Tiendas Incluidas
-- **Juan Electronics** - 45 productos, tema corporativo
-- **María Fashion** - 78 productos, tema femenino
-- **Carlos Orgánico** - 32 productos, tema natural
-- **Ana Belleza** - 56 productos, tema elegante
-- **Roberto Deportes** - 67 productos, tema moderno
+### 1. 💄 Belleza y Cuidado Personal
+**Tema:** Minimal (Colores suaves, diseño limpio y premium)
+**Productos que puedes vender:**
+- Perfumes y fragancias, maquillaje, cuidado facial/corporal/capilar
+- Productos para uñas, accesorios de belleza, herramientas
+- Productos para hombres, naturales y orgánicos
 
-### Productos de Ejemplo
-- Electrónicos: iPhone, Samsung Galaxy, MacBook Pro
-- Moda: Vestidos, blusas, pantalones
-- Orgánicos: Frutas, verduras, granos
-- Belleza: Maquillaje, cuidado facial, perfumes
-- Deportes: Fútbol, running, gimnasio
+### 2. 👗 Moda y Estilo de Vida
+**Tema:** Elegante (Sofisticado con tipografía serif)
+**Productos que puedes vender:**
+- Ropa, calzado, accesorios, joyería, relojes
+- Gafas, ropa deportiva, productos de cuero
+- Artículos de viaje (maletas, mochilas)
+
+### 3. 🏠 Hogar y Alimentación
+**Tema:** Classic (Tradicional y atemporal)
+**Productos que puedes vender:**
+- Abarrotes (granos, cereales, enlatados, condimentos)
+- Bebidas, snacks, productos de limpieza
+- Artículos para cocina, decoración, textiles
+- Electrodomésticos, artículos de baño, productos para mascotas
+
+### 4. 📱 Tecnología y Electrónicos
+**Tema:** Modern (Contemporáneo con gradientes)
+**Productos que puedes vender:**
+- Smartphones, tablets, computadoras, accesorios tech
+- Auriculares, cámaras, gaming (consolas, videojuegos)
+- Smart home, wearables, componentes de PC
+- Equipos de oficina, gadgets y novedades
+
+### 5. 🏃‍♂️ Deportes y Bienestar
+**Tema:** DarkMode (Oscuro y energético)
+**Productos que puedes vender:**
+- Ropa y calzado deportivo, equipos de ejercicio
+- Suplementos deportivos, vitaminas, nutrición saludable
+- Equipos para deportes específicos, bicicletas
+- Camping/outdoor, productos de rehabilitación
+- Productos para meditación, alimentos dietéticos
+
+### 6. 🎨 Arte, Cultura y Servicios
+**Tema:** Creative (Experimental con efectos únicos)
+**Productos que puedes vender:**
+- Productos digitales (diseños, plantillas, cursos)
+- Servicios creativos (diseño gráfico, fotografía)
+- Artesanías, libros, arte original
+- Instrumentos musicales, productos personalizados
+- Servicios profesionales, material de oficina premium
+- Juguetes educativos, productos vintage, experiencias virtuales
+
+### Ventajas de esta Clasificación
+✅ **Flexibilidad**: Un abarrote cabe perfectamente en "Hogar y Alimentación"
+✅ **Escalabilidad**: Cada categoría puede crecer sin problemas
+✅ **Claridad**: Los usuarios entienden fácilmente dónde ubicar su tienda
+✅ **Marketing**: Más fácil crear campañas y filtros
+✅ **SEO**: Mejor posicionamiento con categorías amplias pero específicas
 
 ## 🛠️ Tecnologías Utilizadas
 

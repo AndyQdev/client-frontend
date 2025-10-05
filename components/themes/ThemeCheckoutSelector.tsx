@@ -3,12 +3,12 @@ import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/t
 import { CartProvider } from '@/lib/cart-context'
 
 // Import checkout components from each theme
-import { ModernCheckout } from './modern'
-import { EleganteCheckout } from './elegante'
-import { MinimalCheckout } from './minimal'
-import { ClassicCheckout } from './classic'
-import DarkModeCheckout from './darkmode/DarkModeCheckout'
-import { CreativeCheckout } from './creative'
+import { ModernCheckout } from './tecnologia/modern'
+import { EleganteCheckout } from './moda/elegante'
+import { MinimalCheckout } from './hogar/minimal'
+import { ClassicCheckout } from './belleza/classic'
+import DarkModeCheckout from './deportes/darkmode/DarkModeCheckout'
+import { CreativeCheckout } from './arte/creative'
 
 interface ThemeCheckoutSelectorProps {
   themeId: string
@@ -19,7 +19,6 @@ interface ThemeCheckoutSelectorProps {
 export default function ThemeCheckoutSelector({
   themeId,
   store,
-  serializableTheme
 }: ThemeCheckoutSelectorProps) {
   let CheckoutComponent
 

@@ -13,12 +13,14 @@ export const MINIMAL_THEME: ProfessionalTheme = {
 
     return {
       ...generated,
-      // Override para estética minimal
-      background: '#FFFFFF',
-      surface: '#FDFDFD',
-      border: '#F0F0F0',
-      borderLight: '#F8F8F8',
-      textMuted: '#8E8E8E',
+      // Override para estética de belleza y cuidado personal
+      background: '#FDFCFB', // Blanco cálido suave
+      surface: '#FFFFFF',
+      border: '#F0E6E0', // Beige rosado muy suave
+      borderLight: '#FAF5F2',
+      textMuted: '#A89B94', // Marrón rosado suave
+      primary: customColors.primary || '#D4A5A5', // Rosa empolvado
+      secondary: customColors.secondary || '#B8D4C6', // Verde menta suave
     }
   },
 

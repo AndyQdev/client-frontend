@@ -3,12 +3,12 @@ import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/t
 import { CartProvider } from '@/lib/cart-context'
 
 // Importar componentes de cada tema
-import { ModernStorePage } from './modern'
-import { EleganteStorePage } from './elegante'
-import { MinimalStorePage } from './minimal'
-import { ClassicStorePage } from './classic'
-import DarkModeStorePage from './darkmode/DarkModeStorePage'
-import { CreativeStorePage } from './creative'
+import { ModernStorePage } from './tecnologia/modern'
+import { EleganteStorePage } from './moda/elegante'
+import { MinimalStorePage } from './hogar/minimal'
+import { ClassicStorePage } from './belleza/classic'
+import DarkModeStorePage from './deportes/darkmode/DarkModeStorePage'
+import { CreativeStorePage } from './arte/creative'
 
 interface ThemeComponentSelectorProps {
   themeId: string

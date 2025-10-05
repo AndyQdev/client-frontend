@@ -3,12 +3,12 @@ import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/t
 import { CartProvider } from '@/lib/cart-context'
 
 // Import order tracking components from each theme
-import { ModernOrderTracking } from './modern'
-import { EleganteOrderTracking } from './elegante'
-import { MinimalOrderTracking } from './minimal'
-import { ClassicOrderTracking } from './classic'
-import DarkModeOrderTracking from './darkmode/DarkModeOrderTracking'
-import { CreativeOrderTracking } from './creative'
+import { ModernOrderTracking } from './tecnologia/modern'
+import { EleganteOrderTracking } from './moda/elegante'
+import { MinimalOrderTracking } from './hogar/minimal'
+import { ClassicOrderTracking } from './belleza/classic'
+import DarkModeOrderTracking from './deportes/darkmode/DarkModeOrderTracking'
+import { CreativeOrderTracking } from './arte/creative'
 
 interface ThemeOrderTrackingSelectorProps {
   themeId: string

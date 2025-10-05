@@ -4,7 +4,7 @@ import { generateThemeColors } from './color-generator'
 export const DARKMODE_THEME: ProfessionalTheme = {
   id: 'darkmode',
   name: 'Dark Mode',
-  description: 'Tema oscuro elegante y sofisticado con acentos dorados',
+  description: 'Tema oscuro energético para deportes y bienestar con acentos motivacionales',
   category: 'luxury',
   preview: '/themes/darkmode-preview.png',
 
@@ -13,17 +13,19 @@ export const DARKMODE_THEME: ProfessionalTheme = {
 
     return {
       ...generated,
-      // Dark mode palette inspired by Shade theme
-      background: '#171717', // zinc-900
-      surface: '#27272A', // zinc-800
-      border: '#3F3F46', // zinc-700
-      borderLight: '#52525B', // zinc-600
-      textMuted: '#71717A', // zinc-500
-      text: '#D4D4D8', // zinc-300
-      textStrong: '#F4F4F5', // zinc-100
-      primary: customColors.primary || '#EAB308', // yellow-500 (golden)
-      primaryDark: '#CA8A04', // yellow-600
-      primaryLight: '#FDE047', // yellow-300
+      // Dark sports palette con acentos energéticos
+      background: '#0A0A0A', // Negro profundo
+      surface: '#1A1A1A', // Gris muy oscuro
+      border: '#2A2A2A', // Gris oscuro
+      borderLight: '#3A3A3A', // Gris medio oscuro
+      textMuted: '#888888', // Gris medio
+      text: '#E0E0E0', // Gris claro
+      textStrong: '#FFFFFF', // Blanco puro
+      primary: customColors.primary || '#10B981', // Verde energético (emerald-500)
+      primaryDark: '#059669', // Verde oscuro (emerald-600)
+      primaryLight: '#34D399', // Verde claro (emerald-400)
+      secondary: customColors.secondary || '#F59E0B', // Naranja energético (amber-500)
+      accent: '#8B5CF6', // Púrpura motivacional (violet-500)
     }
   },
 
