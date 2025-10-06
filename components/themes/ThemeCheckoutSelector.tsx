@@ -9,6 +9,7 @@ import { MinimalCheckout } from './hogar/minimal'
 import { ClassicCheckout } from './belleza/classic'
 import DarkModeCheckout from './deportes/darkmode/DarkModeCheckout'
 import { CreativeCheckout } from './arte/creative'
+import { InteriorCheckout } from './hogar/interior'
 
 interface ThemeCheckoutSelectorProps {
   themeId: string
@@ -45,6 +46,9 @@ export default function ThemeCheckoutSelector({
 
     case 'creative':
       CheckoutComponent = <CreativeCheckout store={store} />
+      break
+    case 'interior':
+      CheckoutComponent = <InteriorCheckout store={store} />
       break
 
     default:

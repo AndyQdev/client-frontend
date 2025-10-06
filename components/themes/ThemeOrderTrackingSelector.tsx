@@ -9,6 +9,7 @@ import { MinimalOrderTracking } from './hogar/minimal'
 import { ClassicOrderTracking } from './belleza/classic'
 import DarkModeOrderTracking from './deportes/darkmode/DarkModeOrderTracking'
 import { CreativeOrderTracking } from './arte/creative'
+import { InteriorOrderTracking } from './hogar/interior'
 
 interface ThemeOrderTrackingSelectorProps {
   themeId: string
@@ -48,6 +49,10 @@ export default function ThemeOrderTrackingSelector({
 
     case 'creative':
       TrackingComponent = <CreativeOrderTracking store={store} orderId={orderId} />
+      break
+
+    case 'interior':
+      TrackingComponent = <InteriorOrderTracking store={store} orderId={orderId} />
       break
 
     default:

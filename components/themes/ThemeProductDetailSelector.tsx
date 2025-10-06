@@ -9,6 +9,7 @@ import { MinimalProductDetail } from './hogar/minimal'
 import { ClassicProductDetail } from './belleza/classic'
 import DarkModeProductDetail from './deportes/darkmode/DarkModeProductDetail'
 import { CreativeProductDetail } from './arte/creative'
+import { InteriorProductDetail } from './hogar/interior'
 
 interface ThemeProductDetailSelectorProps {
   themeId: string
@@ -74,6 +75,15 @@ export default function ThemeProductDetailSelector({
     case 'creative':
       DetailComponent = (
         <CreativeProductDetail
+          store={store}
+          product={product}
+        />
+      )
+      break
+
+    case 'interior':
+      DetailComponent = (
+        <InteriorProductDetail
           store={store}
           product={product}
         />

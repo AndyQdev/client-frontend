@@ -9,6 +9,7 @@ import { MinimalStorePage } from './hogar/minimal'
 import { ClassicStorePage } from './belleza/classic'
 import DarkModeStorePage from './deportes/darkmode/DarkModeStorePage'
 import { CreativeStorePage } from './arte/creative'
+import { InteriorStorePage } from './hogar/interior'
 
 interface ThemeComponentSelectorProps {
   themeId: string
@@ -83,6 +84,16 @@ export default function ThemeComponentSelector({
     case 'creative':
       ThemeComponent = (
         <CreativeStorePage
+          store={store}
+          products={products}
+          categories={categories}
+        />
+      )
+      break
+
+    case 'interior':
+      ThemeComponent = (
+        <InteriorStorePage
           store={store}
           products={products}
           categories={categories}

@@ -10,9 +10,10 @@ import { DARKMODE_THEME } from './darkmode'
 import { MODERN_THEME } from './modern'
 import { CLASSIC_THEME } from './classic'
 import { CREATIVE_THEME } from './creative'
+import { INTERIOR_THEME } from './interior'
 
 // Re-export individual themes
-export { ELEGANTE_THEME, MINIMAL_THEME, DARKMODE_THEME, MODERN_THEME, CLASSIC_THEME, CREATIVE_THEME }
+export { ELEGANTE_THEME, MINIMAL_THEME, DARKMODE_THEME, MODERN_THEME, CLASSIC_THEME, CREATIVE_THEME, INTERIOR_THEME }
 
 // Professional Themes Collection
 export const PROFESSIONAL_THEMES = [
@@ -22,6 +23,7 @@ export const PROFESSIONAL_THEMES = [
   MODERN_THEME,
   CLASSIC_THEME,
   CREATIVE_THEME,
+  INTERIOR_THEME,
 ] as const
 
 // Utility functions for theme management
@@ -74,6 +76,11 @@ export const THEME_PREVIEWS = {
     description: 'Experimental con efectos únicos y tipografía expresiva',
     colors: ['#0F172A', '#F59E0B'],
     features: ['Efectos experimentales', 'Rotaciones playful', 'Tipografía variable']
+  },
+  interior: {
+    description: 'Elegante y cálido para tiendas de hogar y decoración',
+    colors: ['#FDFAF6', '#8B7355'],
+    features: ['Tonos tierra', 'Animaciones suaves', 'Diseño espacioso']
   }
 } as const
 
