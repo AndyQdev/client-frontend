@@ -20,14 +20,18 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-2 text-sm">
             <div className="flex items-center space-x-6 text-amber-800">
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span className="font-serif">{store.contact.phone}</span>
-              </div>
-              <div className="hidden sm:flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
-                <span className="font-serif">{store.contact.email}</span>
-              </div>
+              {store.phone && (
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span className="font-serif">{store.phone}</span>
+                </div>
+              )}
+              {store.email && (
+                <div className="hidden sm:flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="font-serif">{store.email}</span>
+                </div>
+              )}
             </div>
             <div className="text-amber-800 font-serif italic">
               "Tradición y calidad desde 1892"
@@ -41,11 +45,11 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             {/* Logo clásico */}
-            <Link href={`/${store.slug}`} className="flex items-center space-x-4">
+            <Link href={`/${store.slug}#inicio`} className="flex items-center space-x-4">
               <div className="relative">
-                {store.logo ? (
+                {store.logoUrl ? (
                   <Image
-                    src={store.logo}
+                    src={store.logoUrl}
                     alt={store.name}
                     width={56}
                     height={56}
@@ -73,16 +77,34 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
 
             {/* Navegación clásica */}
             <nav className="hidden lg:flex items-center space-x-12">
-              {['Home', 'Collections', 'Heritage', 'Craftsmanship', 'Contact'].map((item) => (
-                <Link
-                  key={item}
-                  href="#"
-                  className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
-                >
-                  {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-              ))}
+              <a
+                href="#inicio"
+                className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
+              >
+                Inicio
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
+              </a>
+              <a
+                href="#productos"
+                className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
+              >
+                Productos
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
+              </a>
+              <a
+                href="#about"
+                className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
+              >
+                Nosotros
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
+              </a>
+              <a
+                href="#contact"
+                className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
+              >
+                Contacto
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
+              </a>
             </nav>
 
             {/* Acciones clásicas */}

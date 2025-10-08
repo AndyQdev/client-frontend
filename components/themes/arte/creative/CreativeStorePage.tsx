@@ -4,8 +4,9 @@ import { Store, Product, Category } from '@/lib/types'
 import CreativeStoreHeader from './CreativeStoreHeader'
 import CreativeProductCard from './CreativeProductCard'
 import CreativeCartSheet from './CreativeCartSheet'
-import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2 } from 'lucide-react'
+import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search } from 'lucide-react'
 import { useState, useMemo } from 'react'
+import { useProductFilters } from '@/hooks/useProductFilters'
 
 interface CreativeStorePageProps {
   store: Store
@@ -17,10 +18,7 @@ export default function CreativeStorePage({ store, products, categories }: Creat
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const filteredProducts = useMemo(() => {
-    if (!selectedCategory) return products
-    return products.filter(product => product.category.id === selectedCategory)
-  }, [products, selectedCategory])
+  const { searchTerm, setSearchTerm, filteredProducts } = useProductFilters(products, selectedCategory)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-100 via-fuchsia-50 to-orange-100 relative overflow-hidden">
@@ -110,6 +108,31 @@ export default function CreativeStorePage({ store, products, categories }: Creat
             <p className="text-gray-600 text-lg font-medium">Explora nuestras categorías mágicas</p>
           </div>
 
+          {/* Buscador Creativo */}
+          <div className="max-w-2xl mx-auto mb-12">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full blur-lg opacity-30 group-hover:opacity-60 transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-full shadow-xl overflow-hidden">
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 w-6 h-6 text-purple-500 animate-pulse" />
+                <input
+                  type="text"
+                  placeholder="Busca tu producto creativo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-16 pr-6 py-5 bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none font-bold text-lg"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform font-black text-sm"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Pills de Categorías */}
           <div className="flex flex-wrap justify-center gap-4 mb-16">
             <button
@@ -142,9 +165,15 @@ export default function CreativeStorePage({ store, products, categories }: Creat
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-3xl font-black text-gray-800">
-                {selectedCategory
-                  ? categories.find(c => c.id === selectedCategory)?.name || 'Productos'
-                  : 'Todos los Productos'}
+                {searchTerm ? (
+                  <span>
+                    Resultados para: <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{searchTerm}</span>
+                  </span>
+                ) : selectedCategory ? (
+                  categories.find(c => c.id === selectedCategory)?.name || 'Productos'
+                ) : (
+                  'Todos los Productos'
+                )}
               </h3>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
                 <Zap className="w-5 h-5 text-orange-500" />

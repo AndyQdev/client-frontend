@@ -3,7 +3,7 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, Menu, ShoppingBag } from 'lucide-react'
+import { Menu, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 
 interface MinimalStoreHeaderProps {
@@ -18,10 +18,10 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo minimalista */}
-          <Link href={`/${store.slug}`} className="flex items-center space-x-3">
-            {store.logo ? (
+          <Link href={`/${store.slug}#inicio`} className="flex items-center space-x-3">
+            {store.logoUrl ? (
               <Image
-                src={store.logo}
+                src={store.logoUrl}
                 alt={store.name}
                 width={32}
                 height={32}
@@ -39,22 +39,22 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
 
           {/* Navegación central ultra minimal */}
           <nav className="hidden md:flex items-center space-x-12">
-            <Link href="#" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
-              Shop
-            </Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
-              About
-            </Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
-              Contact
-            </Link>
+            <a href="#inicio" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+              Inicio
+            </a>
+            <a href="#productos" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+              Productos
+            </a>
+            <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+              Nosotros
+            </a>
+            <a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+              Contacto
+            </a>
           </nav>
 
           {/* Acciones mínimas */}
           <div className="flex items-center space-x-6">
-            <button className="text-gray-600 hover:text-gray-900 transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
             <button
               onClick={onCartClick}
               className="text-gray-600 hover:text-gray-900 transition-colors hidden sm:flex items-center space-x-2 text-sm font-medium"

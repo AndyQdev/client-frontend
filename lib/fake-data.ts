@@ -1182,7 +1182,13 @@ export function getStoreProfessionalThemeColors(store: Store) {
 
 // Función helper para obtener el tema profesional serializable (sin funciones) para componentes cliente
 export function getStoreProfessionalThemeSerializable(store: Store) {
-  if (!store.professionalTheme) return null
+  // Support both old format (professionalTheme) and new format (themeId)
+  const themeId = store.professionalTheme?.themeId || store.themeId
+
+  if (!themeId) {
+    console.error('No theme ID found for store:', store.slug)
+    return null
+  }
 
   // Import themes dynamically to avoid circular dependencies
   const { PROFESSIONAL_THEMES } = require('./themes/index')
@@ -1192,11 +1198,19 @@ export function getStoreProfessionalThemeSerializable(store: Store) {
     return null
   }
 
-  const theme = PROFESSIONAL_THEMES.find((t: any) => t.id === store.professionalTheme!.themeId)
-  if (!theme) return null
+  const theme = PROFESSIONAL_THEMES.find((t: any) => t.id === themeId)
+  if (!theme) {
+    console.error('Theme not found:', themeId, 'Available themes:', PROFESSIONAL_THEMES.map((t: any) => t.id))
+    return null
+  }
 
   // Generate colors on server side and create serializable theme
-  const generatedColors = theme.generateColors(store.professionalTheme.customColors)
+  // Provide default colors if not available
+  const customColors = store.professionalTheme?.customColors || {
+    primary: '#3B82F6',
+    secondary: '#8B5CF6'
+  }
+  const generatedColors = theme.generateColors(customColors)
 
   return {
     id: theme.id,
@@ -1209,7 +1223,7 @@ export function getStoreProfessionalThemeSerializable(store: Store) {
     styling: theme.styling,
     customCSS: theme.customCSS,
     colors: generatedColors,
-    customColors: store.professionalTheme.customColors
+    customColors
   }
 }
 

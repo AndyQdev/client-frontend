@@ -1,7 +1,7 @@
 'use client'
 
 import { Store } from '@/lib/types'
-import { ShoppingCart, Search, User, Menu, X } from 'lucide-react'
+import { ShoppingCart, User, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -13,7 +13,6 @@ interface InteriorStoreHeaderProps {
 
 export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount = 0 }: InteriorStoreHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   return (
     <header className="store-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
@@ -76,15 +75,6 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
 
           {/* Actions */}
           <div className="flex items-center gap-4">
-            {/* Search */}
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 text-stone-700 hover:text-stone-900 transition-colors"
-              title="Buscar"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
             {/* User */}
             <button
               className="hidden md:block p-2 text-stone-700 hover:text-stone-900 transition-colors"
@@ -108,21 +98,6 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
             </button>
           </div>
         </div>
-
-        {/* Search bar expandible */}
-        {isSearchOpen && (
-          <div className="pb-4 animate-fade-in">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 focus:border-stone-400 focus:outline-none transition-colors"
-                autoFocus
-              />
-            </div>
-          </div>
-        )}
 
         {/* Mobile menu */}
         {isMenuOpen && (

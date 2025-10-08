@@ -20,14 +20,18 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span>{store.contact.phone}</span>
-              </div>
-              <div className="hidden sm:flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
-                <span>{store.contact.email}</span>
-              </div>
+              {store.phone && (
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span>{store.phone}</span>
+                </div>
+              )}
+              {store.email && (
+                <div className="hidden sm:flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span>{store.email}</span>
+                </div>
+              )}
             </div>
             <div className="text-xs uppercase tracking-widest font-light">
               Envío gratuito en compras superiores a $100.000
@@ -46,11 +50,11 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
             </button>
 
             {/* Logo central */}
-            <Link href={`/${store.slug}`} className="flex-1 lg:flex-none lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2">
+            <Link href={`/${store.slug}#inicio`} className="flex-1 lg:flex-none lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2">
               <div className="flex items-center justify-center lg:justify-start space-x-3">
-                {store.logo ? (
+                {store.logoUrl ? (
                   <Image
-                    src={store.logo}
+                    src={store.logoUrl}
                     alt={store.name}
                     width={40}
                     height={40}
@@ -74,18 +78,18 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
 
             {/* Navegación desktop */}
             <nav className="hidden lg:flex items-center space-x-12">
-              <Link href="#" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Nuevos
-              </Link>
-              <Link href="#" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Mujer
-              </Link>
-              <Link href="#" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Hombre
-              </Link>
-              <Link href="#" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Accesorios
-              </Link>
+              <a href="#inicio" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+                Inicio
+              </a>
+              <a href="#productos" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+                Productos
+              </a>
+              <a href="#about" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+                Nosotros
+              </a>
+              <a href="#contact" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+                Contacto
+              </a>
             </nav>
 
             {/* Acciones elegantes */}

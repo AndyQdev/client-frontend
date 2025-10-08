@@ -45,7 +45,7 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
     : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-[#0F0F0F]">
       {/* Header */}
       <ModernStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
 
@@ -55,15 +55,15 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
       {/* Breadcrumb Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <nav className="flex items-center space-x-2 text-sm">
-          <Link href={`/${store.slug}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+          <Link href={`/${store.slug}`} className="text-[#A3A3A3] hover:text-[#D4AF37] transition-colors">
             Tienda
           </Link>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <Link href={`/${store.slug}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+          <ChevronRight className="w-4 h-4 text-[#6B7280]" />
+          <Link href={`/${store.slug}`} className="text-[#A3A3A3] hover:text-[#D4AF37] transition-colors">
             {product.category.name}
           </Link>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">{product.name}</span>
+          <ChevronRight className="w-4 h-4 text-[#6B7280]" />
+          <span className="text-[#F5F5F5] font-medium">{product.name}</span>
         </nav>
       </div>
 
@@ -73,7 +73,7 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-square rounded-3xl overflow-hidden bg-white shadow-xl">
+            <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#1A1A1A] shadow-xl border border-[#2A2A2A]">
               <Image
                 src={product.images[selectedImage] || product.images[0]}
                 alt={product.name}
@@ -87,7 +87,7 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                 </div>
               )}
               {product.isFeatured && (
-                <div className="absolute top-6 right-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                <div className="absolute top-6 right-6 bg-[#D4AF37] text-[#0F0F0F] px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                   Destacado
                 </div>
               )}
@@ -102,8 +102,8 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                     onClick={() => setSelectedImage(index)}
                     className={`relative aspect-square rounded-2xl overflow-hidden transition-all duration-300 ${
                       selectedImage === index
-                        ? 'ring-4 ring-blue-500 scale-105'
-                        : 'ring-2 ring-gray-200 hover:ring-blue-300'
+                        ? 'ring-4 ring-[#D4AF37] scale-105'
+                        : 'ring-2 ring-[#2A2A2A] hover:ring-[#D4AF37]/50'
                     }`}
                   >
                     <Image
@@ -122,20 +122,20 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
           <div className="space-y-6">
             {/* Category Badge */}
             <div>
-              <span className="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-4 py-2 rounded-full uppercase tracking-wide">
+              <span className="inline-block bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-semibold px-4 py-2 rounded-full uppercase tracking-wide border border-[#D4AF37]/20">
                 {product.category.name}
               </span>
             </div>
 
             {/* Product Name */}
-            <h1 className="text-4xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-4xl font-bold text-[#F5F5F5] leading-tight">
               {product.name}
             </h1>
 
             {/* Brand */}
             {product.brand && (
-              <p className="text-lg text-gray-600 font-medium">
-                Por <span className="text-blue-600">{product.brand.name}</span>
+              <p className="text-lg text-[#A3A3A3] font-medium">
+                Por <span className="text-[#D4AF37]">{product.brand.name}</span>
               </p>
             )}
 
@@ -146,28 +146,28 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                   <Star
                     key={i}
                     className={`w-5 h-5 ${
-                      i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                      i < 4 ? 'text-[#D4AF37] fill-current' : 'text-[#4B5563]'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-sm text-gray-600 font-medium">4.0 (120 reseñas)</span>
+              <span className="text-sm text-[#A3A3A3] font-medium">4.0 (120 reseñas)</span>
             </div>
 
             {/* Price */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-6">
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-6">
               <div className="flex items-baseline space-x-4">
-                <span className="text-5xl font-bold text-gray-900">
+                <span className="text-5xl font-bold text-[#D4AF37]">
                   ${product.price.toLocaleString()}
                 </span>
                 {product.originalPrice && (
-                  <span className="text-2xl text-gray-400 line-through">
+                  <span className="text-2xl text-[#6B7280] line-through">
                     ${product.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
               {discount > 0 && (
-                <p className="mt-2 text-green-600 font-semibold">
+                <p className="mt-2 text-[#E5C158] font-semibold">
                   Ahorras ${(product.originalPrice! - product.price).toLocaleString()}
                 </p>
               )}
@@ -192,21 +192,21 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
 
             {/* Quantity Selector */}
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-gray-700">Cantidad</label>
+              <label className="text-sm font-semibold text-[#F5F5F5]">Cantidad</label>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center bg-white rounded-2xl shadow-md overflow-hidden">
+                <div className="flex items-center bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl overflow-hidden">
                   <button
                     onClick={decrementQuantity}
                     disabled={quantity <= 1}
-                    className="p-4 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-4 text-[#F5F5F5] hover:bg-[#2A2A2A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Minus className="w-5 h-5" />
                   </button>
-                  <span className="px-8 text-xl font-bold">{quantity}</span>
+                  <span className="px-8 text-xl font-bold text-[#F5F5F5]">{quantity}</span>
                   <button
                     onClick={incrementQuantity}
                     disabled={quantity >= product.stock}
-                    className="p-4 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-4 text-[#F5F5F5] hover:bg-[#2A2A2A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Plus className="w-5 h-5" />
                   </button>
@@ -223,8 +223,8 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                   showAdded
                     ? 'bg-green-500 text-white'
                     : isInCart(product.id)
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                    ? 'bg-[#D4AF37] text-[#0F0F0F] hover:bg-[#E5C158]'
+                    : 'bg-[#D4AF37] text-[#0F0F0F] hover:bg-[#E5C158]'
                 }`}
               >
                 {showAdded ? (
@@ -241,11 +241,11 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
               </button>
 
               <div className="grid grid-cols-2 gap-3">
-                <button className="py-3 px-4 border-2 border-gray-300 rounded-2xl font-semibold flex items-center justify-center space-x-2 hover:bg-gray-50 transition-all duration-300">
+                <button className="py-3 px-4 border-2 border-[#2A2A2A] text-[#F5F5F5] rounded-2xl font-semibold flex items-center justify-center space-x-2 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
                   <Heart className="w-5 h-5" />
                   <span>Favorito</span>
                 </button>
-                <button className="py-3 px-4 border-2 border-gray-300 rounded-2xl font-semibold flex items-center justify-center space-x-2 hover:bg-gray-50 transition-all duration-300">
+                <button className="py-3 px-4 border-2 border-[#2A2A2A] text-[#F5F5F5] rounded-2xl font-semibold flex items-center justify-center space-x-2 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300">
                   <Share2 className="w-5 h-5" />
                   <span>Compartir</span>
                 </button>
@@ -254,25 +254,25 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
 
             {/* Benefits */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-2xl shadow-sm">
-                <Truck className="w-8 h-8 text-blue-600" />
+              <div className="flex items-center space-x-3 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl">
+                <Truck className="w-8 h-8 text-[#D4AF37]" />
                 <div>
-                  <p className="text-xs text-gray-500">Envío gratis</p>
-                  <p className="text-sm font-semibold">Pedidos +$100k</p>
+                  <p className="text-xs text-[#A3A3A3]">Envío gratis</p>
+                  <p className="text-sm font-semibold text-[#F5F5F5]">Pedidos +$100k</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-2xl shadow-sm">
-                <Shield className="w-8 h-8 text-blue-600" />
+              <div className="flex items-center space-x-3 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl">
+                <Shield className="w-8 h-8 text-[#D4AF37]" />
                 <div>
-                  <p className="text-xs text-gray-500">Compra segura</p>
-                  <p className="text-sm font-semibold">100% protegido</p>
+                  <p className="text-xs text-[#A3A3A3]">Compra segura</p>
+                  <p className="text-sm font-semibold text-[#F5F5F5]">100% protegido</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-2xl shadow-sm">
-                <RefreshCw className="w-8 h-8 text-blue-600" />
+              <div className="flex items-center space-x-3 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl">
+                <RefreshCw className="w-8 h-8 text-[#D4AF37]" />
                 <div>
-                  <p className="text-xs text-gray-500">Devoluciones</p>
-                  <p className="text-sm font-semibold">30 días</p>
+                  <p className="text-xs text-[#A3A3A3]">Devoluciones</p>
+                  <p className="text-sm font-semibold text-[#F5F5F5]">30 días</p>
                 </div>
               </div>
             </div>
@@ -282,10 +282,10 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
         {/* Product Description & Specifications */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Description */}
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Descripción del producto</h2>
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
+            <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Descripción del producto</h2>
             <div className="prose prose-blue max-w-none">
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-[#A3A3A3] leading-relaxed">
                 {product.description || 'Este producto de alta calidad está diseñado para ofrecerte la mejor experiencia. Fabricado con materiales premium y atención al detalle, combina funcionalidad y estilo de manera excepcional.'}
               </p>
             </div>
@@ -293,13 +293,13 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
 
           {/* Specifications */}
           {product.specifications && Object.keys(product.specifications).length > 0 && (
-            <div className="bg-white rounded-3xl p-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Especificaciones</h2>
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
+              <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Especificaciones</h2>
               <div className="space-y-4">
                 {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-3 border-b border-gray-100">
-                    <span className="text-gray-600 font-medium">{key}</span>
-                    <span className="text-gray-900 font-semibold">{value}</span>
+                  <div key={key} className="flex justify-between py-3 border-b border-[#2A2A2A]">
+                    <span className="text-[#A3A3A3] font-medium">{key}</span>
+                    <span className="text-[#F5F5F5] font-semibold">{value}</span>
                   </div>
                 ))}
               </div>
@@ -310,27 +310,27 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Productos relacionados</h2>
+            <h2 className="text-3xl font-bold text-[#F5F5F5] mb-8">Productos relacionados</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedProducts.slice(0, 4).map((relatedProduct) => (
                 <Link
                   key={relatedProduct.id}
                   href={`/${store.slug}/productos/${relatedProduct.slug}`}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+                  className="group bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl overflow-hidden hover:border-[#D4AF37] transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="relative aspect-square">
                     <Image
                       src={relatedProduct.images[0]}
                       alt={relatedProduct.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2">
+                    <h3 className="text-sm font-semibold text-[#F5F5F5] line-clamp-2 mb-2">
                       {relatedProduct.name}
                     </h3>
-                    <p className="text-lg font-bold text-blue-600">
+                    <p className="text-lg font-bold text-[#D4AF37]">
                       ${relatedProduct.price.toLocaleString()}
                     </p>
                   </div>

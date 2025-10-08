@@ -54,10 +54,42 @@ export interface Store {
   slug: string
   name: string
   description?: string
-  logo?: string
-  banner?: string
-  theme: Theme
+
+  // Branding
+  logoUrl?: string // Antes: logo
+  bannerUrl?: string // Antes: banner
+  faviconUrl?: string
+
+  // Contenido de secciones
+  aboutUs?: string // Para sección "Acerca de Nosotros"
+  heroTitle?: string // Título principal del hero
+
+  // Información de contacto
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+
+  // Redes sociales
+  facebookUrl?: string
+  instagramUrl?: string
+  whatsappNumber?: string
+
+  // Features/Beneficios (iconos con beneficios en la página)
+  features?: {
+    icon: string
+    title: string
+    description: string
+  }[]
+
+  // Configuración de tienda
+  category?: string // tecnologia, moda, hogar, belleza, deportes, arte
+  themeId?: string // ID del tema profesional
+  currency?: string // COP, USD, etc.
   isActive: boolean
+
+  // Legacy fields
+  theme: Theme
   user: User
   contact: {
     phone?: string
@@ -72,6 +104,7 @@ export interface Store {
   }
   createdAt: Date
   updatedAt: Date
+
   // New professional theme system
   professionalTheme?: {
     themeId: string

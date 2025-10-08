@@ -2,7 +2,7 @@
 
 import { Store } from '@/lib/types'
 import Link from 'next/link'
-import { Search, Menu, ShoppingBag, User } from 'lucide-react'
+import { Menu, ShoppingBag, User } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 
 interface DarkModeStoreHeaderProps {
@@ -51,12 +51,6 @@ export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStor
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
-            {/* Search */}
-            <button className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-yellow-500 transition-colors group">
-              <Search className="w-4 h-4 text-zinc-500 group-hover:text-yellow-500 transition-colors" />
-              <span className="text-sm text-zinc-500 group-hover:text-yellow-500 transition-colors">Buscar</span>
-            </button>
-
             {/* User Icon */}
             <button className="p-2 text-zinc-400 hover:text-yellow-500 transition-colors">
               <User className="w-5 h-5" />

@@ -2,6 +2,23 @@ import { CustomColors, ThemeColors } from './types'
 
 // Función para convertir hex a HSL
 function hexToHsl(hex: string): [number, number, number] {
+  // Validate hex input
+  if (!hex || typeof hex !== 'string') {
+    console.error('Invalid hex color:', hex)
+    return [0, 0, 0]
+  }
+
+  // Ensure hex starts with #
+  if (!hex.startsWith('#')) {
+    hex = '#' + hex
+  }
+
+  // Validate hex format
+  if (hex.length !== 7) {
+    console.error('Invalid hex color format:', hex)
+    return [0, 0, 0]
+  }
+
   const r = parseInt(hex.slice(1, 3), 16) / 255
   const g = parseInt(hex.slice(3, 5), 16) / 255
   const b = parseInt(hex.slice(5, 7), 16) / 255

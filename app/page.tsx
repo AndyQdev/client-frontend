@@ -1,10 +1,10 @@
 import MarketplaceHeader from '@/components/MarketplaceHeader'
 import StoreGrid from '@/components/StoreGrid'
 import MarketplaceStats from '@/components/MarketplaceStats'
-import { getAllStores } from '@/lib/fake-data'
+import { getAllStores } from '@/lib/api'
 
-export default function MarketplacePage() {
-  const stores = getAllStores()
+export default async function MarketplacePage() {
+  const stores = await getAllStores()
 
   return (
     <main className="min-h-screen bg-background">
@@ -25,7 +25,15 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          <StoreGrid stores={stores} />
+          {stores.length > 0 ? (
+            <StoreGrid stores={stores} />
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-text-secondary text-lg">
+                No hay tiendas disponibles en este momento
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </main>

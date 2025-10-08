@@ -70,31 +70,31 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-[#0F0F0F]">
       <ModernStoreHeader store={store} onCartClick={() => {}} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#F0D97D] bg-clip-text text-transparent mb-2">
             Finalizar Compra
           </h1>
-          <p className="text-gray-600">Completa tu pedido de manera segura</p>
+          <p className="text-[#A3A3A3]">Completa tu pedido de manera segura</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Order Summary */}
           <div className="space-y-6">
             {/* Cart Items */}
-            <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Package className="w-6 h-6 text-blue-600" />
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-6">
+              <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6 flex items-center gap-2">
+                <Package className="w-6 h-6 text-[#D4AF37]" />
                 Resumen del Pedido
               </h2>
 
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-4 pb-4 border-b border-gray-100 last:border-0">
-                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div key={item.product.id} className="flex gap-4 pb-4 border-b border-[#2A2A2A] last:border-0">
+                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-[#0F0F0F] flex-shrink-0">
                       {item.product.images[0] ? (
                         <Image
                           src={item.product.images[0]}
@@ -103,13 +103,13 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#D4AF37] to-[#B8941F]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{item.product.name}</h3>
-                      <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
-                      <p className="text-lg font-bold text-blue-600 mt-1">
+                      <h3 className="font-semibold text-[#F5F5F5] truncate">{item.product.name}</h3>
+                      <p className="text-sm text-[#A3A3A3]">Cantidad: {item.quantity}</p>
+                      <p className="text-lg font-bold text-[#D4AF37] mt-1">
                         ${(item.product.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -119,8 +119,8 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
 
               {/* Promo Code */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Tag className="w-4 h-4" />
+                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-[#D4AF37]" />
                   Código Promocional
                 </label>
                 <div className="flex gap-2">
@@ -129,21 +129,21 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     placeholder="Ingresa tu código"
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                   />
-                  <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                  <button className="px-6 py-3 bg-[#D4AF37] text-[#0F0F0F] rounded-xl font-semibold hover:bg-[#E5C158] hover:shadow-lg transition-all">
                     Aplicar
                   </button>
                 </div>
               </div>
 
               {/* Price Summary */}
-              <div className="space-y-3 pt-4 border-t border-gray-200">
-                <div className="flex justify-between text-gray-600">
+              <div className="space-y-3 pt-4 border-t border-[#2A2A2A]">
+                <div className="flex justify-between text-[#A3A3A3]">
                   <span>Subtotal</span>
                   <span className="font-semibold">${subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-[#A3A3A3]">
                   <span className="flex items-center gap-2">
                     <Truck className="w-4 h-4" />
                     Envío
@@ -152,13 +152,13 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                     {shipping === 0 ? 'GRATIS' : `$${shipping.toLocaleString()}`}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-[#A3A3A3]">
                   <span>IVA (19%)</span>
                   <span className="font-semibold">${tax.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-2xl font-bold text-gray-900 pt-3 border-t border-gray-200">
+                <div className="flex justify-between text-2xl font-bold text-[#F5F5F5] pt-3 border-t border-[#2A2A2A]">
                   <span>Total</span>
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="text-[#D4AF37]">
                     ${total.toLocaleString()}
                   </span>
                 </div>
@@ -166,46 +166,46 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
             </div>
 
             {/* Customer Info Form */}
-            <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Información de Contacto</h2>
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-6">
+              <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Información de Contacto</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                  <label className="block text-sm font-medium text-[#F5F5F5] mb-2">Nombre Completo</label>
                   <input
                     type="text"
                     value={customerInfo.name}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     placeholder="Juan Pérez"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-[#F5F5F5] mb-2">Email</label>
                   <input
                     type="email"
                     value={customerInfo.email}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     placeholder="juan@ejemplo.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                  <label className="block text-sm font-medium text-[#F5F5F5] mb-2">Teléfono</label>
                   <input
                     type="tel"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     placeholder="+57 300 123 4567"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Dirección de Envío</label>
+                  <label className="block text-sm font-medium text-[#F5F5F5] mb-2">Dirección de Envío</label>
                   <textarea
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-[#0F0F0F] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     placeholder="Calle 123 #45-67, Apto 890, Bogotá"
                   />
                 </div>
@@ -215,17 +215,17 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
 
           {/* Right Column - Payment Methods */}
           <div>
-            <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 sticky top-24">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Método de Pago</h2>
+            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-6 sticky top-24">
+              <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Método de Pago</h2>
 
               {/* Payment Tabs */}
-              <div className="flex gap-2 mb-8 p-1 bg-gray-100 rounded-2xl">
+              <div className="flex gap-2 mb-8 p-1 bg-[#0F0F0F] rounded-2xl">
                 <button
                   onClick={() => setPaymentMethod('qr')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                     paymentMethod === 'qr'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-[#D4AF37] text-[#0F0F0F] shadow-lg'
+                      : 'text-[#A3A3A3] hover:text-[#F5F5F5]'
                   }`}
                 >
                   <Wallet className="w-5 h-5" />
@@ -235,8 +235,8 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                   onClick={() => setPaymentMethod('card')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                     paymentMethod === 'card'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-[#D4AF37] text-[#0F0F0F] shadow-lg'
+                      : 'text-[#A3A3A3] hover:text-[#F5F5F5]'
                   }`}
                 >
                   <CreditCard className="w-5 h-5" />
@@ -246,8 +246,8 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                   onClick={() => setPaymentMethod('cash')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                     paymentMethod === 'cash'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-[#D4AF37] text-[#0F0F0F] shadow-lg'
+                      : 'text-[#A3A3A3] hover:text-[#F5F5F5]'
                   }`}
                 >
                   <Banknote className="w-5 h-5" />
