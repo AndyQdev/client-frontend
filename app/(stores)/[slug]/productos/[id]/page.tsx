@@ -1,20 +1,21 @@
 import { notFound } from 'next/navigation'
-import { getStoreBySlug, getProductBySlug, getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
+import { getStoreBySlug, getProductById } from '@/lib/api'
+import { getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
 import ThemeProvider from '@/components/ThemeProvider'
 import ThemeProductDetailSelector from '@/components/themes/ThemeProductDetailSelector'
 
 interface ProductDetailPageProps {
   params: {
     slug: string
-    productSlug: string
+    id: string
   }
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const store = getStoreBySlug(params.slug)
-  const product = getProductBySlug(params.productSlug)
+  const store = await getStoreBySlug(params.slug)
+  const product = await getProductById(params.id)
 
-  if (!store || !store.isActive || !product || product.storeId !== store.id) {
+  if (!store || !store.isActive || !product) {
     notFound()
   }
 

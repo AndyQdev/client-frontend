@@ -138,7 +138,7 @@ export default function CreativeProductCard({ product, storeSlug }: CreativeProd
         </div>
 
         {/* Nombre del producto con efecto artístico */}
-        <Link href={`/${storeSlug}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.id}`}>
           <h3 className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${palette.gradient} mb-2 line-clamp-2 hover:scale-105 transition-transform duration-300 origin-left leading-tight`}>
             {product.name}
           </h3>

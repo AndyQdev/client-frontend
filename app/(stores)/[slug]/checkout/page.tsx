@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
-import { getStoreBySlug, getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
+import { getStoreBySlug } from '@/lib/api'
+import { getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
 import ThemeProvider from '@/components/ThemeProvider'
 import ThemeCheckoutSelector from '@/components/themes/ThemeCheckoutSelector'
 
@@ -10,7 +11,7 @@ interface CheckoutPageProps {
 }
 
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
-  const store = getStoreBySlug(params.slug)
+  const store = await getStoreBySlug(params.slug)
 
   if (!store || !store.isActive) {
     notFound()

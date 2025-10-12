@@ -56,7 +56,7 @@ export default function ModernProductCard({ product, storeSlug, index = 0 }: Mod
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <Link href={`/${storeSlug}/productos/${product.slug}`}>
+      <Link href={`/${storeSlug}/productos/${product.id}`}>
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#1E2749] to-[#151B3B]">
           <Image

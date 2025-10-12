@@ -19,12 +19,12 @@ export default function ClassicStorePage({ store, products, categories }: Classi
   const [isCartOpen, setIsCartOpen] = useState(false)
 
   const {
-    filteredProducts,
-    searchTerm,
-    setSearchTerm,
+    products: filteredProducts,
+    search,
     selectedCategory,
-    handleCategoryChange,
-    getProductCount
+    isPending,
+    handleSearchChange,
+    handleCategoryChange
   } = useProductFilters(store.id, products)
   return (
     <div id="inicio" className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-cream-100">
@@ -84,9 +84,10 @@ export default function ClassicStorePage({ store, products, categories }: Classi
               <input
                 type="text"
                 placeholder="Search our collection..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-6 py-4 pr-14 border-2 border-amber-300 rounded-lg text-amber-900 placeholder-amber-500 focus:outline-none focus:border-amber-500 font-serif text-lg shadow-sm transition-all duration-300"
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                disabled={isPending}
+                className="w-full px-6 py-4 pr-14 border-2 border-amber-300 rounded-lg text-amber-900 placeholder-amber-500 focus:outline-none focus:border-amber-500 font-serif text-lg shadow-sm transition-all duration-300 disabled:opacity-50"
               />
               <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
             </div>
@@ -96,25 +97,27 @@ export default function ClassicStorePage({ store, products, categories }: Classi
           <div className="flex flex-wrap justify-center gap-6 mb-12">
             <button
               onClick={() => handleCategoryChange(null)}
-              className={`px-6 py-3 font-serif transition-colors rounded ${
+              disabled={isPending}
+              className={`px-6 py-3 font-serif transition-colors rounded disabled:opacity-50 ${
                 selectedCategory === null
                   ? 'bg-amber-600 text-white hover:bg-amber-700'
                   : 'border border-amber-300 text-amber-800 hover:bg-amber-100'
               }`}
             >
-              All Treasures ({getProductCount(null)})
+              All Treasures
             </button>
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                className={`px-6 py-3 font-serif transition-colors rounded ${
+                disabled={isPending}
+                className={`px-6 py-3 font-serif transition-colors rounded disabled:opacity-50 ${
                   selectedCategory === category.id
                     ? 'bg-amber-600 text-white hover:bg-amber-700'
                     : 'border border-amber-300 text-amber-800 hover:bg-amber-100'
                 }`}
               >
-                {category.name} ({getProductCount(category.id)})
+                {category.name}
               </button>
             ))}
           </div>

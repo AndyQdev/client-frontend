@@ -55,7 +55,7 @@ export default function ClassicProductCard({ product, storeSlug }: ClassicProduc
               <span>{isInCart(product.id) ? 'Add More' : 'Add to Bag'}</span>
             </button>
             <Link
-              href={`/${storeSlug}/productos/${product.slug}`}
+              href={`/${storeSlug}/productos/${product.id}`}
               className="block w-full py-2 border border-amber-600 text-amber-600 text-sm text-center font-serif hover:bg-amber-50 transition-colors duration-300 rounded"
             >
               View Details
@@ -74,7 +74,7 @@ export default function ClassicProductCard({ product, storeSlug }: ClassicProduc
         </div>
 
         {/* Nombre del producto */}
-        <Link href={`/${storeSlug}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.id}`}>
           <h3 className="text-lg font-serif text-amber-900 mb-2 line-clamp-2 hover:text-amber-700 transition-colors duration-300">
             {product.name}
           </h3>

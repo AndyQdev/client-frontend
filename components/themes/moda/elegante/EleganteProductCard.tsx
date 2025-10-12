@@ -68,7 +68,7 @@ export default function EleganteProductCard({ product, storeSlug }: EleganteProd
               )}
             </button>
             <Link
-              href={`/${storeSlug}/productos/${product.slug}`}
+              href={`/${storeSlug}/productos/${product.id}`}
               className="inline-block w-full py-3 border border-black text-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors duration-300"
             >
               Ver detalles
@@ -87,7 +87,7 @@ export default function EleganteProductCard({ product, storeSlug }: EleganteProd
         )}
 
         {/* Nombre del producto */}
-        <Link href={`/${storeSlug}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.id}`}>
           <h3 className="text-sm text-gray-900 hover:text-black transition-colors duration-300 line-clamp-2 font-light">
             {product.name}
           </h3>

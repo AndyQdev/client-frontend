@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Product } from '@/lib/types'
 import { filterProducts } from '@/app/actions/products'
 
@@ -8,8 +8,9 @@ export function useProductFilters(storeId: string, initialProducts: Product[]) {
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const abortController = useRef<AbortController | null>(null)
 
   useEffect(() => {
     // Limpiar timer anterior
@@ -17,19 +18,37 @@ export function useProductFilters(storeId: string, initialProducts: Product[]) {
       clearTimeout(debounceTimer.current)
     }
 
-    // Debounce para búsqueda (300ms) - no debounce para categoría
-    const delay = selectedCategory !== null ? 0 : (search ? 300 : 0)
+    // Cancelar request anterior si existe
+    if (abortController.current) {
+      abortController.current.abort()
+    }
 
-    debounceTimer.current = setTimeout(() => {
-      startTransition(async () => {
+    // Debounce para búsqueda (500ms) - sin debounce para categoría
+    const delay = search ? 500 : 0
+
+    debounceTimer.current = setTimeout(async () => {
+      setIsPending(true)
+      abortController.current = new AbortController()
+
+      try {
         const filtered = await filterProducts(storeId, search, selectedCategory)
         setProducts(filtered)
-      })
+      } catch (error) {
+        // Ignorar errores de abort
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error filtering products:', error)
+        }
+      } finally {
+        setIsPending(false)
+      }
     }, delay)
 
     return () => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current)
+      }
+      if (abortController.current) {
+        abortController.current.abort()
       }
     }
   }, [search, selectedCategory, storeId])

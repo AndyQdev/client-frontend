@@ -29,7 +29,7 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
     : 0
 
   return (
-    <Link href={`/${storeSlug}/productos/${product.slug}`}>
+    <Link href={`/${storeSlug}/productos/${product.id}`}>
       <article
         className="group bg-gradient-to-br from-zinc-900 to-black rounded-xl overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/20 h-full flex flex-col relative"
         onMouseEnter={() => setIsHovered(true)}

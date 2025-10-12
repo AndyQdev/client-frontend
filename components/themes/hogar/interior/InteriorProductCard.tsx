@@ -56,7 +56,7 @@ export default function InteriorProductCard({ product, storeSlug, index = 0 }: I
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <Link href={`/${storeSlug}/productos/${product.slug}`}>
+      <Link href={`/${storeSlug}/productos/${product.id}`}>
         {/* Imagen del producto */}
         <div className="product-image-wrapper relative aspect-square overflow-hidden bg-stone-50">
           <Image

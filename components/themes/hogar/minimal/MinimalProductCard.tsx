@@ -79,7 +79,7 @@ export default function MinimalProductCard({ product, storeSlug }: MinimalProduc
 
       {/* Información premium */}
       <div className="space-y-2">
-        <Link href={`/${storeSlug}/productos/${product.slug}`}>
+        <Link href={`/${storeSlug}/productos/${product.id}`}>
           <h3 className="text-gray-800 hover:text-rose-400 transition-colors text-base font-light tracking-wide line-clamp-2 leading-relaxed">
             {product.name}
           </h3>
