@@ -1,6 +1,5 @@
 import { Store, Product } from '@/lib/types'
 import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
-import { CartProvider } from '@/lib/cart-context'
 
 // Importar componentes de detalle de cada tema
 import { ModernProductDetail } from './tecnologia/modern'
@@ -99,5 +98,6 @@ export default function ThemeProductDetailSelector({
       )
   }
 
-  return <CartProvider>{DetailComponent}</CartProvider>
+  // Ya no envolvemos con CartProvider aquí porque está en el layout
+  return <>{DetailComponent}</>
 }

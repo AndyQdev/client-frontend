@@ -78,55 +78,55 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
         </div>
       </section>
 
-      {/* Barra de Búsqueda y Categorías */}
-      <section className="sticky top-16 z-30 bg-zinc-900/95 backdrop-blur-md border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 space-y-4">
-          {/* Search Bar */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              disabled={isPending}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors disabled:opacity-50"
-            />
-          </div>
+      {/* Products Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+        {/* Barra de Búsqueda y Categorías */}
+        <div className="sticky top-16 z-30 bg-zinc-900/95 backdrop-blur-md border border-zinc-800 rounded-lg p-6 mb-12">
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar productos..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                disabled={isPending}
+                className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors disabled:opacity-50"
+              />
+            </div>
 
-          {/* Category Filters */}
-          <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => handleCategoryChange(null)}
-              disabled={isPending}
-              className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
-                selectedCategory === null
-                  ? 'bg-yellow-500 text-black'
-                  : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
-              }`}
-            >
-              Todo
-            </button>
-            {categories.map((category) => (
+            {/* Category Filters */}
+            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
               <button
-                key={category.id}
-                onClick={() => handleCategoryChange(category.id)}
+                onClick={() => handleCategoryChange(null)}
                 disabled={isPending}
                 className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
-                  selectedCategory === category.id
+                  selectedCategory === null
                     ? 'bg-yellow-500 text-black'
                     : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
                 }`}
               >
-                {category.name}
+                Todo
               </button>
-            ))}
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  disabled={isPending}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
+                    selectedCategory === category.id
+                      ? 'bg-yellow-500 text-black'
+                      : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Grid de Productos */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
         {/* Header de Sección */}
         <div className="mb-12 animate-fade-in-up">
           <div className="flex items-center justify-between mb-2">
@@ -138,12 +138,12 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
             <Sparkles className="w-8 h-8 text-yellow-500" />
           </div>
           <p className="text-zinc-500 text-sm">
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'producto disponible' : 'productos disponibles'}
+            {filteredProducts?.length || 0} {(filteredProducts?.length || 0) === 1 ? 'producto disponible' : 'productos disponibles'}
           </p>
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {(filteredProducts && filteredProducts.length > 0) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product, index) => (
               <div
@@ -158,15 +158,23 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
         ) : (
           <div className="text-center py-24">
             <div className="inline-block bg-zinc-800/50 backdrop-blur-sm rounded-lg p-16 border border-zinc-700 animate-scale-in">
-              <h3 className="text-2xl font-bold text-zinc-300 mb-4">Sin Resultados</h3>
-              <p className="text-zinc-500 mb-8">No hay productos en esta categoría</p>
-              <button
-                onClick={() => handleCategoryChange(null)}
-                disabled={isPending}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide transition-all transform hover:scale-105 disabled:opacity-50"
-              >
-                Ver Todo
-              </button>
+              <Sparkles className="w-20 h-20 text-yellow-500 mx-auto mb-6 animate-bounce" />
+              <h3 className="text-2xl font-bold text-zinc-300 mb-4">Sin Productos Disponibles</h3>
+              <p className="text-zinc-500 mb-8">
+                {selectedCategory 
+                  ? 'No hay productos en esta categoría actualmente' 
+                  : 'No hay productos disponibles en este momento'
+                }
+              </p>
+              {selectedCategory && (
+                <button
+                  onClick={() => handleCategoryChange(null)}
+                  disabled={isPending}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide transition-all transform hover:scale-105 disabled:opacity-50"
+                >
+                  Ver Todos los Productos
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -3,8 +3,10 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Phone, Mail, MapPin, User, ShoppingBag } from 'lucide-react'
+import { Phone, Mail, MapPin, User, ShoppingBag, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface ClassicStoreHeaderProps {
   store: Store
@@ -13,6 +15,7 @@ interface ClassicStoreHeaderProps {
 
 export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <>
       {/* Barra superior clásica */}
@@ -44,6 +47,15 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="lg:hidden p-2 text-amber-800 hover:text-amber-600"
+              aria-label="Abrir menú"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
             {/* Logo clásico */}
             <Link href={`/${store.slug}#inicio`} className="flex items-center space-x-4">
               <div className="relative">
@@ -144,6 +156,15 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
           </div>
         </div>
       </header>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="classic"
+      />
     </>
   )
 }

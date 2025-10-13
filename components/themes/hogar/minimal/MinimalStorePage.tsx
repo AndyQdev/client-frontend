@@ -55,8 +55,8 @@ export default function MinimalStorePage({ store, products, categories }: Minima
         </div>
       </section>
 
-      {/* Productos con máximo espacio */}
-      <section id="productos" className="max-w-6xl mx-auto px-6 lg:px-8 pb-16 lg:pb-24">
+      {/* Productos Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
+      <section id="productos" className="max-w-6xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
         {/* Buscador */}
         <div className="max-w-2xl mx-auto mb-12">
           <div className="relative">
@@ -102,23 +102,49 @@ export default function MinimalStorePage({ store, products, categories }: Minima
             ))}
           </div>
           <p className="text-sm text-gray-500 mt-4">
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+            {filteredProducts?.length || 0} {(filteredProducts?.length || 0) === 1 ? 'product' : 'products'}
             {selectedCategory && ` in ${categories.find(c => c.id === selectedCategory)?.name}`}
           </p>
         </div>
 
         {/* Grid con espacios generosos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
-          {filteredProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${(index % 6) * 100}ms` }}
-            >
-              <MinimalProductCard product={product} storeSlug={store.slug} />
+        {(filteredProducts && filteredProducts.length > 0) ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+            {filteredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${(index % 6) * 100}ms` }}
+              >
+                <MinimalProductCard product={product} storeSlug={store.slug} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <div className="max-w-sm mx-auto">
+              <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-8">
+                <div className="text-4xl font-light text-gray-400">∅</div>
+              </div>
+              <h3 className="text-2xl font-light text-gray-900 mb-4">No Products</h3>
+              <p className="text-gray-600 mb-8">
+                {selectedCategory 
+                  ? 'This category has no products available right now' 
+                  : 'No products are currently available'
+                }
+              </p>
+              {selectedCategory && (
+                <button
+                  onClick={() => handleCategoryChange(null)}
+                  disabled={isPending}
+                  className="bg-gray-900 text-white px-6 py-2 text-sm font-medium hover:bg-gray-800 transition-all duration-300 disabled:opacity-50"
+                >
+                  View All Products
+                </button>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
       </section>
 

@@ -124,46 +124,82 @@ export default function ClassicStorePage({ store, products, categories }: Classi
         </div>
 
         {/* Grid de productos clásico */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-          {filteredProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${(index % 6) * 100}ms` }}
-            >
-              <ClassicProductCard product={product} storeSlug={store.slug} />
-            </div>
-          ))}
-        </div>
-        {/* Características clásicas */}
-        <section className="py-16 mt-16 bg-white border-y border-amber-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {(store.features && store.features.length > 0 ? store.features : [
-                { icon: 'Crown', title: 'Premium Quality', description: 'Handcrafted with the finest materials' },
-                { icon: 'Shield', title: 'Lifetime Warranty', description: 'Built to last generations' },
-                { icon: 'Award', title: 'Heritage Since 1892', description: 'Over a century of excellence' }
-              ]).map((feature, i) => {
-                const IconComponent = feature.icon === 'Crown' ? Crown :
-                                     feature.icon === 'Shield' ? Shield :
-                                     feature.icon === 'Award' ? Award :
-                                     feature.icon === 'Truck' ? Truck :
-                                     Headphones
-                return (
-                  <div
-                    key={i}
-                    className="text-center animate-fade-in-up"
-                    style={{ animationDelay: `${i * 150}ms` }}
-                  >
-                    <IconComponent className="w-12 h-12 text-amber-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-serif text-amber-900 mb-2">{feature.title}</h3>
-                    <p className="text-amber-700 font-serif">{feature.description}</p>
-                  </div>
-                )
-              })}
+        {(filteredProducts && filteredProducts.length > 0) ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-16">
+            {filteredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${(index % 6) * 100}ms` }}
+              >
+                <ClassicProductCard product={product} storeSlug={store.slug} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 mb-16">
+            <div className="max-w-lg mx-auto bg-gradient-to-br from-amber-50 to-cream-100 rounded-lg p-12 border-2 border-amber-200">
+              <Crown className="w-20 h-20 text-amber-400 mx-auto mb-6 animate-bounce" />
+              <h3 className="text-3xl font-serif text-amber-900 mb-4">No Treasures Found</h3>
+              <p className="text-amber-700 font-serif text-lg mb-8">
+                {selectedCategory 
+                  ? 'This collection is currently being curated' 
+                  : 'Our artisans are preparing new masterpieces'
+                }
+              </p>
+              {selectedCategory && (
+                <button
+                  onClick={() => handleCategoryChange(null)}
+                  disabled={isPending}
+                  className="bg-amber-600 text-white px-8 py-3 font-serif hover:bg-amber-700 transition-all duration-300 rounded disabled:opacity-50"
+                >
+                  Browse All Collections
+                </button>
+              )}
             </div>
           </div>
-        </section>
+        )}
+      </section>
+
+      {/* Features Section - MOVIDO DESPUÉS DE PRODUCTOS PARA MAYOR PROFESIONALISMO */}
+      <section className="py-16 bg-white border-y border-amber-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif text-amber-900 mb-4">Why Choose Us</h2>
+            <div className="flex justify-center mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-px bg-amber-400"></div>
+                <div className="w-4 h-4 border-2 border-amber-500 rotate-45"></div>
+                <div className="w-16 h-px bg-amber-400"></div>
+              </div>
+            </div>
+            <p className="text-amber-700 font-serif italic">The qualities that set us apart</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {(store.features && store.features.length > 0 ? store.features : [
+              { icon: 'Crown', title: 'Premium Quality', description: 'Handcrafted with the finest materials' },
+              { icon: 'Shield', title: 'Lifetime Warranty', description: 'Built to last generations' },
+              { icon: 'Award', title: 'Heritage Since 1892', description: 'Over a century of excellence' }
+            ]).map((feature, i) => {
+              const IconComponent = feature.icon === 'Crown' ? Crown :
+                                   feature.icon === 'Shield' ? Shield :
+                                   feature.icon === 'Award' ? Award :
+                                   feature.icon === 'Truck' ? Truck :
+                                   Headphones
+              return (
+                <div
+                  key={i}
+                  className="text-center animate-fade-in-up"
+                  style={{ animationDelay: `${i * 150}ms` }}
+                >
+                  <IconComponent className="w-12 h-12 text-amber-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-serif text-amber-900 mb-2">{feature.title}</h3>
+                  <p className="text-amber-700 font-serif">{feature.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </section>
 
       {/* About Section */}

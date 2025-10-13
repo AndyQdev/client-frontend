@@ -3,8 +3,10 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Sparkles, Palette, Zap, Star, ShoppingBag } from 'lucide-react'
+import { Sparkles, Palette, Zap, Star, ShoppingBag, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface CreativeStoreHeaderProps {
   store: Store
@@ -13,6 +15,7 @@ interface CreativeStoreHeaderProps {
 
 export default function CreativeStoreHeader({ store, onCartClick }: CreativeStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <header className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Elementos decorativos animados */}
@@ -79,6 +82,16 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
 
           {/* Acciones creativas */}
           <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="lg:hidden relative p-3 bg-gradient-to-r from-green-500 to-teal-500 rounded-full text-white hover:from-teal-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+              aria-label="Abrir menú"
+            >
+              <Menu className="w-5 h-5" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-teal-500 rounded-full blur opacity-30 animate-pulse"></div>
+            </button>
+
             <button
               onClick={onCartClick}
               className="relative p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white hover:from-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12 group"
@@ -91,7 +104,7 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
               )}
               <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-30 animate-pulse"></div>
             </button>
-            <button className="relative p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12">
+            <button className="hidden lg:block relative p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12">
               <Zap className="w-5 h-5" />
               <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 animate-pulse"></div>
             </button>
@@ -103,6 +116,15 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
         <div className="absolute top-16 left-1/3 w-1 h-1 bg-pink-400 rounded-full animate-pulse"></div>
         <div className="absolute bottom-4 right-1/3 w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
       </div>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="creative"
+      />
     </header>
   )
 }

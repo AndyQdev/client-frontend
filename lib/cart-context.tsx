@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Product } from './types'
 
 export interface CartItem {
@@ -22,8 +22,40 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export function CartProvider({ children }: { children: ReactNode }) {
+interface CartProviderProps {
+  children: ReactNode
+  storeSlug: string // Clave única por tienda
+}
+
+export function CartProvider({ children, storeSlug }: CartProviderProps) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  // Cargar carrito desde localStorage al montar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cartKey = `cart-${storeSlug}`
+      const savedCart = localStorage.getItem(cartKey)
+
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart)
+          setItems(parsedCart)
+        } catch (error) {
+          console.error('Error loading cart from localStorage:', error)
+        }
+      }
+      setIsLoaded(true)
+    }
+  }, [storeSlug])
+
+  // Guardar carrito en localStorage cada vez que cambie
+  useEffect(() => {
+    if (isLoaded && typeof window !== 'undefined') {
+      const cartKey = `cart-${storeSlug}`
+      localStorage.setItem(cartKey, JSON.stringify(items))
+    }
+  }, [items, storeSlug, isLoaded])
 
   const addToCart = (product: Product, quantity: number = 1) => {
     setItems((prevItems) => {

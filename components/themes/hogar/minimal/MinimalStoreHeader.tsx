@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface MinimalStoreHeaderProps {
   store: Store
@@ -13,6 +15,7 @@ interface MinimalStoreHeaderProps {
 
 export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <header className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -54,7 +57,7 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
           </nav>
 
           {/* Acciones mínimas */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             <button
               onClick={onCartClick}
               className="text-gray-600 hover:text-gray-900 transition-colors hidden sm:flex items-center space-x-2 text-sm font-medium"
@@ -62,12 +65,40 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
               <ShoppingBag className="w-5 h-5" />
               <span>Cart ({getTotalItems()})</span>
             </button>
-            <button className="md:hidden text-gray-600 hover:text-gray-900 transition-colors">
+
+            {/* Mobile cart button */}
+            <button
+              onClick={onCartClick}
+              className="sm:hidden relative text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                  {getTotalItems()}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="md:hidden text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label="Abrir menú"
+            >
               <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="minimal"
+      />
     </header>
   )
 }

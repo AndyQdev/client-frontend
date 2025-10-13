@@ -67,39 +67,7 @@ export default function InteriorStorePage({ store, products, categories }: Inter
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {(store.features && store.features.length > 0 ? store.features : [
-              { icon: 'Truck', title: 'Envío Gratis', description: 'En compras superiores a $100.000' },
-              { icon: 'Shield', title: 'Garantía Total', description: '30 días de garantía en todos los productos' },
-              { icon: 'Headphones', title: 'Atención Personalizada', description: 'Asesoría experta para tu hogar' }
-            ]).map((feature, i) => {
-              const IconComponent = feature.icon === 'Truck' ? Truck :
-                                   feature.icon === 'Shield' ? Shield :
-                                   Headphones
-              return (
-                <div
-                  key={i}
-                  className="text-center animate-fade-in-up"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
-                      <IconComponent className="w-8 h-8 text-amber-700" />
-                    </div>
-                  </div>
-                  <h3 className="font-serif text-xl text-stone-800 mb-2">{feature.title}</h3>
-                  <p className="text-stone-600 text-sm font-light">{feature.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
+      {/* Products Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
       <section id="productos" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Title */}
@@ -174,38 +142,106 @@ export default function InteriorStorePage({ store, products, categories }: Inter
           {/* Product Counter */}
           <div className="mb-8 text-center">
             <p className="text-stone-600">
-              Mostrando <span className="font-semibold text-amber-700">{filteredProducts?.length || 0}</span> {filteredProducts?.length === 1 ? 'producto' : 'productos'}
+              Mostrando <span className="font-semibold text-amber-700">{filteredProducts?.length || 0}</span> {(filteredProducts?.length || 0) === 1 ? 'producto' : 'productos'}
               {search && <span className="ml-1">para &quot;{search}&quot;</span>}
               {selectedCategory && <span className="ml-1">en {categories.find(c => c.id === selectedCategory)?.name}</span>}
             </p>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredProducts?.slice(0, 12).map((product, index) => (
-              <InteriorProductCard
-                key={product.id}
-                product={product}
-                storeSlug={store.slug}
-                index={index}
-              />
-            ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
+          {(filteredProducts && filteredProducts.length > 0) ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {filteredProducts.slice(0, 12).map((product, index) => (
+                <InteriorProductCard
+                  key={product.id}
+                  product={product}
+                  storeSlug={store.slug}
+                  index={index}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="text-center py-16">
-              <p className="text-stone-500 text-lg">No se encontraron productos en esta categoría</p>
+              <div className="max-w-md mx-auto">
+                <div className="w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <div className="text-6xl text-amber-200">🏠</div>
+                </div>
+                <h3 className="font-serif text-2xl text-stone-800 mb-4">Sin Productos Disponibles</h3>
+                <p className="text-stone-600 text-lg mb-8">
+                  {selectedCategory 
+                    ? 'No se encontraron productos en esta categoría' 
+                    : search 
+                      ? `No se encontraron productos para "${search}"`
+                      : 'No hay productos disponibles en este momento'
+                  }
+                </p>
+                {(selectedCategory || search) && (
+                  <div className="space-y-4">
+                    {search && (
+                      <button
+                        onClick={() => handleSearchChange('')}
+                        className="btn-secondary mr-4"
+                      >
+                        Limpiar Búsqueda
+                      </button>
+                    )}
+                    {selectedCategory && (
+                      <button
+                        onClick={() => handleCategoryChange(null)}
+                        className="btn-primary"
+                      >
+                        Ver Todos los Productos
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Load More */}
-          {filteredProducts.length > 12 && (
+          {filteredProducts && filteredProducts.length > 12 && (
             <div className="text-center mt-16">
               <button className="btn-secondary">
                 Ver Más Productos
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Features Section - MOVIDO DESPUÉS DE PRODUCTOS PARA MAYOR PROFESIONALISMO */}
+      <section className="py-16 bg-white border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="font-serif text-3xl text-stone-800 mb-4">¿Por Qué Elegirnos?</h2>
+            <p className="text-stone-600">Beneficios que nos distinguen en decoración</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {(store.features && store.features.length > 0 ? store.features : [
+              { icon: 'Truck', title: 'Envío Gratis', description: 'En compras superiores a $100.000' },
+              { icon: 'Shield', title: 'Garantía Total', description: '30 días de garantía en todos los productos' },
+              { icon: 'Headphones', title: 'Atención Personalizada', description: 'Asesoría experta para tu hogar' }
+            ]).map((feature, i) => {
+              const IconComponent = feature.icon === 'Truck' ? Truck :
+                                   feature.icon === 'Shield' ? Shield :
+                                   Headphones
+              return (
+                <div
+                  key={i}
+                  className="text-center animate-fade-in-up"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+                      <IconComponent className="w-8 h-8 text-amber-700" />
+                    </div>
+                  </div>
+                  <h3 className="font-serif text-xl text-stone-800 mb-2">{feature.title}</h3>
+                  <p className="text-stone-600 text-sm font-light">{feature.description}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 

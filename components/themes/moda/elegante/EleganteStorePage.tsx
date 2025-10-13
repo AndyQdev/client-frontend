@@ -62,7 +62,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
         </div>
       </section>
 
-      {/* Filtros elegantes */}
+      {/* Productos Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
       <section id="productos" className="border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Search Bar elegante */}
@@ -119,7 +119,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
               </h2>
               <div className="w-16 h-px bg-gray-300 mx-auto mb-6"></div>
               <p className="text-gray-600 font-light tracking-wide">
-                {filteredProducts.length} {filteredProducts.length === 1 ? 'pieza' : 'piezas'} cuidadosamente {filteredProducts.length === 1 ? 'seleccionada' : 'seleccionadas'}
+                {filteredProducts?.length || 0} {(filteredProducts?.length || 0) === 1 ? 'pieza' : 'piezas'} cuidadosamente {(filteredProducts?.length || 0) === 1 ? 'seleccionada' : 'seleccionadas'}
                 {selectedCategory && (
                   <span className="ml-2">
                     en <span className="font-normal">{categories.find(c => c.id === selectedCategory)?.name}</span>
@@ -128,17 +128,46 @@ export default function EleganteStorePage({ store, products, categories }: Elega
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
-              {filteredProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="animate-fade-in-up"
-                  style={{ animationDelay: `${(index % 8) * 100}ms` }}
-                >
-                  <EleganteProductCard product={product} storeSlug={store.slug} />
+            {(filteredProducts && filteredProducts.length > 0) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
+                {filteredProducts.map((product, index) => (
+                  <div
+                    key={product.id}
+                    className="animate-fade-in-up"
+                    style={{ animationDelay: `${(index % 8) * 100}ms` }}
+                  >
+                    <EleganteProductCard product={product} storeSlug={store.slug} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="max-w-md mx-auto">
+                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <div className="text-6xl font-thin text-gray-300">∅</div>
+                  </div>
+                  <h3 className="text-2xl font-thin text-gray-900 mb-4 tracking-wider uppercase">
+                    Sin Productos
+                  </h3>
+                  <div className="w-12 h-px bg-gray-300 mx-auto mb-6"></div>
+                  <p className="text-gray-600 font-light text-lg mb-8">
+                    {selectedCategory 
+                      ? 'Esta categoría no tiene productos disponibles en este momento' 
+                      : 'No hay productos disponibles actualmente'
+                    }
+                  </p>
+                  {selectedCategory && (
+                    <button
+                      onClick={() => handleCategoryChange(null)}
+                      disabled={isPending}
+                      className="bg-black text-white px-8 py-3 text-sm uppercase tracking-widest font-light hover:bg-gray-800 transition-all duration-300 disabled:opacity-50"
+                    >
+                      Ver Toda la Colección
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
         </div>

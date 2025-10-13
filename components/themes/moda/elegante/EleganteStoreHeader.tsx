@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, Phone, Mail, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface EleganteStoreHeaderProps {
   store: Store
@@ -13,6 +15,7 @@ interface EleganteStoreHeaderProps {
 
 export default function EleganteStoreHeader({ store, onCartClick }: EleganteStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <>
       {/* Barra superior elegante */}
@@ -45,7 +48,11 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-24">
             {/* Menú hamburguesa móvil */}
-            <button className="lg:hidden p-2">
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="lg:hidden p-2"
+              aria-label="Abrir menú"
+            >
               <Menu className="w-6 h-6 text-gray-800" />
             </button>
 
@@ -111,6 +118,15 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
           </div>
         </div>
       </header>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="elegante"
+      />
     </>
   )
 }

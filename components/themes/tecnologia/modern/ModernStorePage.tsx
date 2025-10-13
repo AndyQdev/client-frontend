@@ -89,39 +89,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
         `}</style>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 border-y border-[#2A2A2A]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {(store.features && store.features.length > 0 ? store.features : [
-              { icon: 'Zap', title: 'Envío Express', description: '24-48 horas' },
-              { icon: 'Shield', title: 'Garantía Total', description: '2 años' },
-              { icon: 'Truck', title: 'Envío Gratis', description: 'Desde $100.000' },
-              { icon: 'HeadphonesIcon', title: 'Soporte 24/7', description: 'Siempre disponibles' }
-            ]).map((feature, i) => {
-              const IconComponent = feature.icon === 'Zap' ? Zap :
-                                   feature.icon === 'Shield' ? Shield :
-                                   feature.icon === 'Truck' ? Truck :
-                                   HeadphonesIcon
-              return (
-                <div
-                  key={i}
-                  className="text-center group animate-fade-in-up"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 mb-4 group-hover:border-[#D4AF37] transition-all duration-300">
-                    <IconComponent className="w-8 h-8 text-[#D4AF37] group-hover:text-[#E5C158] transition-colors" />
-                  </div>
-                  <h3 className="text-[#F5F5F5] font-semibold mb-1">{feature.title}</h3>
-                  <p className="text-[#A3A3A3] text-sm">{feature.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
+      {/* Products Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
       <section id="productos" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
@@ -172,7 +140,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
           {/* Product Count */}
           <div className="mb-8 animate-fade-in">
             <p className="text-[#A3A3A3] text-center">
-              Mostrando <span className="font-bold text-[#D4AF37]">{filteredProducts.length}</span> productos
+              Mostrando <span className="font-bold text-[#D4AF37]">{filteredProducts?.length || 0}</span> productos
               {selectedCategory && (
                 <span className="ml-2">
                   en <span className="font-semibold text-[#E5C158]">{categories.find(c => c.id === selectedCategory)?.name}</span>
@@ -182,7 +150,67 @@ export default function ModernStorePage({ store, products, categories }: ModernS
           </div>
 
           {/* Products Grid */}
-          <ModernProductGrid products={filteredProducts} storeSlug={store.slug} />
+          {(filteredProducts && filteredProducts.length > 0) ? (
+            <ModernProductGrid products={filteredProducts} storeSlug={store.slug} />
+          ) : (
+            <div className="text-center py-20">
+              <div className="inline-block bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-16 animate-scale-in">
+                <Zap className="w-20 h-20 text-[#D4AF37] mx-auto mb-6 animate-bounce" />
+                <h3 className="text-3xl font-bold text-[#F5F5F5] mb-4">Sin Productos Disponibles</h3>
+                <p className="text-[#A3A3A3] mb-8 text-lg">
+                  {selectedCategory 
+                    ? 'No hay productos en esta categoría actualmente' 
+                    : 'No hay productos disponibles en este momento'
+                  }
+                </p>
+                {selectedCategory && (
+                  <button
+                    onClick={() => handleCategoryChange(null)}
+                    disabled={isPending}
+                    className="btn-primary px-8 py-3"
+                  >
+                    Ver Todos los Productos
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Features Section - MOVIDO DESPUÉS DE PRODUCTOS PARA MAYOR PROFESIONALISMO */}
+      <section className="py-16 border-y border-[#2A2A2A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="section-title">¿Por Qué Elegirnos?</h2>
+            <p className="section-subtitle">Beneficios que nos distinguen</p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {(store.features && store.features.length > 0 ? store.features : [
+              { icon: 'Zap', title: 'Envío Express', description: '24-48 horas' },
+              { icon: 'Shield', title: 'Garantía Total', description: '2 años' },
+              { icon: 'Truck', title: 'Envío Gratis', description: 'Desde $100.000' },
+              { icon: 'HeadphonesIcon', title: 'Soporte 24/7', description: 'Siempre disponibles' }
+            ]).map((feature, i) => {
+              const IconComponent = feature.icon === 'Zap' ? Zap :
+                                   feature.icon === 'Shield' ? Shield :
+                                   feature.icon === 'Truck' ? Truck :
+                                   HeadphonesIcon
+              return (
+                <div
+                  key={i}
+                  className="text-center group animate-fade-in-up"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 mb-4 group-hover:border-[#D4AF37] transition-all duration-300">
+                    <IconComponent className="w-8 h-8 text-[#D4AF37] group-hover:text-[#E5C158] transition-colors" />
+                  </div>
+                  <h3 className="text-[#F5F5F5] font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-[#A3A3A3] text-sm">{feature.description}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 

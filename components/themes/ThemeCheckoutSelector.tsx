@@ -1,6 +1,5 @@
 import { Store } from '@/lib/types'
 import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
-import { CartProvider } from '@/lib/cart-context'
 
 // Import checkout components from each theme
 import { ModernCheckout } from './tecnologia/modern'
@@ -60,5 +59,6 @@ export default function ThemeCheckoutSelector({
       )
   }
 
-  return <CartProvider>{CheckoutComponent}</CartProvider>
+  // Ya no envolvemos con CartProvider aquí porque está en el layout
+  return <>{CheckoutComponent}</>
 }

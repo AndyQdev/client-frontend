@@ -1,6 +1,5 @@
 import { Store, Product, Category } from '@/lib/types'
 import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
-import { CartProvider } from '@/lib/cart-context'
 
 // Importar componentes de cada tema
 import { ModernStorePage } from './tecnologia/modern'
@@ -119,5 +118,6 @@ export default function ThemeComponentSelector({
       )
   }
 
-  return <CartProvider>{ThemeComponent}</CartProvider>
+  // Ya no envolvemos con CartProvider aquí porque está en el layout
+  return <>{ThemeComponent}</>
 }

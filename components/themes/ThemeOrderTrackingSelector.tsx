@@ -1,6 +1,5 @@
 import { Store } from '@/lib/types'
 import type { SerializableProfessionalTheme, CustomColors } from '@/lib/themes/types'
-import { CartProvider } from '@/lib/cart-context'
 
 // Import order tracking components from each theme
 import { ModernOrderTracking } from './tecnologia/modern'
@@ -64,5 +63,6 @@ export default function ThemeOrderTrackingSelector({
       )
   }
 
-  return <CartProvider>{TrackingComponent}</CartProvider>
+  // Ya no envolvemos con CartProvider aquí porque está en el layout
+  return <>{TrackingComponent}</>
 }

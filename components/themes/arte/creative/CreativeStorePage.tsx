@@ -5,7 +5,7 @@ import CreativeStoreHeader from './CreativeStoreHeader'
 import CreativeProductCard from './CreativeProductCard'
 import CreativeCartSheet from './CreativeCartSheet'
 import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useProductFilters } from '@/hooks/useProductFilters'
 
 interface CreativeStorePageProps {
@@ -16,9 +16,15 @@ interface CreativeStorePageProps {
 
 export default function CreativeStorePage({ store, products, categories }: CreativeStorePageProps) {
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const { searchTerm, setSearchTerm, filteredProducts } = useProductFilters(products, selectedCategory)
+  const {
+    products: filteredProducts,
+    search: searchTerm,
+    selectedCategory,
+    isPending,
+    handleSearchChange: setSearchTerm,
+    handleCategoryChange: setSelectedCategory
+  } = useProductFilters(store.id, products)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-100 via-fuchsia-50 to-orange-100 relative overflow-hidden">
@@ -96,7 +102,7 @@ export default function CreativeStorePage({ store, products, categories }: Creat
         </div>
       </section>
 
-      {/* Filtros de Categorías */}
+      {/* Products Section - POSICIONADO INMEDIATAMENTE DESPUÉS DEL HERO */}
       <section className="py-12 relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-12">
@@ -119,12 +125,14 @@ export default function CreativeStorePage({ store, products, categories }: Creat
                   placeholder="Busca tu producto creativo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-16 pr-6 py-5 bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none font-bold text-lg"
+                  disabled={isPending}
+                  className="w-full pl-16 pr-6 py-5 bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none font-bold text-lg disabled:opacity-50"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform font-black text-sm"
+                    disabled={isPending}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform font-black text-sm disabled:opacity-50"
                   >
                     ×
                   </button>
@@ -137,7 +145,8 @@ export default function CreativeStorePage({ store, products, categories }: Creat
           <div className="flex flex-wrap justify-center gap-4 mb-16">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 ${
+              disabled={isPending}
+              className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 disabled:opacity-50 ${
                 selectedCategory === null
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-110'
                   : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
@@ -149,7 +158,8 @@ export default function CreativeStorePage({ store, products, categories }: Creat
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 hover:rotate-2 ${
+                disabled={isPending}
+                className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 hover:rotate-2 disabled:opacity-50 ${
                   selectedCategory === category.id
                     ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg scale-110'
                     : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
@@ -177,12 +187,12 @@ export default function CreativeStorePage({ store, products, categories }: Creat
               </h3>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
                 <Zap className="w-5 h-5 text-orange-500" />
-                <span className="font-black text-gray-700">{filteredProducts.length} Productos</span>
+                <span className="font-black text-gray-700">{filteredProducts?.length || 0} Productos</span>
               </div>
             </div>
           </div>
 
-          {filteredProducts.length > 0 ? (
+          {(filteredProducts && filteredProducts.length > 0) ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProducts.map((product, index) => (
                 <div
@@ -199,13 +209,21 @@ export default function CreativeStorePage({ store, products, categories }: Creat
               <div className="inline-block bg-white/80 backdrop-blur-sm rounded-3xl p-16 shadow-2xl transform hover:scale-105 transition-transform">
                 <Palette className="w-20 h-20 text-purple-500 mx-auto mb-6 animate-bounce" />
                 <h3 className="text-3xl font-black text-gray-800 mb-4">No Hay Productos</h3>
-                <p className="text-gray-600 mb-8 text-lg">Esta categoría está vacía por ahora</p>
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-110"
-                >
-                  Ver Todos
-                </button>
+                <p className="text-gray-600 mb-8 text-lg">
+                  {selectedCategory 
+                    ? 'Esta categoría está vacía por ahora' 
+                    : 'No hay productos disponibles en este momento'
+                  }
+                </p>
+                {selectedCategory && (
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    disabled={isPending}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-110 disabled:opacity-50"
+                  >
+                    Ver Todos
+                  </button>
+                )}
               </div>
             </div>
           )}

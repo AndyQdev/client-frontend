@@ -3,8 +3,10 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { User, ShoppingCart } from 'lucide-react'
+import { User, ShoppingCart, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface ModernStoreHeaderProps {
   store: Store
@@ -13,6 +15,7 @@ interface ModernStoreHeaderProps {
 
 export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <header className="bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-[#2A2A2A] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,8 +74,17 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
           </nav>
 
           {/* Acciones del usuario */}
-          <div className="flex items-center space-x-4">
-            <button className="p-3 text-[#A3A3A3] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl transition-all duration-300">
+          <div className="flex items-center space-x-2">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="md:hidden p-3 text-[#A3A3A3] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl transition-all duration-300"
+              aria-label="Abrir menú"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
+            <button className="hidden md:block p-3 text-[#A3A3A3] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl transition-all duration-300">
               <User className="w-6 h-6" />
             </button>
             <button
@@ -88,35 +100,16 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
             </button>
           </div>
         </div>
-
-        {/* Menú móvil */}
-        <nav className="md:hidden pb-4 flex justify-around border-t border-[#2A2A2A] pt-4">
-          <a
-            href="#inicio"
-            className="text-[#A3A3A3] hover:text-[#D4AF37] text-sm font-medium transition-colors duration-300"
-          >
-            Inicio
-          </a>
-          <a
-            href="#productos"
-            className="text-[#A3A3A3] hover:text-[#D4AF37] text-sm font-medium transition-colors duration-300"
-          >
-            Productos
-          </a>
-          <a
-            href="#about"
-            className="text-[#A3A3A3] hover:text-[#D4AF37] text-sm font-medium transition-colors duration-300"
-          >
-            Nosotros
-          </a>
-          <a
-            href="#contact"
-            className="text-[#A3A3A3] hover:text-[#D4AF37] text-sm font-medium transition-colors duration-300"
-          >
-            Contacto
-          </a>
-        </nav>
       </div>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="modern"
+      />
     </header>
   )
 }

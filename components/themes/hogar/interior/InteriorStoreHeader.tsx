@@ -1,9 +1,10 @@
 'use client'
 
 import { Store } from '@/lib/types'
-import { ShoppingCart, User, Menu, X } from 'lucide-react'
+import { ShoppingCart, User, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface InteriorStoreHeaderProps {
   store: Store
@@ -28,10 +29,11 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
         <div className="flex items-center justify-between py-6">
           {/* Mobile menu button */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setIsMenuOpen(true)}
             className="md:hidden p-2 text-stone-700 hover:text-stone-900 transition-colors"
+            aria-label="Abrir menú"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <Menu className="w-6 h-6" />
           </button>
 
           {/* Logo */}
@@ -99,42 +101,16 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
           </div>
         </div>
 
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-stone-200 mt-4 animate-fade-in">
-            <nav className="flex flex-col gap-4 pt-4">
-              <Link
-                href={`/${store.slug}`}
-                className="text-sm font-medium text-stone-700 hover:text-stone-900 uppercase tracking-wider transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Inicio
-              </Link>
-              <Link
-                href={`/${store.slug}#productos`}
-                className="text-sm font-medium text-stone-700 hover:text-stone-900 uppercase tracking-wider transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Productos
-              </Link>
-              <Link
-                href={`/${store.slug}#about`}
-                className="text-sm font-medium text-stone-700 hover:text-stone-900 uppercase tracking-wider transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Nosotros
-              </Link>
-              <Link
-                href={`/${store.slug}#contact`}
-                className="text-sm font-medium text-stone-700 hover:text-stone-900 uppercase tracking-wider transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contacto
-              </Link>
-            </nav>
-          </div>
-        )}
       </div>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="interior"
+      />
     </header>
   )
 }

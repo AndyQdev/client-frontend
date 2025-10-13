@@ -4,6 +4,8 @@ import { Store } from '@/lib/types'
 import Link from 'next/link'
 import { Menu, ShoppingBag, User } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useState } from 'react'
+import MobileMenu from '@/components/shared/MobileMenu'
 
 interface DarkModeStoreHeaderProps {
   store: Store
@@ -12,6 +14,7 @@ interface DarkModeStoreHeaderProps {
 
 export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <header className="bg-black border-b border-zinc-800 sticky top-0 z-50 backdrop-blur-md">
@@ -71,12 +74,25 @@ export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStor
             </button>
 
             {/* Mobile Menu */}
-            <button className="lg:hidden p-2 text-zinc-400 hover:text-yellow-500 transition-colors">
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="lg:hidden p-2 text-zinc-400 hover:text-yellow-500 transition-colors"
+              aria-label="Abrir menú"
+            >
               <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu profesional */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        storeSlug={store.slug}
+        storeName={store.name}
+        themeVariant="darkmode"
+      />
     </header>
   )
 }
