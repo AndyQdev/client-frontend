@@ -31,7 +31,7 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
       />
 
       {/* Sheet con estilo clásico */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-gradient-to-b from-amber-50 to-white shadow-2xl z-50 transform transition-transform duration-300 flex flex-col border-l-4 border-amber-300">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-gradient-to-b from-amber-50 to-white shadow-2xl z-50 transform transition-transform duration-300 flex flex-col border-l-4 border-amber-300">
         {/* Header clásico */}
         <div className="relative p-6 border-b-2 border-amber-200 bg-gradient-to-r from-amber-100 to-cream-100">
           {/* Ornamentos decorativos superiores */}
@@ -45,10 +45,10 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
               </div>
               <div>
                 <h2 className="text-2xl font-serif text-amber-900 flex items-center space-x-2">
-                  <span>Shopping Bag</span>
+                  <span>Bolsa de Compras</span>
                   <Crown className="w-5 h-5 text-amber-600" />
                 </h2>
-                <p className="text-sm text-amber-700 font-serif italic">{getTotalItems()} treasures selected</p>
+                <p className="text-sm text-amber-700 font-serif italic">{getTotalItems()} {getTotalItems() === 1 ? 'tesoro seleccionado' : 'tesoros seleccionados'}</p>
               </div>
             </div>
             <button
@@ -77,10 +77,10 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
                 <ShoppingBag className="w-16 h-16 text-amber-600" />
               </div>
               <h3 className="text-2xl font-serif text-amber-900 mb-3">
-                Your Bag is Empty
+                Tu Bolsa está Vacía
               </h3>
               <p className="text-amber-700 font-serif mb-6 italic max-w-xs">
-                Discover our curated collection of timeless treasures
+                Descubre nuestra colección curada de tesoros atemporales
               </p>
               <div className="flex justify-center mb-4">
                 <div className="flex items-center space-x-2">
@@ -93,7 +93,7 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
                 onClick={onClose}
                 className="bg-amber-600 text-white px-8 py-3 rounded font-serif hover:bg-amber-700 transition-all duration-300 shadow-md"
               >
-                Continue Shopping
+                Continuar Comprando
               </button>
             </div>
           ) : (
@@ -121,8 +121,8 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
                     <h3 className="font-serif text-amber-900 mb-1 line-clamp-2 font-semibold">
                       {item.product.name}
                     </h3>
-                    <p className="text-sm text-amber-600 mb-3 font-serif">
-                      ${item.product.price.toLocaleString()} each
+                    <p className="text-sm text-amber-600 mb-3 font-serif" style={{ fontVariantNumeric: 'lining-nums' }}>
+                      Bs {item.product.price.toLocaleString()} c/u
                     </p>
 
                     {/* Quantity Controls con estilo clásico */}
@@ -159,8 +159,8 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
                 <div className="mt-3 pt-3 border-t border-amber-200">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-amber-700 font-serif">Subtotal:</span>
-                    <span className="text-lg font-serif font-bold text-amber-900">
-                      ${(item.product.price * item.quantity).toLocaleString()}
+                    <span className="text-lg font-serif font-bold text-amber-900" style={{ fontVariantNumeric: 'lining-nums' }}>
+                      Bs {(item.product.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -181,22 +181,22 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
               </div>
             </div>
 
-            <div className="mb-6 space-y-3">
+            <div className="mb-6 space-y-3" style={{ fontVariantNumeric: 'lining-nums' }}>
               <div className="flex justify-between items-center">
                 <span className="text-amber-800 font-serif">Subtotal</span>
                 <span className="text-amber-900 font-serif font-semibold">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-amber-800 font-serif">Shipping</span>
-                <span className="text-green-700 font-serif font-semibold italic">Complimentary</span>
+                <span className="text-amber-800 font-serif">Envío</span>
+                <span className="text-green-700 font-serif font-semibold italic">Gratis</span>
               </div>
               <div className="h-px bg-amber-300 my-3"></div>
               <div className="flex justify-between items-center">
-                <span className="text-lg font-serif font-bold text-amber-900">Grand Total</span>
+                <span className="text-lg font-serif font-bold text-amber-900">Total General</span>
                 <span className="text-2xl font-serif font-bold text-amber-900">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function ClassicCartSheet({ isOpen, onClose, storeSlug }: Classic
             </div>
 
             <button onClick={handleCheckout} className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white py-4 rounded font-serif font-bold text-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 transform hover:scale-105 shadow-lg">
-              Proceed to Checkout
+              Proceder al Pago
             </button>
           </div>
         )}

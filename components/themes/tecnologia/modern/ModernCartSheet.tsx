@@ -31,7 +31,7 @@ export default function ModernCartSheet({ isOpen, onClose, storeSlug }: ModernCa
       />
 
       {/* Sheet */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[480px] bg-[#0F0F0F] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-[#0F0F0F] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A] bg-[#1A1A1A]">
           <div className="flex items-center space-x-3">
@@ -94,7 +94,7 @@ export default function ModernCartSheet({ isOpen, onClose, storeSlug }: ModernCa
                       {item.product.name}
                     </h3>
                     <p className="text-sm text-[#A3A3A3] mb-3">
-                      ${item.product.price.toLocaleString()} c/u
+                      Bs {item.product.price.toLocaleString()} c/u
                     </p>
 
                     {/* Quantity Controls */}
@@ -131,7 +131,7 @@ export default function ModernCartSheet({ isOpen, onClose, storeSlug }: ModernCa
                 <div className="mt-3 pt-3 border-t border-[#2A2A2A] flex justify-between items-center">
                   <span className="text-sm text-[#A3A3A3]">Subtotal:</span>
                   <span className="text-lg font-bold text-[#D4AF37]">
-                    ${(item.product.price * item.quantity).toLocaleString()}
+                    Bs {(item.product.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function ModernCartSheet({ isOpen, onClose, storeSlug }: ModernCa
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[#A3A3A3]">Subtotal</span>
                 <span className="text-[#F5F5F5] font-semibold">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center mb-2">
@@ -157,7 +157,7 @@ export default function ModernCartSheet({ isOpen, onClose, storeSlug }: ModernCa
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-[#F5F5F5]">Total</span>
                 <span className="text-2xl font-bold text-[#D4AF37]">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
             </div>

@@ -31,7 +31,7 @@ export default function EleganteCartSheet({ isOpen, onClose, storeSlug }: Elegan
       />
 
       {/* Sheet elegante */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-white shadow-2xl z-50 transform transition-transform duration-500 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-white shadow-2xl z-50 transform transition-transform duration-500 flex flex-col">
         {/* Header elegante */}
         <div className="border-b border-gray-100 p-8">
           <div className="flex items-center justify-between mb-2">
@@ -99,7 +99,7 @@ export default function EleganteCartSheet({ isOpen, onClose, storeSlug }: Elegan
                         {item.product.name}
                       </h3>
                       <p className="text-gray-900 font-light">
-                        ${item.product.price.toLocaleString()}
+                        Bs {item.product.price.toLocaleString()}
                       </p>
                     </div>
 
@@ -137,7 +137,7 @@ export default function EleganteCartSheet({ isOpen, onClose, storeSlug }: Elegan
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                   <span className="text-xs text-gray-500 uppercase tracking-widest font-light">Subtotal</span>
                   <span className="text-gray-900 font-light">
-                    ${(item.product.price * item.quantity).toLocaleString()}
+                    Bs {(item.product.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -152,7 +152,7 @@ export default function EleganteCartSheet({ isOpen, onClose, storeSlug }: Elegan
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600 font-light tracking-wide">Subtotal</span>
                 <span className="text-gray-900 font-light">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
@@ -163,7 +163,7 @@ export default function EleganteCartSheet({ isOpen, onClose, storeSlug }: Elegan
               <div className="flex justify-between items-center">
                 <span className="text-lg font-light text-gray-900 uppercase tracking-wider">Total</span>
                 <span className="text-2xl font-light text-gray-900">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
             </div>

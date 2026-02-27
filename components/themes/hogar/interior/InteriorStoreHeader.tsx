@@ -1,22 +1,32 @@
 'use client'
 
 import { Store } from '@/lib/types'
-import { ShoppingCart, User, Menu } from 'lucide-react'
+import { ShoppingCart, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useCustomer } from '@/lib/customer-context'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface InteriorStoreHeaderProps {
   store: Store
   onCartClick: () => void
+  onMenuClick?: () => void
   cartItemsCount?: number
 }
 
-export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount = 0 }: InteriorStoreHeaderProps) {
+export default function InteriorStoreHeader({ store, onCartClick, onMenuClick, cartItemsCount = 0 }: InteriorStoreHeaderProps) {
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
 
   return (
-    <header className="store-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
+    <header className="store-header sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top bar - Info */}
         <div className="hidden md:flex items-center justify-between py-2 text-xs text-stone-600 border-b border-stone-100">
@@ -29,7 +39,7 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
         <div className="flex items-center justify-between py-6">
           {/* Mobile menu button */}
           <button
-            onClick={() => setIsMenuOpen(true)}
+            onClick={onMenuClick || (() => setIsMenuOpen(true))}
             className="md:hidden p-2 text-stone-700 hover:text-stone-900 transition-colors"
             aria-label="Abrir menú"
           >
@@ -77,13 +87,13 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
 
           {/* Actions */}
           <div className="flex items-center gap-4">
-            {/* User */}
-            <button
-              className="hidden md:block p-2 text-stone-700 hover:text-stone-900 transition-colors"
-              title="Mi cuenta"
-            >
-              <User className="w-5 h-5" />
-            </button>
+            {/* Customer Popover */}
+            <div className="hidden md:block">
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="interior"
+              />
+            </div>
 
             {/* Cart */}
             <button
@@ -109,6 +119,14 @@ export default function InteriorStoreHeader({ store, onCartClick, cartItemsCount
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="interior"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="interior"
       />
     </header>

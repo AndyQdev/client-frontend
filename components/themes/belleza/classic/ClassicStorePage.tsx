@@ -4,10 +4,11 @@ import { Store, Product, Category } from '@/lib/types'
 import ClassicStoreHeader from './ClassicStoreHeader'
 import ClassicProductCard from './ClassicProductCard'
 import ClassicCartSheet from './ClassicCartSheet'
-import { Crown, Shield, Award, Truck, Headphones, Search } from 'lucide-react'
-import { useState } from 'react'
+import { Crown, Shield, Award, Truck, Headphones, Search, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface ClassicStorePageProps {
   store: Store
@@ -16,19 +17,82 @@ interface ClassicStorePageProps {
 }
 
 export default function ClassicStorePage({ store, products, categories }: ClassicStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9, // 3 columnas x 3 filas
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const allProducts = useMemo(() => {
+    if (!(productsData as any)?.pages) return []
+    return (productsData as any).pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
   return (
     <div id="inicio" className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-cream-100">
-      <ClassicStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
+      <ClassicStoreHeader store={store} onCartClick={openCart} />
 
       {/* Hero banner clásico */}
       <section className="relative overflow-hidden">
@@ -47,7 +111,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
               <Crown className="w-12 h-12 text-amber-600" />
             </div>
             <h1 className="text-4xl lg:text-6xl font-serif text-amber-900 mb-6 leading-tight animate-fade-in-down delay-100">
-              {store.heroTitle || <><span>Timeless</span> <span className="italic text-amber-700">Elegance</span></>}
+              {store.heroTitle || <><span>Elegancia</span> <span className="italic text-amber-700">Atemporal</span></>}
             </h1>
             <div className="flex justify-center mb-8 animate-scale-in delay-200">
               <div className="flex items-center space-x-4">
@@ -57,7 +121,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
               </div>
             </div>
             <p className="text-lg lg:text-xl text-amber-800 font-serif leading-relaxed mb-8 italic animate-fade-in-up delay-300">
-              {store.description || "Discover our heritage collection of handcrafted treasures, where tradition meets uncompromising quality."}
+              {store.description || "Descubre nuestra colección de tesoros artesanales, donde la tradición se encuentra con la calidad incomparable."}
             </p>
           </div>
         </div>
@@ -68,7 +132,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
         {/* Título y filtros */}
         <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl lg:text-5xl font-serif text-amber-900 mb-6">
-            Our <span className="italic">Collection</span>
+            Nuestra <span className="italic">Colección</span>
           </h2>
           <div className="flex justify-center mb-8">
             <div className="flex items-center space-x-4">
@@ -83,10 +147,10 @@ export default function ClassicStorePage({ store, products, categories }: Classi
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search our collection..."
+                placeholder="Buscar en nuestra colección..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full px-6 py-4 pr-14 border-2 border-amber-300 rounded-lg text-amber-900 placeholder-amber-500 focus:outline-none focus:border-amber-500 font-serif text-lg shadow-sm transition-all duration-300 disabled:opacity-50"
               />
               <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
@@ -97,20 +161,20 @@ export default function ClassicStorePage({ store, products, categories }: Classi
           <div className="flex flex-wrap justify-center gap-6 mb-12">
             <button
               onClick={() => handleCategoryChange(null)}
-              disabled={isPending}
+              disabled={isLoading}
               className={`px-6 py-3 font-serif transition-colors rounded disabled:opacity-50 ${
                 selectedCategory === null
                   ? 'bg-amber-600 text-white hover:bg-amber-700'
                   : 'border border-amber-300 text-amber-800 hover:bg-amber-100'
               }`}
             >
-              All Treasures
+              Todos los Productos
             </button>
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`px-6 py-3 font-serif transition-colors rounded disabled:opacity-50 ${
                   selectedCategory === category.id
                     ? 'bg-amber-600 text-white hover:bg-amber-700'
@@ -124,36 +188,49 @@ export default function ClassicStorePage({ store, products, categories }: Classi
         </div>
 
         {/* Grid de productos clásico */}
-        {(filteredProducts && filteredProducts.length > 0) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-16">
-            {filteredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${(index % 6) * 100}ms` }}
-              >
-                <ClassicProductCard product={product} storeSlug={store.slug} />
-              </div>
-            ))}
+        {isLoading && allProducts.length === 0 ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
           </div>
+        ) : allProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-8">
+              {allProducts.map((product: any, index: number) => (
+                <div
+                  key={product.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${(index % 9) * 100}ms` }}
+                >
+                  <ClassicProductCard product={product} storeSlug={store.slug} />
+                </div>
+              ))}
+            </div>
+
+            {/* Intersection Observer Target */}
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isFetchingNextPage && (
+                <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center py-20 mb-16">
             <div className="max-w-lg mx-auto bg-gradient-to-br from-amber-50 to-cream-100 rounded-lg p-12 border-2 border-amber-200">
               <Crown className="w-20 h-20 text-amber-400 mx-auto mb-6 animate-bounce" />
-              <h3 className="text-3xl font-serif text-amber-900 mb-4">No Treasures Found</h3>
+              <h3 className="text-3xl font-serif text-amber-900 mb-4">No se encontraron productos</h3>
               <p className="text-amber-700 font-serif text-lg mb-8">
                 {selectedCategory 
-                  ? 'This collection is currently being curated' 
-                  : 'Our artisans are preparing new masterpieces'
+                  ? 'Esta colección está siendo preparada' 
+                  : 'Nuestros artesanos están preparando nuevas obras maestras'
                 }
               </p>
               {selectedCategory && (
                 <button
                   onClick={() => handleCategoryChange(null)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className="bg-amber-600 text-white px-8 py-3 font-serif hover:bg-amber-700 transition-all duration-300 rounded disabled:opacity-50"
                 >
-                  Browse All Collections
+                  Ver Todas las Colecciones
                 </button>
               )}
             </div>
@@ -165,7 +242,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
       <section className="py-16 bg-white border-y border-amber-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif text-amber-900 mb-4">Why Choose Us</h2>
+            <h2 className="text-3xl font-serif text-amber-900 mb-4">Por Qué Elegirnos</h2>
             <div className="flex justify-center mb-6">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-px bg-amber-400"></div>
@@ -173,13 +250,13 @@ export default function ClassicStorePage({ store, products, categories }: Classi
                 <div className="w-16 h-px bg-amber-400"></div>
               </div>
             </div>
-            <p className="text-amber-700 font-serif italic">The qualities that set us apart</p>
+            <p className="text-amber-700 font-serif italic">Las cualidades que nos distinguen</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {(store.features && store.features.length > 0 ? store.features : [
-              { icon: 'Crown', title: 'Premium Quality', description: 'Handcrafted with the finest materials' },
-              { icon: 'Shield', title: 'Lifetime Warranty', description: 'Built to last generations' },
-              { icon: 'Award', title: 'Heritage Since 1892', description: 'Over a century of excellence' }
+              { icon: 'Crown', title: 'Calidad Premium', description: 'Elaborado artesanalmente con los mejores materiales' },
+              { icon: 'Shield', title: 'Garantía de por Vida', description: 'Construido para durar generaciones' },
+              { icon: 'Award', title: 'Tradición desde 1892', description: 'Más de un siglo de excelencia' }
             ]).map((feature, i) => {
               const IconComponent = feature.icon === 'Crown' ? Crown :
                                    feature.icon === 'Shield' ? Shield :
@@ -206,7 +283,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
       <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 animate-fade-in-up">
-            <h2 className="text-4xl font-serif text-amber-900 mb-6">About Us</h2>
+            <h2 className="text-4xl font-serif text-amber-900 mb-6">Sobre Nosotros</h2>
             <div className="flex justify-center mb-8">
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-px bg-amber-400"></div>
@@ -218,11 +295,11 @@ export default function ClassicStorePage({ store, products, categories }: Classi
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="animate-slide-in-left">
               <p className="text-amber-800 font-serif leading-relaxed text-lg mb-4">
-                {store.aboutUs || `At ${store.name}, we uphold a tradition of excellence that spans generations. Each piece in our collection represents the pinnacle of craftsmanship and timeless beauty.`}
+                {store.aboutUs || `En ${store.name}, mantenemos una tradición de excelencia que abarca generaciones. Cada pieza de nuestra colección representa la cúspide de la artesanía y la belleza atemporal.`}
               </p>
               {!store.aboutUs && (
                 <p className="text-amber-800 font-serif leading-relaxed text-lg">
-                  Our heritage is built on uncompromising quality, meticulous attention to detail, and a dedication to preserving the finest traditions of our craft.
+                  Nuestro patrimonio se basa en la calidad incomparable, la meticulosa atención al detalle y la dedicación a preservar las mejores tradiciones de nuestro oficio.
                 </p>
               )}
             </div>
@@ -249,7 +326,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
       <footer id="contact" className="py-20 bg-gradient-to-br from-amber-50 via-white to-cream-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 animate-fade-in-up">
-            <h2 className="text-4xl font-serif text-amber-900 mb-6">Contact Us</h2>
+            <h2 className="text-4xl font-serif text-amber-900 mb-6">Contáctanos</h2>
             <div className="flex justify-center mb-8">
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-px bg-amber-400"></div>
@@ -263,19 +340,19 @@ export default function ClassicStorePage({ store, products, categories }: Classi
             {/* Newsletter */}
             <div className="bg-white rounded-lg p-8 border-2 border-amber-200 animate-slide-in-left">
               <h3 className="text-2xl font-serif text-amber-900 mb-4">
-                Join Our <span className="italic">Heritage Circle</span>
+                Únete a Nuestro <span className="italic">Círculo Exclusivo</span>
               </h3>
               <p className="text-amber-800 font-serif mb-6 italic">
-                Receive exclusive invitations and early access to limited collections.
+                Recibe invitaciones exclusivas y acceso anticipado a colecciones limitadas.
               </p>
               <div className="flex">
                 <input
                   type="email"
-                  placeholder="Your email"
+                  placeholder="Tu correo electrónico"
                   className="flex-1 px-6 py-3 border-2 border-amber-300 rounded-l text-amber-900 placeholder-amber-500 focus:outline-none focus:border-amber-500 font-serif"
                 />
                 <button className="bg-amber-600 text-white px-8 py-3 font-serif hover:bg-amber-700 transition-all duration-300 rounded-r transform hover:scale-105">
-                  Join
+                  Unirse
                 </button>
               </div>
             </div>
@@ -284,7 +361,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
             <div className="space-y-6 animate-fade-in delay-200">
               {store.email && (
                 <div>
-                  <h4 className="font-serif text-lg text-amber-900 mb-2">Email</h4>
+                  <h4 className="font-serif text-lg text-amber-900 mb-2">Correo</h4>
                   <a href={`mailto:${store.email}`} className="text-amber-700 hover:text-amber-600 transition-colors font-serif">
                     {store.email}
                   </a>
@@ -292,7 +369,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
               )}
               {store.phone && (
                 <div>
-                  <h4 className="font-serif text-lg text-amber-900 mb-2">Phone</h4>
+                  <h4 className="font-serif text-lg text-amber-900 mb-2">Teléfono</h4>
                   <a href={`tel:${store.phone}`} className="text-amber-700 hover:text-amber-600 transition-colors font-serif">
                     {store.phone}
                   </a>
@@ -300,7 +377,7 @@ export default function ClassicStorePage({ store, products, categories }: Classi
               )}
               {(store.address || store.city) && (
                 <div>
-                  <h4 className="font-serif text-lg text-amber-900 mb-2">Address</h4>
+                  <h4 className="font-serif text-lg text-amber-900 mb-2">Dirección</h4>
                   <p className="text-amber-700 font-serif">
                     {store.address}{store.city && `, ${store.city}`}
                   </p>
@@ -350,14 +427,14 @@ export default function ClassicStorePage({ store, products, categories }: Classi
           {/* Copyright */}
           <div className="border-t border-amber-200 pt-12 mt-12 text-center">
             <p className="text-amber-700 font-serif">
-              © {new Date().getFullYear()} {store.name}. All rights reserved.
+              © {new Date().getFullYear()} {store.name}. Todos los derechos reservados.
             </p>
           </div>
         </div>
       </footer>
 
       {/* Cart Sheet */}
-      <ClassicCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <ClassicCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
     </div>
   )
 }

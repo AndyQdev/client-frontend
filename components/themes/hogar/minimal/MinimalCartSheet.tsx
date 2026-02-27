@@ -26,21 +26,21 @@ export default function MinimalCartSheet({ isOpen, onClose, storeSlug }: Minimal
     <>
       {/* Backdrop minimal */}
       <div
-        className="fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Sheet minimal */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[450px] bg-white shadow-xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 flex flex-col">
         {/* Header minimal */}
         <div className="border-b border-gray-100 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-medium text-gray-900">
-                Cart
+                Carrito
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
+                {getTotalItems()} {getTotalItems() === 1 ? 'producto' : 'productos'}
               </p>
             </div>
             <button
@@ -60,16 +60,16 @@ export default function MinimalCartSheet({ isOpen, onClose, storeSlug }: Minimal
                 <ShoppingBag className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Your cart is empty
+                Tu carrito está vacío
               </h3>
               <p className="text-gray-500 mb-8 text-sm">
-                Add products to get started
+                Agrega productos para comenzar
               </p>
               <button
                 onClick={onClose}
                 className="bg-gray-900 text-white px-8 py-3 text-sm font-medium hover:bg-gray-800 transition-colors"
               >
-                Continue Shopping
+                Continuar Comprando
               </button>
             </div>
           ) : (
@@ -95,7 +95,7 @@ export default function MinimalCartSheet({ isOpen, onClose, storeSlug }: Minimal
                       {item.product.name}
                     </h3>
                     <p className="text-sm text-gray-500 mb-3">
-                      ${item.product.price.toLocaleString()}
+                      Bs {item.product.price.toLocaleString()} c/u
                     </p>
 
                     {/* Quantity Controls */}
@@ -132,7 +132,7 @@ export default function MinimalCartSheet({ isOpen, onClose, storeSlug }: Minimal
                 <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
                   <span className="text-xs text-gray-500">Subtotal</span>
                   <span className="text-sm font-medium text-gray-900">
-                    ${(item.product.price * item.quantity).toLocaleString()}
+                    Bs {(item.product.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -147,24 +147,24 @@ export default function MinimalCartSheet({ isOpen, onClose, storeSlug }: Minimal
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">Subtotal</span>
                 <span className="text-gray-900 font-medium">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Shipping</span>
-                <span className="text-gray-900 font-medium">Free</span>
+                <span className="text-gray-600">Envío</span>
+                <span className="text-gray-900 font-medium">Gratis</span>
               </div>
               <div className="h-px bg-gray-200"></div>
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-900">Total</span>
                 <span className="text-xl font-medium text-gray-900">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
             </div>
 
             <button onClick={handleCheckout} className="w-full bg-gray-900 text-white py-3 text-sm font-medium hover:bg-gray-800 transition-colors">
-              Checkout
+              Finalizar Compra
             </button>
           </div>
         )}

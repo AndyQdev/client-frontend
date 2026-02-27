@@ -6,9 +6,9 @@ interface MarketplaceStatsProps {
 }
 
 export default function MarketplaceStats({ stores }: MarketplaceStatsProps) {
-  const totalProducts = stores.reduce((sum, store) => sum + store.stats.totalProducts, 0)
-  const totalOrders = stores.reduce((sum, store) => sum + store.stats.totalOrders, 0)
-  const totalViews = stores.reduce((sum, store) => sum + store.stats.totalViews, 0)
+  const totalProducts = stores.reduce((sum, store) => sum + (store.stats?.totalProducts || 0), 0)
+  const totalOrders = stores.reduce((sum, store) => sum + (store.stats?.totalOrders || 0), 0)
+  const totalViews = stores.reduce((sum, store) => sum + (store.stats?.totalViews || 0), 0)
 
   const stats = [
     {

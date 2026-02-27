@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
-import { getStoreBySlug, getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
+import { getStoreBySlug } from '@/lib/api'
+import { getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
 import ThemeProvider from '@/components/ThemeProvider'
 import ThemeOrderTrackingSelector from '@/components/themes/ThemeOrderTrackingSelector'
 
@@ -11,7 +12,7 @@ interface OrderTrackingPageProps {
 }
 
 export default async function OrderTrackingPage({ params }: OrderTrackingPageProps) {
-  const store = getStoreBySlug(params.slug)
+  const store = await getStoreBySlug(params.slug)
 
   if (!store || !store.isActive) {
     notFound()

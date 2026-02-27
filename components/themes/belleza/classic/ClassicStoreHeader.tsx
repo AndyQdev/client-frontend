@@ -3,10 +3,13 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Phone, Mail, MapPin, User, ShoppingBag, Menu } from 'lucide-react'
+import { Phone, Mail, MapPin, ShoppingBag, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface ClassicStoreHeaderProps {
   store: Store
@@ -15,7 +18,14 @@ interface ClassicStoreHeaderProps {
 
 export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
+
   return (
     <>
       {/* Barra superior clásica */}
@@ -82,7 +92,7 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
                   {store.name}
                 </h1>
                 <p className="text-sm text-amber-600 font-serif italic">
-                  Fine Quality Since Always
+                  Calidad Superior Siempre
                 </p>
               </div>
             </Link>
@@ -121,12 +131,10 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
 
             {/* Acciones clásicas */}
             <div className="flex items-center space-x-6">
-              <button className="text-amber-800 hover:text-amber-600 transition-colors p-2 relative group">
-                <User className="w-6 h-6" />
-                <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-serif opacity-0 group-hover:opacity-100 transition-opacity">
-                  Account
-                </span>
-              </button>
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="classic"
+              />
               <button
                 onClick={onCartClick}
                 className="text-amber-800 hover:text-amber-600 transition-colors p-2 relative group"
@@ -163,6 +171,14 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="classic"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="classic"
       />
     </>

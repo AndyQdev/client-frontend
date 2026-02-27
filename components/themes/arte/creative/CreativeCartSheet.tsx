@@ -36,7 +36,7 @@ export default function CreativeCartSheet({ isOpen, onClose, storeSlug }: Creati
       </div>
 
       {/* Sheet con estilo creativo */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[520px] bg-gradient-to-br from-white via-purple-50 to-pink-50 shadow-2xl z-50 transform transition-all duration-500 animate-in slide-in-from-right flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-gradient-to-br from-white via-purple-50 to-pink-50 shadow-2xl z-50 transform transition-all duration-500 animate-in slide-in-from-right flex flex-col">
         {/* Header ultra creativo */}
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-6 border-b-4 border-yellow-400">
           {/* Elementos decorativos del header */}
@@ -163,7 +163,7 @@ export default function CreativeCartSheet({ isOpen, onClose, storeSlug }: Creati
                       </h3>
                       <p className="text-sm font-bold mb-3 flex items-center space-x-1">
                         <span className={`bg-gradient-to-r ${randomColor} bg-clip-text text-transparent`}>
-                          ${item.product.price.toLocaleString()}
+                          Bs {item.product.price.toLocaleString()}
                         </span>
                         <span className="text-gray-400">por unidad</span>
                       </p>
@@ -205,7 +205,7 @@ export default function CreativeCartSheet({ isOpen, onClose, storeSlug }: Creati
                       <span>Subtotal:</span>
                     </span>
                     <span className={`text-xl font-black bg-gradient-to-r ${randomColor} bg-clip-text text-transparent`}>
-                      ${(item.product.price * item.quantity).toLocaleString()}
+                      Bs {(item.product.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export default function CreativeCartSheet({ isOpen, onClose, storeSlug }: Creati
                   <span>Subtotal</span>
                 </span>
                 <span className="text-gray-900 font-black text-lg">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center mb-3">
@@ -250,7 +250,7 @@ export default function CreativeCartSheet({ isOpen, onClose, storeSlug }: Creati
                   <span>Total</span>
                 </span>
                 <span className="text-3xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
             </div>

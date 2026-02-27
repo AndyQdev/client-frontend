@@ -3,21 +3,32 @@
 import { Store } from '@/lib/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { User, ShoppingCart, Menu } from 'lucide-react'
+import { ShoppingCart, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface ModernStoreHeaderProps {
   store: Store
   onCartClick: () => void
+  onMenuClick?: () => void
 }
 
-export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHeaderProps) {
+export default function ModernStoreHeader({ store, onCartClick, onMenuClick }: ModernStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
+
   return (
-    <header className="bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-[#2A2A2A] sticky top-0 z-50">
+    <header className="bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-[#2A2A2A] sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo y nombre de la tienda */}
@@ -46,7 +57,7 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
           </Link>
 
           {/* Menú de navegación */}
-          <nav className="hidden md:flex flex-1 items-center justify-center space-x-8">
+          <nav className="hidden md:flex flex-1 items-ce  nter justify-center space-x-8">
             <a
               href="#inicio"
               className="text-[#A3A3A3] hover:text-[#D4AF37] font-medium transition-colors duration-300"
@@ -77,7 +88,7 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
           <div className="flex items-center space-x-2">
             {/* Mobile menu button */}
             <button
-              onClick={() => setIsMenuOpen(true)}
+              onClick={onMenuClick || (() => setIsMenuOpen(true))}
               className="md:hidden p-3 text-[#A3A3A3] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl transition-all duration-300"
               aria-label="Abrir menú"
             >
@@ -85,7 +96,10 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
             </button>
 
             <button className="hidden md:block p-3 text-[#A3A3A3] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl transition-all duration-300">
-              <User className="w-6 h-6" />
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="modern"
+              />
             </button>
             <button
               onClick={onCartClick}
@@ -108,6 +122,14 @@ export default function ModernStoreHeader({ store, onCartClick }: ModernStoreHea
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="modern"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="modern"
       />
     </header>

@@ -323,18 +323,18 @@ export default function CreativeProductDetail({ product, store }: CreativeProduc
                   </h3>
                   <div className="relative flex items-baseline space-x-3">
                     <span className="text-5xl font-black text-white">
-                      ${product.price.toLocaleString()}
+                      Bs {product.price.toLocaleString()}
                     </span>
                     {hasDiscount && (
                       <span className="text-xl text-white/70 line-through">
-                        ${product.originalPrice!.toLocaleString()}
+                        Bs {product.originalPrice!.toLocaleString()}
                       </span>
                     )}
                   </div>
                   {hasDiscount && (
                     <div className="relative mt-2 text-yellow-300 font-bold text-sm uppercase tracking-wider flex items-center space-x-1">
                       <Flame className="w-4 h-4" />
-                      <span>Ahorra ${(product.originalPrice! - product.price).toLocaleString()}</span>
+                      <span>Ahorra Bs {(product.originalPrice! - product.price).toLocaleString()}</span>
                     </div>
                   )}
                 </div>

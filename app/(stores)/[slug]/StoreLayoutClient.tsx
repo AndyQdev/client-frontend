@@ -1,6 +1,7 @@
 'use client'
 
 import { CartProvider } from '@/lib/cart-context'
+import { CustomerProvider } from '@/lib/customer-context'
 import { ReactNode } from 'react'
 
 interface StoreLayoutClientProps {
@@ -10,8 +11,10 @@ interface StoreLayoutClientProps {
 
 export default function StoreLayoutClient({ children, storeSlug }: StoreLayoutClientProps) {
   return (
-    <CartProvider storeSlug={storeSlug}>
-      {children}
-    </CartProvider>
+    <CustomerProvider>
+      <CartProvider storeSlug={storeSlug}>
+        {children}
+      </CartProvider>
+    </CustomerProvider>
   )
 }

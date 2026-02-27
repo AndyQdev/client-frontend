@@ -4,9 +4,16 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { useRouter } from 'next/navigation'
 import { Store } from '@/lib/types'
+import { orderService } from '@/lib/api/services/order.service'
+import { toast } from 'sonner'
 import MinimalStoreHeader from './MinimalStoreHeader'
 import Image from 'next/image'
-import { CreditCard, Smartphone, Clock, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
 
 interface MinimalCheckoutProps {
   store: Store
@@ -15,48 +22,112 @@ interface MinimalCheckoutProps {
 export default function MinimalCheckout({ store }: MinimalCheckoutProps) {
   const { items, getTotalPrice, clearCart } = useCart()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'qr' | 'card'>('qr')
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutos
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    notes: ''
-  })
+  console.log('Rendering MinimalCheckout with items:', items)
+  const { customer, login, addAddress } = useCustomer()
 
-  // Countdown timer
-  useEffect(() => {
-    if (activeTab === 'qr' && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1)
-      }, 1000)
-      return () => clearInterval(timer)
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false)
+
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
     }
-  }, [activeTab, timeLeft])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
 
-    // Generate random order ID
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+  const handleSubmit = async () => {
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
 
-    // Clear cart
-    clearCart()
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
+    
+    await createOrder()
+  }
 
-    // Redirect to order tracking
-    router.push(`/${store.slug}/pedido/${orderId}`)
+  const createOrder = async () => {
+    if (!customer) return
+    
+    setIsCreatingOrder(true)
+    try {
+      const deliveryType = getDeliveryType()
+      const orderData = {
+        totalAmount: total,
+        type: deliveryType === 'calculated' ? 'delivery' as const : 'quick' as const,
+        paymentMethod: 'pending',
+        paymentDate: new Date().toISOString(),
+        totalReceived: 0,
+        customerId: customer.id,
+        items: items.map(item => {
+          console.log('🔍 Item del carrito:', item)
+          console.log('🔍 Product:', item.product)
+          console.log('🔍 storeProductId:', item.product.storeProductId)
+          return {
+            storeProductId: item.product.storeProductId,
+            quantity: item.quantity,
+            price: item.product.price,
+          }
+        }),
+        notes: `Pedido desde tienda web - ${deliveryType === 'calculated' ? 'Con delivery' : 'Sin delivery'}`,
+        ...(deliveryType === 'calculated' && {
+          deliveryInfo: {
+            address: customer.addresses?.[0]?.name || 'Dirección del cliente',
+            cost: deliveryCost,
+            notes: `Coordenadas: ${customer.addresses?.[0]?.latitude}, ${customer.addresses?.[0]?.longitude}`,
+          },
+        }),
+      }
+
+      const createdOrder = await orderService.createFromStore(store.id, orderData)
+      
+      toast.success('¡Pedido confirmado exitosamente!', {
+        description: `Total: Bs ${total.toFixed(2)}`,
+      })
+      
+      clearCart()
+      setShowDeliveryDrawer(false)
+      router.push(`/${store.slug}/pedido/${createdOrder.id}`)
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast.error('Error al crear el pedido', {
+        description: 'Por favor intenta de nuevo',
+      })
+    } finally {
+      setIsCreatingOrder(false)
+    }
   }
 
   const subtotal = getTotalPrice()
-  const envio = 0
-  const total = subtotal + envio
+  const total = subtotal + deliveryCost
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,199 +140,42 @@ export default function MinimalCheckout({ store }: MinimalCheckoutProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Columna Izquierda - Formulario y Pago */}
+          {/* Columna Izquierda - Instrucciones */}
           <div className="space-y-8">
-            {/* Información del Cliente */}
+            {/* Información del Pedido */}
             <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-6">Información de contacto</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Nombre completo</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                    placeholder="Juan Pérez"
-                  />
-                </div>
+              <h2 className="text-lg font-medium text-gray-900 mb-6">Instrucciones del Pedido</h2>
 
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                    placeholder="juan@ejemplo.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Teléfono</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                    placeholder="+52 123 456 7890"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Dirección de entrega</label>
-                  <textarea
-                    required
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm resize-none"
-                    placeholder="Calle, número, colonia, ciudad"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Notas (opcional)</label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    rows={2}
-                    className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm resize-none"
-                    placeholder="Instrucciones especiales"
-                  />
-                </div>
-              </form>
-            </div>
-
-            {/* Método de Pago */}
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-6">Método de pago</h2>
-
-              {/* Tabs */}
-              <div className="flex border-b border-gray-200 mb-8">
-                <button
-                  onClick={() => setActiveTab('qr')}
-                  className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'qr'
-                      ? 'border-gray-900 text-gray-900'
-                      : 'border-transparent text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  <Smartphone className="w-4 h-4 inline-block mr-2" />
-                  Código QR
-                </button>
-                <button
-                  onClick={() => setActiveTab('card')}
-                  className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'card'
-                      ? 'border-gray-900 text-gray-900'
-                      : 'border-transparent text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4 inline-block mr-2" />
-                  Tarjeta
-                </button>
+              {/* Instrucciones */}
+              <div className="bg-white border border-gray-200 p-6 mb-6">
+                <ul className="space-y-4">
+                  <li className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">1</span>
+                    <span className="text-sm text-gray-600">Revise cuidadosamente su pedido en el resumen</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">2</span>
+                    <span className="text-sm text-gray-600">Al confirmar el pedido, nos contactaremos con usted para procesar el pago</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">3</span>
+                    <span className="text-sm text-gray-600">Coordinaremos con usted los detalles de entrega y forma de pago</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">4</span>
+                    <span className="text-sm text-gray-600">Recibirá confirmación de su pedido una vez procesado</span>
+                  </li>
+                </ul>
               </div>
 
-              {/* QR Payment */}
-              {activeTab === 'qr' && (
-                <div className="space-y-6">
-                  {/* QR Code */}
-                  <div className="bg-gray-50 p-8 flex flex-col items-center border border-gray-200">
-                    <div className="w-64 h-64 bg-white border-2 border-gray-900 p-4 mb-4">
-                      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-                        <span className="text-white text-xs">QR CODE</span>
-                      </div>
-                    </div>
-
-                    {/* Timer */}
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
-                      <Clock className="w-4 h-4" />
-                      <span>Expira en: <span className="font-medium text-gray-900">{formatTime(timeLeft)}</span></span>
-                    </div>
-
-                    {/* Monto */}
-                    <div className="text-center">
-                      <p className="text-xs text-gray-500 mb-1">Monto a pagar</p>
-                      <p className="text-2xl font-medium text-gray-900">${total.toLocaleString()}</p>
-                    </div>
-                  </div>
-
-                  {/* Instrucciones */}
-                  <div className="bg-white border border-gray-200 p-6">
-                    <h3 className="text-sm font-medium text-gray-900 mb-4">Cómo pagar</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start space-x-3">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">1</span>
-                        <span className="text-sm text-gray-600">Abre tu app de banco o wallet digital</span>
-                      </li>
-                      <li className="flex items-start space-x-3">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">2</span>
-                        <span className="text-sm text-gray-600">Escanea el código QR con tu cámara</span>
-                      </li>
-                      <li className="flex items-start space-x-3">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">3</span>
-                        <span className="text-sm text-gray-600">Confirma el monto y realiza el pago</span>
-                      </li>
-                      <li className="flex items-start space-x-3">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center mt-0.5">4</span>
-                        <span className="text-sm text-gray-600">Recibirás confirmación automáticamente</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Botón */}
-                  <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="w-full bg-gray-900 text-white py-4 text-sm font-medium hover:bg-gray-800 transition-colors"
-                  >
-                    Pagar Ahora
-                  </button>
-                </div>
-              )}
-
-              {/* Card Payment */}
-              {activeTab === 'card' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">Número de tarjeta</label>
-                    <input
-                      type="text"
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-2">Expiración</label>
-                      <input
-                        type="text"
-                        placeholder="MM/AA"
-                        className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-2">CVV</label>
-                      <input
-                        type="text"
-                        placeholder="123"
-                        className="w-full px-4 py-3 border border-gray-200 focus:border-gray-400 focus:outline-none transition-colors text-sm"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="w-full bg-gray-900 text-white py-4 text-sm font-medium hover:bg-gray-800 transition-colors mt-6"
-                  >
-                    Pagar Ahora
-                  </button>
-                </div>
-              )}
+              {/* Botón */}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="w-full bg-gray-900 text-white py-4 text-sm font-medium hover:bg-gray-800 transition-colors"
+              >
+                Confirmar Pedido
+              </button>
             </div>
           </div>
 
@@ -287,7 +201,7 @@ export default function MinimalCheckout({ store }: MinimalCheckoutProps) {
                       <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
                     </div>
                     <div className="text-sm font-medium text-gray-900">
-                      ${(item.product.price * item.quantity).toLocaleString()}
+                        Bs {(item.product.price * item.quantity).toLocaleString()}
                     </div>
                   </div>
                 ))}
@@ -297,30 +211,66 @@ export default function MinimalCheckout({ store }: MinimalCheckoutProps) {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">${subtotal.toLocaleString()}</span>
+                  <span className="text-gray-900">Bs {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600">Envío</span>
-                  <span className="text-gray-900">Gratis</span>
+                  <span className="text-gray-900">{getDeliveryText()}</span>
                 </div>
                 <div className="h-px bg-gray-200"></div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">Total</span>
-                  <span className="text-xl font-medium text-gray-900">${total.toLocaleString()}</span>
+                  <span className="text-xl font-medium text-gray-900">Bs {total.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Seguridad */}
-              <div className="bg-gray-50 p-4 border border-gray-200">
+              {/* <div className="bg-gray-50 p-4 border border-gray-200">
                 <div className="flex items-center space-x-2 text-xs text-gray-600">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Pago seguro y encriptado</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
       </div>
+
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="minimal"
+      />
+
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="minimal"
+        cartItems={items}
+        subtotal={subtotal}
+        onCreateOrder={createOrder}
+        isCreatingOrder={isCreatingOrder}
+      />
+
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="minimal"
+      />
     </div>
   )
 }

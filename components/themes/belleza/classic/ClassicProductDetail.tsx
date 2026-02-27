@@ -56,14 +56,14 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               className="text-amber-700 hover:text-amber-900 transition-colors flex items-center space-x-1"
             >
               <Crown className="w-3 h-3" />
-              <span>Home</span>
+              <span>Inicio</span>
             </Link>
             <ChevronRight className="w-4 h-4 text-amber-400" />
             <Link
               href={`/${store.slug}#products`}
               className="text-amber-700 hover:text-amber-900 transition-colors"
             >
-              Collection
+              Colección
             </Link>
             <ChevronRight className="w-4 h-4 text-amber-400" />
             <span className="text-amber-900 font-semibold">{product.name}</span>
@@ -110,7 +110,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
                 <div className="absolute top-8 -right-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-4 py-2 font-serif shadow-lg transform rotate-3">
                   <div className="flex items-center space-x-1">
                     <Crown className="w-4 h-4" />
-                    <span className="text-sm">Premium Quality</span>
+                    <span className="text-sm">Calidad Premium</span>
                   </div>
                 </div>
               )}
@@ -162,7 +162,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               </h1>
               {product.brand && (
                 <p className="text-lg text-amber-700 font-serif italic">
-                  Crafted by {product.brand.name}
+                  Elaborado por {product.brand.name}
                 </p>
               )}
             </div>
@@ -185,29 +185,29 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
                 ))}
               </div>
               <p className="text-sm text-amber-800 font-serif italic">
-                Certified Premium Quality
+                Calidad Premium Certificada
               </p>
             </div>
 
             {/* Price with Classic Style */}
-            <div className="bg-white p-6 border-2 border-amber-200 shadow-md">
+            <div className="bg-white p-6 border-2 border-amber-200 shadow-md" style={{ fontVariantNumeric: 'lining-nums' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-amber-700 font-serif mb-2">Heritage Price</p>
+                  <p className="text-sm text-amber-700 font-serif mb-2">Precio Exclusivo</p>
                   <div className="flex items-center space-x-4">
                     <span className="text-4xl font-serif text-amber-900">
-                      ${product.price.toLocaleString()}
+                      Bs {product.price.toLocaleString()}
                     </span>
                     {product.originalPrice && (
                       <span className="text-2xl text-amber-400 line-through font-serif">
-                        ${product.originalPrice.toLocaleString()}
+                        Bs {product.originalPrice.toLocaleString()}
                       </span>
                     )}
                   </div>
                 </div>
                 {product.originalPrice && (
                   <div className="bg-amber-600 text-white px-3 py-1 font-serif text-sm">
-                    Save ${(product.originalPrice - product.price).toLocaleString()}
+                    Ahorra Bs {(product.originalPrice - product.price).toLocaleString()}
                   </div>
                 )}
               </div>
@@ -218,12 +218,12 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               {product.stock > 0 ? (
                 <div className="flex items-center space-x-2 text-green-700">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>{product.stock} pieces available in our heritage collection</span>
+                  <span>{product.stock} unidades disponibles en nuestra colección</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2 text-red-700">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span>Currently unavailable</span>
+                  <span>Actualmente no disponible</span>
                 </div>
               )}
             </div>
@@ -231,7 +231,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
             {/* Quantity Selector with Classic Style */}
             <div className="space-y-3">
               <label className="block text-lg font-serif text-amber-900">
-                Select Quantity
+                Seleccionar Cantidad
               </label>
               <div className="flex items-center space-x-3 bg-amber-50 border-2 border-amber-200 p-2 w-fit">
                 <button
@@ -263,12 +263,12 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               {showAdded ? (
                 <>
                   <Check className="w-6 h-6" />
-                  <span>Added to Your Collection</span>
+                  <span>Agregado a tu Carrito</span>
                 </>
               ) : (
                 <>
                   <ShoppingBag className="w-6 h-6" />
-                  <span>Add to Shopping Bag</span>
+                  <span>Agregar al Carrito</span>
                 </>
               )}
             </button>
@@ -285,7 +285,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               <div className="bg-white p-6 border-2 border-amber-200 shadow-md">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-12 h-px bg-amber-400"></div>
-                  <h2 className="text-2xl font-serif text-amber-900">Heritage Description</h2>
+                  <h2 className="text-2xl font-serif text-amber-900">Descripción</h2>
                   <div className="flex-1 h-px bg-amber-400"></div>
                 </div>
                 <p className="text-amber-800 leading-relaxed font-serif">
@@ -299,7 +299,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               <div className="bg-gradient-to-br from-amber-50 to-cream-50 p-6 border-2 border-amber-200 shadow-md">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-12 h-px bg-amber-400"></div>
-                  <h2 className="text-2xl font-serif text-amber-900">Specifications</h2>
+                  <h2 className="text-2xl font-serif text-amber-900">Especificaciones</h2>
                   <div className="flex-1 h-px bg-amber-400"></div>
                 </div>
                 <dl className="space-y-3">
@@ -321,7 +321,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               <div className="bg-white p-6 border-2 border-amber-200 shadow-md">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-12 h-px bg-amber-400"></div>
-                  <h2 className="text-2xl font-serif text-amber-900">Collection Tags</h2>
+                  <h2 className="text-2xl font-serif text-amber-900">Etiquetas</h2>
                   <div className="flex-1 h-px bg-amber-400"></div>
                 </div>
                 <div className="flex flex-wrap gap-3">

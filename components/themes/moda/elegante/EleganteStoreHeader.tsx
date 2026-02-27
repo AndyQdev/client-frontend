@@ -5,8 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, Phone, Mail, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface EleganteStoreHeaderProps {
   store: Store
@@ -15,7 +18,14 @@ interface EleganteStoreHeaderProps {
 
 export default function EleganteStoreHeader({ store, onCartClick }: EleganteStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
+
   return (
     <>
       {/* Barra superior elegante */}
@@ -104,9 +114,12 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
               <button className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light hidden sm:block">
                 Buscar
               </button>
-              <button className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
-                Cuenta
-              </button>
+              <div className="text-sm text-gray-800 hover:text-black transition-colors duration-300">
+                <CustomerPopover 
+                  onRegisterClick={() => setIsDrawerOpen(true)}
+                  themeVariant="elegante"
+                />
+              </div>
               <button
                 onClick={onCartClick}
                 className="relative text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light flex items-center space-x-2"
@@ -125,6 +138,14 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="elegante"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="elegante"
       />
     </>

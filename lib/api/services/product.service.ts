@@ -1,5 +1,5 @@
 import { apiClient } from '../client'
-import { ResponseMessage, ProductEntity } from '../types'
+import { ResponseMessage, ProductEntity, InventoryEntity } from '../types'
 
 export interface ProductFilters {
   limit?: number
@@ -20,9 +20,10 @@ export class ProductService {
 
   /**
    * Get all products by store ID with filters
+   * Ahora devuelve inventarios con product anidado
    */
-  async findByStore(storeId: string, filters?: ProductFilters): Promise<{ data: ProductEntity[], countData: number }> {
-    const response = await apiClient.get<ResponseMessage<ProductEntity[]>>(
+  async findByStore(storeId: string, filters?: ProductFilters): Promise<{ data: InventoryEntity[], countData: number }> {
+    const response = await apiClient.get<ResponseMessage<InventoryEntity[]>>(
       `${this.basePath}/store/${storeId}`,
       { params: filters }
     )
@@ -38,6 +39,17 @@ export class ProductService {
   async findById(id: string): Promise<ProductEntity> {
     const response = await apiClient.get<ResponseMessage<ProductEntity>>(
       `${this.basePath}/${id}`
+    )
+    return response.data.data
+  }
+
+  /**
+   * Get product by store and product ID (Public endpoint - No auth required)
+   * Este endpoint es público y no requiere autenticación
+   */
+  async findProductByStore(storeId: string, productId: string): Promise<any> {
+    const response = await apiClient.get<ResponseMessage<any>>(
+      `${this.basePath}/store/${storeId}/product/${productId}`
     )
     return response.data.data
   }

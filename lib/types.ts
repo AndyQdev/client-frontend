@@ -55,14 +55,18 @@ export interface Store {
   name: string
   description?: string
 
-  // Branding
-  logoUrl?: string // Antes: logo
-  bannerUrl?: string // Antes: banner
+  // Branding (nombres consistentes)
+  logoUrl?: string
+  bannerUrl?: string
   faviconUrl?: string
+  
+  // Alias para compatibilidad
+  logo?: string // Alias de logoUrl
+  banner?: string // Alias de bannerUrl
 
   // Contenido de secciones
-  aboutUs?: string // Para sección "Acerca de Nosotros"
-  heroTitle?: string // Título principal del hero
+  aboutUs?: string
+  heroTitle?: string
 
   // Información de contacto
   phone?: string
@@ -75,7 +79,7 @@ export interface Store {
   instagramUrl?: string
   whatsappNumber?: string
 
-  // Features/Beneficios (iconos con beneficios en la página)
+  // Features/Beneficios
   features?: {
     icon: string
     title: string
@@ -83,29 +87,56 @@ export interface Store {
   }[]
 
   // Configuración de tienda
-  category?: string // tecnologia, moda, hogar, belleza, deportes, arte
-  themeId?: string // ID del tema profesional
-  currency?: string // COP, USD, etc.
-  isActive: boolean
+  category?: string
+  themeId?: string
+  currency?: string
+  isActive?: boolean
 
-  // Legacy fields
-  theme: Theme
-  user: User
-  contact: {
+  // Full config object from backend (includes delivery, coordinates, etc.)
+  config?: {
+    branding?: any
+    contact?: {
+      phone?: string
+      email?: string
+      address?: string
+      city?: string
+      currentCountry?: string
+      coordinates?: {
+        latitude: number
+        longitude: number
+      }
+    }
+    socialMedia?: any
+    delivery?: {
+      type: 'pending' | 'free' | 'fixed' | 'calculated'
+      value: number
+    }
+    aboutUs?: string
+    features?: any
+    category?: string
+    themeId?: string
+    currency?: string
+  }
+
+  // Legacy fields para compatibilidad
+  theme?: Theme
+  user?: User
+  contact?: {
     phone?: string
     email?: string
     address?: string
     whatsapp?: string
   }
-  stats: {
+  stats?: {
     totalProducts: number
     totalOrders: number
     totalViews: number
+    rating?: number
   }
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date
+  updatedAt?: Date
 
-  // New professional theme system
+  // Professional theme system
   professionalTheme?: {
     themeId: string
     customColors: {
@@ -120,10 +151,8 @@ export interface Category {
   name: string
   slug: string
   description?: string
-  image?: string
+  icon?: string
   productCount: number
-  isActive: boolean
-  storeId: string
 }
 
 export interface Brand {
@@ -138,6 +167,7 @@ export interface Brand {
 
 export interface Product {
   id: string
+  storeProductId: string // ID del StoreProduct en inventory
   name: string
   slug: string
   description?: string

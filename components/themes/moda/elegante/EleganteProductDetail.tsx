@@ -138,11 +138,11 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
             <div className="py-6 border-t border-b border-gray-200">
               <div className="flex items-baseline space-x-4">
                 <span className="text-4xl font-light text-gray-900">
-                  ${product.price.toLocaleString()}
+                  Bs {product.price.toLocaleString()}
                 </span>
                 {product.originalPrice && (
                   <span className="text-xl text-gray-400 line-through font-light">
-                    ${product.originalPrice.toLocaleString()}
+                    Bs {product.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
@@ -240,7 +240,7 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
             <div className="pt-8 space-y-3 border-t border-gray-200">
               <div className="flex items-center space-x-3 text-sm text-gray-600 font-light">
                 <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                <span>Envío gratuito en compras superiores a $100.000</span>
+                <span>Envío gratuito en compras superiores a Bs 100.000</span>
               </div>
               <div className="flex items-center space-x-3 text-sm text-gray-600 font-light">
                 <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -317,7 +317,7 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
                       {relatedProduct.name}
                     </h3>
                     <p className="text-sm text-gray-600 font-light">
-                      ${relatedProduct.price.toLocaleString()}
+                      Bs {relatedProduct.price.toLocaleString()}
                     </p>
                   </div>
                 </Link>

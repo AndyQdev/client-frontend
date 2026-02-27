@@ -4,18 +4,24 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Store } from '@/lib/types'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
+import { orderService } from '@/lib/api/services/order.service'
 import ModernStoreHeader from './ModernStoreHeader'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
 import Image from 'next/image'
 import {
-  CreditCard,
-  Wallet,
-  Banknote,
-  Timer,
   CheckCircle2,
-  Building2,
   Tag,
   Truck,
-  Package
+  Package,
+  Wallet,
+  CreditCard,
+  Banknote,
+  Timer,
+  Building2
 } from 'lucide-react'
 
 interface ModernCheckoutProps {
@@ -25,11 +31,25 @@ interface ModernCheckoutProps {
 export default function ModernCheckout({ store }: ModernCheckoutProps) {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCart()
-  const [paymentMethod, setPaymentMethod] = useState<'qr' | 'card' | 'cash'>('qr')
+  const { customer, login, addAddress } = useCustomer()
+  
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+  
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+  
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
   const [promoCode, setPromoCode] = useState('')
-  const [timeLeft, setTimeLeft] = useState(900) // 15 minutes in seconds
-
-  // Customer info state
+  const [paymentMethod, setPaymentMethod] = useState('qr')
+  const [timeLeft, setTimeLeft] = useState(600) // 10 minutos en segundos
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -50,22 +70,45 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   const subtotal = getTotalPrice()
-  const shipping = subtotal > 100000 ? 0 : 5000
   const tax = subtotal * 0.19
-  const total = subtotal + shipping + tax
+  const total = subtotal + deliveryCost + tax
+
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
+    }
+  }
+
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
 
   const handleConfirmPayment = () => {
-    // Generate random order ID
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
+
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
+
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-
-    // Clear cart
     clearCart()
-
-    // Redirect to order tracking
     router.push(`/${store.slug}/pedido/${orderId}`)
   }
 
@@ -110,7 +153,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                       <h3 className="font-semibold text-[#F5F5F5] truncate">{item.product.name}</h3>
                       <p className="text-sm text-[#A3A3A3]">Cantidad: {item.quantity}</p>
                       <p className="text-lg font-bold text-[#D4AF37] mt-1">
-                        ${(item.product.price * item.quantity).toLocaleString()}
+                        Bs {(item.product.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -119,7 +162,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
 
               {/* Promo Code */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 flex items-center gap-2">
+                <label className="flex text-sm font-medium text-[#F5F5F5] mb-2 items-center gap-2">
                   <Tag className="w-4 h-4 text-[#D4AF37]" />
                   Código Promocional
                 </label>
@@ -141,7 +184,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
               <div className="space-y-3 pt-4 border-t border-[#2A2A2A]">
                 <div className="flex justify-between text-[#A3A3A3]">
                   <span>Subtotal</span>
-                  <span className="font-semibold">${subtotal.toLocaleString()}</span>
+                  <span className="font-semibold">Bs {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-[#A3A3A3]">
                   <span className="flex items-center gap-2">
@@ -149,17 +192,17 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                     Envío
                   </span>
                   <span className="font-semibold">
-                    {shipping === 0 ? 'GRATIS' : `$${shipping.toLocaleString()}`}
+                    {getDeliveryText()}
                   </span>
                 </div>
                 <div className="flex justify-between text-[#A3A3A3]">
                   <span>IVA (19%)</span>
-                  <span className="font-semibold">${tax.toLocaleString()}</span>
+                  <span className="font-semibold">Bs {tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-2xl font-bold text-[#F5F5F5] pt-3 border-t border-[#2A2A2A]">
                   <span>Total</span>
                   <span className="text-[#D4AF37]">
-                    ${total.toLocaleString()}
+                    Bs {total.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -288,7 +331,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                     {/* Payment Amount */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-2xl mb-6">
                       <p className="text-sm font-medium mb-1">Monto a Pagar</p>
-                      <p className="text-4xl font-bold">${total.toLocaleString()}</p>
+                      <p className="text-4xl font-bold">Bs {total.toLocaleString()}</p>
                     </div>
 
                     {/* Bank Info */}
@@ -334,7 +377,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                         </li>
                         <li className="flex gap-2">
                           <span className="font-bold text-blue-600">4.</span>
-                          <span>Confirma el pago por ${total.toLocaleString()}</span>
+                          <span>Confirma el pago por Bs {total.toLocaleString()}</span>
                         </li>
                         <li className="flex gap-2">
                           <span className="font-bold text-blue-600">5.</span>
@@ -398,7 +441,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
                   </p>
                   <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
                     <p className="text-sm text-green-800">
-                      <strong>Monto a pagar:</strong> ${total.toLocaleString()}
+                      <strong>Monto a pagar:</strong> Bs {total.toLocaleString()}
                     </p>
                     <p className="text-sm text-green-700 mt-2">
                       Por favor, prepara el monto exacto para agilizar la entrega
@@ -418,6 +461,41 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
           </div>
         </div>
       </div>
+
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="modern"
+      />
+
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+          setShowDeliveryDrawer(false)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="modern"
+        cartItems={items}
+        subtotal={subtotal}
+      />
+
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="modern"
+      />
     </div>
   )
 }

@@ -2,11 +2,15 @@
 
 import { Store } from '@/lib/types'
 import { useCart } from '@/lib/cart-context'
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import InteriorStoreHeader from './InteriorStoreHeader'
-import { CreditCard, Smartphone } from 'lucide-react'
+import { useState } from 'react'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
 
 interface InteriorCheckoutProps {
   store: Store
@@ -15,18 +19,55 @@ interface InteriorCheckoutProps {
 export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
   const { items, getTotalPrice, clearCart } = useCart()
   const router = useRouter()
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    notes: ''
-  })
+
+  const { customer, login, addAddress } = useCustomer()
+
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
+
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
+    }
+  }
+
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
+
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
     const orderId = `ORD-${Date.now()}`
     clearCart()
     router.push(`/${store.slug}/pedido/${orderId}`)
@@ -66,110 +107,57 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form */}
+          {/* Instructions */}
           <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="bg-white border border-stone-200 p-8 animate-fade-in">
-              <h2 className="font-serif text-2xl text-stone-900 mb-6">Información de Contacto</h2>
+            <div className="bg-white border border-stone-200 p-8 animate-fade-in">
+              <h2 className="font-serif text-2xl text-stone-900 mb-6">Instrucciones del Pedido</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <input
-                  type="text"
-                  placeholder="Nombre completo *"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors"
-                />
-                <input
-                  type="tel"
-                  placeholder="Teléfono *"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors"
-                />
+              <div className="space-y-6 mb-8">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-stone-900 text-white rounded-full flex items-center justify-center font-medium">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-stone-900">Revise cuidadosamente su pedido en el resumen</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-stone-900 text-white rounded-full flex items-center justify-center font-medium">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-stone-900">Al confirmar el pedido, nos contactaremos con usted para procesar el pago</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-stone-900 text-white rounded-full flex items-center justify-center font-medium">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-stone-900">Coordinaremos con usted los detalles de entrega y forma de pago</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-stone-900 text-white rounded-full flex items-center justify-center font-medium">
+                    4
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-stone-900">Recibirá confirmación de su pedido una vez procesado</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="mb-6">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors"
-                />
-              </div>
-
-              <h2 className="font-serif text-2xl text-stone-900 mb-6 mt-8">Dirección de Envío</h2>
-
-              <div className="mb-6">
-                <input
-                  type="text"
-                  placeholder="Dirección completa *"
-                  required
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div className="mb-6">
-                <input
-                  type="text"
-                  placeholder="Ciudad *"
-                  required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div className="mb-8">
-                <textarea
-                  placeholder="Notas adicionales"
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-4 py-3 border border-stone-200 focus:border-stone-800 focus:outline-none transition-colors resize-none"
-                ></textarea>
-              </div>
-
-              <h2 className="font-serif text-2xl text-stone-900 mb-6">Método de Pago</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('cash')}
-                  className={`p-6 border-2 transition-all ${
-                    paymentMethod === 'cash'
-                      ? 'border-stone-800 bg-stone-50'
-                      : 'border-stone-200 hover:border-stone-400'
-                  }`}
-                >
-                  <Smartphone className="w-8 h-8 mx-auto mb-3 text-stone-700" />
-                  <p className="font-medium text-stone-900">Pago contra entrega</p>
-                  <p className="text-sm text-stone-600 mt-2">Paga cuando recibas tu pedido</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-6 border-2 transition-all ${
-                    paymentMethod === 'card'
-                      ? 'border-stone-800 bg-stone-50'
-                      : 'border-stone-200 hover:border-stone-400'
-                  }`}
-                >
-                  <CreditCard className="w-8 h-8 mx-auto mb-3 text-stone-700" />
-                  <p className="font-medium text-stone-900">Transferencia / QR</p>
-                  <p className="text-sm text-stone-600 mt-2">Te enviaremos los datos</p>
-                </button>
-              </div>
-
-              <button type="submit" className="w-full btn-primary py-4 text-base">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="w-full btn-primary py-4 text-base"
+              >
                 Confirmar Pedido
               </button>
-            </form>
+            </div>
           </div>
 
           {/* Summary */}
@@ -192,7 +180,7 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
                     <div className="flex-1">
                       <h3 className="font-medium text-stone-900 text-sm mb-1">{item.product.name}</h3>
                       <p className="text-sm text-stone-600">Cantidad: {item.quantity}</p>
-                      <p className="text-sm font-medium text-stone-900">${(item.product.price * item.quantity).toLocaleString()}</p>
+                      <p className="text-sm font-medium text-stone-900">Bs {(item.product.price * item.quantity).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -201,15 +189,15 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
               <div className="border-t border-stone-200 pt-6 space-y-3">
                 <div className="flex justify-between text-stone-600">
                   <span>Subtotal</span>
-                  <span>${getTotalPrice().toLocaleString()}</span>
+                  <span>Bs {getTotalPrice().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-stone-600">
                   <span>Envío</span>
-                  <span className="text-green-700 font-medium">Gratis</span>
+                  <span className="text-green-700 font-medium">{getDeliveryText()}</span>
                 </div>
                 <div className="flex justify-between font-serif text-xl text-stone-900 pt-3 border-t border-stone-200">
                   <span>Total</span>
-                  <span>${getTotalPrice().toLocaleString()}</span>
+                  <span>Bs {(getTotalPrice() + deliveryCost).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -217,6 +205,41 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
         </div>
       </div>
       </div>
+
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="interior"
+      />
+
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+          setShowDeliveryDrawer(false)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="interior"
+        cartItems={items}
+        subtotal={subtotal}
+      />
+
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="interior"
+      />
     </div>
   )
 }

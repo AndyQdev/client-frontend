@@ -5,8 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface MinimalStoreHeaderProps {
   store: Store
@@ -15,7 +18,14 @@ interface MinimalStoreHeaderProps {
 
 export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
+
   return (
     <header className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -58,12 +68,20 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
 
           {/* Acciones mínimas */}
           <div className="flex items-center space-x-4">
+            {/* Customer popover */}
+            <div className="hidden sm:block">
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="minimal"
+              />
+            </div>
+
             <button
               onClick={onCartClick}
               className="text-gray-600 hover:text-gray-900 transition-colors hidden sm:flex items-center space-x-2 text-sm font-medium"
             >
               <ShoppingBag className="w-5 h-5" />
-              <span>Cart ({getTotalItems()})</span>
+              <span>Carrito ({getTotalItems()})</span>
             </button>
 
             {/* Mobile cart button */}
@@ -97,6 +115,14 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="minimal"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="minimal"
       />
     </header>

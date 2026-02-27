@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Store } from '@/lib/types'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
 import EleganteStoreHeader from './EleganteStoreHeader'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
 import Image from 'next/image'
 import {
   CreditCard,
@@ -25,11 +30,25 @@ interface EleganteCheckoutProps {
 export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCart()
+  const { customer, login, addAddress } = useCustomer()
+  
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+  
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+  
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'qr' | 'card' | 'cash'>('qr')
   const [promoCode, setPromoCode] = useState('')
-  const [timeLeft, setTimeLeft] = useState(900) // 15 minutes in seconds
-
-  // Customer info state
+  const [timeLeft, setTimeLeft] = useState(900)
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -54,18 +73,41 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
   }
 
   const subtotal = getTotalPrice()
-  const shipping = subtotal > 100000 ? 0 : 5000
   const tax = subtotal * 0.19
-  const total = subtotal + shipping + tax
+  const total = subtotal + deliveryCost + tax
+
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
+    }
+  }
+
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
 
   const handleConfirmPayment = () => {
-    // Generate random order ID
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
+
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
+
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-
-    // Clear cart
     clearCart()
-
-    // Redirect to order tracking
     router.push(`/${store.slug}/pedido/${orderId}`)
   }
 
@@ -115,7 +157,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                         Cantidad: {item.quantity}
                       </p>
                       <p className="text-xl font-light text-gray-900 mt-2">
-                        ${(item.product.price * item.quantity).toLocaleString()}
+                        Bs {(item.product.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -146,7 +188,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
               <div className="space-y-4 pt-6 border-t border-gray-200">
                 <div className="flex justify-between text-gray-600 font-light">
                   <span className="tracking-wide">Subtotal</span>
-                  <span>${subtotal.toLocaleString()}</span>
+                  <span>Bs {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 font-light">
                   <span className="tracking-wide flex items-center gap-2">
@@ -154,7 +196,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                     Envío
                   </span>
                   <span>
-                    {shipping === 0 ? 'GRATIS' : `$${shipping.toLocaleString()}`}
+                    {getDeliveryText()}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600 font-light">
@@ -163,7 +205,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                 </div>
                 <div className="flex justify-between text-2xl font-serif text-gray-900 pt-6 border-t border-gray-300">
                   <span>Total</span>
-                  <span>${total.toLocaleString()}</span>
+                  <span>Bs {total.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -316,7 +358,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                     {/* Payment Amount Box */}
                     <div className="bg-black text-white p-8 mb-8">
                       <p className="text-sm font-light uppercase tracking-widest mb-2">Monto a Pagar</p>
-                      <p className="font-serif text-5xl">${total.toLocaleString()}</p>
+                      <p className="font-serif text-5xl">Bs {total.toLocaleString()}</p>
                     </div>
 
                     {/* Bank Info - Elegant */}
@@ -377,7 +419,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                             4
                           </span>
                           <p className="text-gray-600 font-light pt-1">
-                            Confirme el pago de ${total.toLocaleString()}
+                            Confirme el pago de Bs {total.toLocaleString()}
                           </p>
                         </div>
                         <div className="flex gap-4">
@@ -457,7 +499,7 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
                       <span className="uppercase tracking-widest">Monto a pagar:</span>
                     </p>
                     <p className="font-serif text-3xl text-gray-900 mb-4">
-                      ${total.toLocaleString()}
+                      Bs {total.toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-600 font-light">
                       Le recomendamos preparar el monto exacto para facilitar la transacción
@@ -477,6 +519,41 @@ export default function EleganteCheckout({ store }: EleganteCheckoutProps) {
           </div>
         </div>
       </div>
+
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="elegante"
+      />
+
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+          setShowDeliveryDrawer(false)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="elegante"
+        cartItems={items}
+        subtotal={subtotal}
+      />
+
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="elegante"
+      />
     </div>
   )
 }

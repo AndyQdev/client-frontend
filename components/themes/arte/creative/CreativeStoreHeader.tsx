@@ -5,8 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Sparkles, Palette, Zap, Star, ShoppingBag, Menu } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface CreativeStoreHeaderProps {
   store: Store
@@ -15,7 +18,14 @@ interface CreativeStoreHeaderProps {
 
 export default function CreativeStoreHeader({ store, onCartClick }: CreativeStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
+
   return (
     <header className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Elementos decorativos animados */}
@@ -104,6 +114,12 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
               )}
               <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-30 animate-pulse"></div>
             </button>
+            <div className="hidden lg:block">
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="creative"
+              />
+            </div>
             <button className="hidden lg:block relative p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12">
               <Zap className="w-5 h-5" />
               <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 animate-pulse"></div>
@@ -123,6 +139,14 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="creative"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="creative"
       />
     </header>

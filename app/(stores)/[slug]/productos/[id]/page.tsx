@@ -13,7 +13,8 @@ interface ProductDetailPageProps {
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const store = await getStoreBySlug(params.slug)
-  const product = await getProductById(params.id)
+  // Pasar el storeId para usar el endpoint público
+  const product = await getProductById(params.id, store?.id)
 
   if (!store || !store.isActive || !product) {
     notFound()

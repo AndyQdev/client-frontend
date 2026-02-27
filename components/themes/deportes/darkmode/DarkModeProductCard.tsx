@@ -3,7 +3,7 @@
 import { Product } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, ShoppingBag, Check, Zap, TrendingUp, Award } from 'lucide-react'
+import { Star, ShoppingBag, Check, Zap, TrendingUp, Award, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { useState } from 'react'
 
@@ -16,9 +16,25 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
   const { addToCart, isInCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+  const images = product.images && product.images.length > 0 ? product.images : ['/placeholder-product.jpg']
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+  }
+
+  const previousImage = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+  }
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsAdding(true)
     addToCart(product, 1)
     setTimeout(() => setIsAdding(false), 1500)
@@ -36,16 +52,48 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Barra de energía superior */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-500 to-violet-500 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-500 to-violet-500 transition-opacity duration-300 z-10 ${
+          isHovered ? 'opacity-100' : 'opacity-0'
+        }`} />
 
         {/* Imagen con Overlay energético */}
         <div className="relative aspect-[4/5] bg-black overflow-hidden">
           <Image
-            src={product.images[0]}
+            src={images[currentImageIndex]}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           />
+
+          {/* Carousel Controls */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={previousImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 backdrop-blur-md text-emerald-400 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/90 z-10"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 backdrop-blur-md text-emerald-400 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/90 z-10"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {images.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex
+                        ? 'bg-emerald-400 w-4'
+                        : 'bg-white/50 w-1.5'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Overlay con gradiente energético */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
@@ -73,44 +121,18 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
               <span className="text-xs font-bold uppercase tracking-wide">¡Últimos!</span>
             </div>
           )}
-
-          {/* Botón de acción rápida */}
-          <div className="absolute inset-x-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
-            <button
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              className={`w-full py-3.5 rounded-lg font-bold text-sm uppercase tracking-wide transition-all shadow-lg relative overflow-hidden ${
-                isAdding
-                  ? 'bg-emerald-600 text-white shadow-emerald-500/50'
-                  : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/50'
-              }`}
-            >
-              {/* Efecto de brillo */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-              {isAdding ? (
-                <span className="flex items-center justify-center gap-2 relative z-10">
-                  <Check className="w-4 h-4" />
-                  ¡Agregado!
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2 relative z-10">
-                  <ShoppingBag className="w-4 h-4" />
-                  Agregar al Carrito
-                </span>
-              )}
-            </button>
-          </div>
         </div>
 
         {/* Contenido */}
         <div className="p-5 flex-1 flex flex-col bg-gradient-to-b from-zinc-900/50 to-black/50">
           {/* Categoría con icono */}
-          <div className="mb-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-              {product.category.name}
-            </span>
-          </div>
+          {product.category && (
+            <div className="mb-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+                {product.category.name}
+              </span>
+            </div>
+          )}
 
           {/* Título */}
           <h3 className="text-base font-bold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors leading-tight">
@@ -132,11 +154,11 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
             <div className="flex items-end justify-between mb-3">
               <div>
                 <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">
-                  ${product.price.toLocaleString()}
+                  Bs {product.price.toLocaleString()}
                 </div>
                 {product.originalPrice && (
                   <div className="text-sm text-zinc-600 line-through font-medium">
-                    ${product.originalPrice.toLocaleString()}
+                    Bs {product.originalPrice.toLocaleString()}
                   </div>
                 )}
               </div>
@@ -147,7 +169,7 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
             </div>
 
             {/* Stock Info con barra de progreso */}
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {product.stock > 20 ? (
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -174,6 +196,36 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
                 </div>
               )}
             </div>
+
+            {/* Fixed Add to Cart Button */}
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding || product.stock === 0}
+              className={`w-full py-3.5 rounded-lg font-bold text-sm uppercase tracking-wide transition-all shadow-lg relative overflow-hidden ${
+                isAdding
+                  ? 'bg-emerald-600 text-white shadow-emerald-500/50'
+                  : product.stock === 0
+                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/50'
+              }`}
+            >
+              {/* Efecto de brillo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+              {isAdding ? (
+                <span className="flex items-center justify-center gap-2 relative z-10">
+                  <Check className="w-4 h-4" />
+                  ¡Agregado!
+                </span>
+              ) : product.stock === 0 ? (
+                'Agotado'
+              ) : (
+                <span className="flex items-center justify-center gap-2 relative z-10">
+                  <ShoppingBag className="w-4 h-4" />
+                  {isInCart(product.id) ? 'Agregar Más' : 'Agregar al Carrito'}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </article>

@@ -9,12 +9,14 @@ interface LegacyThemeProviderProps {
   theme: Theme
   children: React.ReactNode
   serializableTheme?: never
+  isPreviewMode?: boolean
 }
 
 interface ProfessionalThemeProviderProps {
   theme?: never
   serializableTheme: SerializableProfessionalTheme & { customColors: CustomColors }
   children: React.ReactNode
+  isPreviewMode?: boolean
 }
 
 type ThemeProviderProps = LegacyThemeProviderProps | ProfessionalThemeProviderProps
@@ -22,7 +24,8 @@ type ThemeProviderProps = LegacyThemeProviderProps | ProfessionalThemeProviderPr
 export default function ThemeProvider({
   theme,
   serializableTheme,
-  children
+  children,
+  isPreviewMode = false
 }: ThemeProviderProps) {
   // Apply legacy theme
   useApplyTheme(theme)

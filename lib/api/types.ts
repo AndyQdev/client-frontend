@@ -15,37 +15,63 @@ export interface QueryDto {
   value?: string
 }
 
-// Store from backend
-export interface StoreEntity {
-  id: string
-  createdAt: string
-  updatedAt: string
-  name: string
-  slug: string
+// Store branding configuration
+export interface StoreBrandingConfig {
   logoUrl?: string
-  description?: string
-  colorTheme?: string
   bannerUrl?: string
   faviconUrl?: string
-  aboutUs?: string
+  colorTheme?: string
   heroTitle?: string
+}
+
+// Store contact information
+export interface StoreContactInfo {
   phone?: string
   currentCountry?: string
   email?: string
   address?: string
   city?: string
+  coordinates?: {
+    latitude: number
+    longitude: number
+  }
+}
+
+// Store social media
+export interface StoreSocialMedia {
   facebookUrl?: string
   instagramUrl?: string
-  whatsappNumber?: string
-  features?: {
-    icon: string
-    title: string
-    description: string
-  }[]
+}
+
+// Store delivery configuration
+export interface StoreDeliveryConfig {
+  type: 'pending' | 'free' | 'fixed' | 'calculated'
+  value: number
+}
+
+// Store complete configuration
+export interface StoreConfig {
+  branding: StoreBrandingConfig
+  contact: StoreContactInfo
+  socialMedia: StoreSocialMedia
+  delivery?: StoreDeliveryConfig
+  aboutUs?: string
+  features?: object
   category?: string
   themeId?: string
-  isActive: boolean
   currency?: string
+}
+
+// Store from backend
+export interface StoreEntity {
+  id: string
+  createdAt: string
+  updatedAt: string
+  enabled: boolean
+  name: string
+  slug: string
+  description?: string
+  config: StoreConfig
   userId: string
   user?: {
     id: string
@@ -61,8 +87,11 @@ export interface CategoryEntity {
   id: string
   createdAt: string
   updatedAt: string
+  enabled: boolean
   name: string
   description?: string
+  icon?: string
+  productCount?: number
 }
 
 // Brand from backend
@@ -70,8 +99,22 @@ export interface BrandEntity {
   id: string
   createdAt: string
   updatedAt: string
+  enabled: boolean
   name: string
   description?: string
+}
+
+// Inventory item from backend (usado en findByStore)
+export interface InventoryEntity {
+  id: string
+  createdAt: string
+  updatedAt: string
+  stockQuantity: number
+  reservedQuantity?: number
+  status?: string
+  storeProductId: string // ID del StoreProduct
+  product: ProductEntity // Producto anidado
+  store?: StoreEntity
 }
 
 // Product from backend
@@ -79,13 +122,14 @@ export interface ProductEntity {
   id: string
   createdAt: string
   updatedAt: string
+  enabled: boolean
   name: string
   description?: string
-  price: number | string // Can be string from backend
-  stockQuantity: number
-  imageUrls: string | string[] // Can be comma-separated string or array
+  price?: number | string // Optional - can be string from backend
+  stockQuantity?: number
+  imageUrls?: string | string[] // Can be comma-separated string or array
   sku?: string
-  isFeatured: boolean
+  isFeatured?: boolean
   tags?: string | string[] | null // Can be string, array, or null
   specifications?: string | Record<string, string> | null
   category?: CategoryEntity // Category object if included
@@ -97,4 +141,11 @@ export interface ProductEntity {
   category_id?: string
   brand_id?: string
   store_id?: string
+  // Additional fields from store products
+  stock?: number
+  inStock?: boolean
+  storeProducts?: Array<{
+    id: string
+    price: number
+  }>
 }

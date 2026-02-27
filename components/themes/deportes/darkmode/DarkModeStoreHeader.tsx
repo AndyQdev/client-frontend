@@ -2,22 +2,32 @@
 
 import { Store } from '@/lib/types'
 import Link from 'next/link'
-import { Menu, ShoppingBag, User } from 'lucide-react'
+import { Menu, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
+import CustomerPopover from '@/components/shared/CustomerPopover'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
 
 interface DarkModeStoreHeaderProps {
   store: Store
   onCartClick?: () => void
+  onMenuClick?: () => void
 }
 
-export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStoreHeaderProps) {
+export default function DarkModeStoreHeader({ store, onCartClick, onMenuClick }: DarkModeStoreHeaderProps) {
   const { getTotalItems } = useCart()
+  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    await login(store.id, name, phone, country, addressObject)
+  }
 
   return (
-    <header className="bg-black border-b border-zinc-800 sticky top-0 z-50 backdrop-blur-md">
+    <header className="bg-black border-b border-zinc-800 sticky top-0 z-40 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Main Header */}
         <div className="flex items-center justify-between py-4">
@@ -54,10 +64,13 @@ export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStor
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
-            {/* User Icon */}
-            <button className="p-2 text-zinc-400 hover:text-yellow-500 transition-colors">
-              <User className="w-5 h-5" />
-            </button>
+            {/* Customer Popover */}
+            <div className="text-zinc-400 hover:text-yellow-500">
+              <CustomerPopover 
+                onRegisterClick={() => setIsDrawerOpen(true)}
+                themeVariant="darkmode"
+              />
+            </div>
 
             {/* Cart */}
             <button
@@ -75,7 +88,7 @@ export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStor
 
             {/* Mobile Menu */}
             <button
-              onClick={() => setIsMenuOpen(true)}
+              onClick={onMenuClick || (() => setIsMenuOpen(true))}
               className="lg:hidden p-2 text-zinc-400 hover:text-yellow-500 transition-colors"
               aria-label="Abrir menú"
             >
@@ -91,6 +104,14 @@ export default function DarkModeStoreHeader({ store, onCartClick }: DarkModeStor
         onClose={() => setIsMenuOpen(false)}
         storeSlug={store.slug}
         storeName={store.name}
+        themeVariant="darkmode"
+      />
+
+      {/* Customer registration drawer */}
+      <CustomerDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onRegister={handleRegister}
         themeVariant="darkmode"
       />
     </header>

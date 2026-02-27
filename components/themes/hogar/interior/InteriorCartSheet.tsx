@@ -26,12 +26,12 @@ export default function InteriorCartSheet({ isOpen, onClose, storeSlug }: Interi
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
         onClick={onClose}
       ></div>
 
       {/* Sheet */}
-      <div className="fixed right-0 top-0 h-full w-full sm:w-[480px] bg-white z-50 shadow-2xl flex flex-col animate-slide-in-right">
+      <div className="fixed right-0 top-0 h-full w-[75%] max-w-sm bg-white z-50 shadow-2xl transform transition-transform duration-300 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stone-200">
           <h2 className="font-serif text-2xl text-stone-900">
@@ -85,7 +85,7 @@ export default function InteriorCartSheet({ isOpen, onClose, storeSlug }: Interi
                       {item.product.name}
                     </h3>
                     <p className="text-sm text-stone-600 mb-2">
-                      ${item.product.price.toLocaleString()}
+                      Bs {item.product.price.toLocaleString()}
                     </p>
 
                     {/* Quantity controls */}
@@ -119,7 +119,7 @@ export default function InteriorCartSheet({ isOpen, onClose, storeSlug }: Interi
                   {/* Subtotal */}
                   <div className="text-right">
                     <p className="font-medium text-stone-900">
-                      ${(item.product.price * item.quantity).toLocaleString()}
+                      Bs {(item.product.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export default function InteriorCartSheet({ isOpen, onClose, storeSlug }: Interi
               <div className="flex justify-between items-center">
                 <span className="text-stone-600">Subtotal</span>
                 <span className="text-stone-900 font-medium">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
 
@@ -143,7 +143,7 @@ export default function InteriorCartSheet({ isOpen, onClose, storeSlug }: Interi
               <div className="flex justify-between items-center pt-4 border-t border-stone-300">
                 <span className="font-serif text-xl text-stone-900">Total</span>
                 <span className="font-serif text-2xl text-stone-900">
-                  ${getTotalPrice().toLocaleString()}
+                  Bs {getTotalPrice().toLocaleString()}
                 </span>
               </div>
 

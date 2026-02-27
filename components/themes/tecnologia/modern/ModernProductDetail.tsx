@@ -158,17 +158,17 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-6">
               <div className="flex items-baseline space-x-4">
                 <span className="text-5xl font-bold text-[#D4AF37]">
-                  ${product.price.toLocaleString()}
+                  Bs {product.price.toLocaleString()}
                 </span>
                 {product.originalPrice && (
                   <span className="text-2xl text-[#6B7280] line-through">
-                    ${product.originalPrice.toLocaleString()}
+                    Bs {product.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
               {discount > 0 && (
                 <p className="mt-2 text-[#E5C158] font-semibold">
-                  Ahorras ${(product.originalPrice! - product.price).toLocaleString()}
+                  Ahorras Bs {(product.originalPrice! - product.price).toLocaleString()}
                 </p>
               )}
             </div>
@@ -331,7 +331,7 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                       {relatedProduct.name}
                     </h3>
                     <p className="text-lg font-bold text-[#D4AF37]">
-                      ${relatedProduct.price.toLocaleString()}
+                      Bs {relatedProduct.price.toLocaleString()}
                     </p>
                   </div>
                 </Link>

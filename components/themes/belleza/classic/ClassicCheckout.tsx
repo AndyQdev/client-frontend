@@ -1,12 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useCart } from '@/lib/cart-context'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
 import { useRouter } from 'next/navigation'
 import { Store } from '@/lib/types'
+import { orderService } from '@/lib/api/services/order.service'
+import { toast } from 'sonner'
 import ClassicStoreHeader from './ClassicStoreHeader'
 import Image from 'next/image'
-import { CreditCard, Smartphone, Clock, Crown, Shield, Star } from 'lucide-react'
+import { Crown, Shield, Star } from 'lucide-react'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
+import { CustomerAddress } from '@/lib/api/services/customer.service'
 
 interface ClassicCheckoutProps {
   store: Store
@@ -14,49 +22,150 @@ interface ClassicCheckoutProps {
 
 export default function ClassicCheckout({ store }: ClassicCheckoutProps) {
   const { items, getTotalPrice, clearCart } = useCart()
+  const { customer, login, addAddress } = useCustomer()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'qr' | 'card'>('qr')
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutos
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    notes: ''
-  })
-
-  // Countdown timer
-  useEffect(() => {
-    if (activeTab === 'qr' && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1)
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [activeTab, timeLeft])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Generate random order ID
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-
-    // Clear cart
-    clearCart()
-
-    // Redirect to order tracking
-    router.push(`/${store.slug}/pedido/${orderId}`)
-  }
+  
+  // SISTEMA DE COSTOS DE DELIVERY:
+  // ================================
+  // 1. Se obtiene la configuración de delivery del store desde store.config.delivery
+  //    - type: puede ser 'pending' (por definir), 'free' (gratis), 'fixed' (valor fijo), 'calculated' (calculado por distancia)
+  //    - value: el valor del costo (usado solo en type='fixed')
+  //
+  // 2. Se obtienen las coordenadas de la tienda desde store.config.contact.coordinates
+  //    - latitude: latitud de la ubicación de la tienda
+  //    - longitude: longitud de la ubicación de la tienda
+  //
+  // 3. El hook useDelivery procesa esta configuración y devuelve:
+  //    - deliveryCost: el costo calculado del delivery (0 para free/pending, value para fixed, calculado para calculated)
+  //    - getDeliveryText(): muestra el texto apropiado ("Gratis", "Por Definir", "Bs X", "El sistema lo calcula")
+  //    - getDeliveryType(): retorna el tipo de delivery actual
+  //    - handleDeliveryConfirm(): guarda la dirección seleccionada y el costo calculado
+  //    - shouldShowDeliveryDrawer(): determina si debe mostrar el drawer de cálculo (solo para type='calculated')
+  //
+  // 4. Para type='calculated':
+  //    - Se abre el DeliveryDrawer que muestra un mapa con la ruta desde la tienda hasta el cliente
+  //    - Se calcula la distancia usando la fórmula de Haversine (distancia en línea recta entre dos coordenadas)
+  //    - El costo se calcula como: 5 BOB (base) + (distancia_km × 2)
+  //    - El usuario selecciona su dirección de entrega y confirma
+  //    - El costo calculado se suma al total del pedido
+  //
+  // 5. Flujo de confirmación:
+  //    a) Si no hay customer registrado → Abre CustomerDrawer para registro
+  //    b) Si hay customer y type='calculated' y deliveryCost=0 → Abre DeliveryDrawer para calcular
+  //    c) Si todo está listo → Genera orden y redirige a página de seguimiento
+  
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+  
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+  
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false)
 
   const subtotal = getTotalPrice()
-  const envio = 0
-  const total = subtotal + envio
+  const total = subtotal + deliveryCost
+
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    // Si es calculated, abrir drawer de delivery después de registrarse
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
+    }
+  }
+
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
+
+  const handleSubmit = async () => {
+    // Si no está registrado, mostrar drawer de registro
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
+
+    // Si es calculated y no se ha calculado el costo, mostrar drawer de delivery
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
+
+    await createOrder()
+  }
+
+  const createOrder = async () => {
+    if (!customer) return
+    
+    setIsCreatingOrder(true)
+    try {
+      // Crear la orden en el backend
+      const deliveryType = getDeliveryType()
+      const orderData = {
+        totalAmount: total,
+        type: deliveryType === 'calculated' ? 'delivery' as const : 'quick' as const,
+        paymentMethod: 'pending', // El pago se coordinará después
+        paymentDate: new Date().toISOString(),
+        totalReceived: 0, // No hay pago inicial desde la web
+        customerId: customer.id,
+        items: items.map(item => {
+          console.log('🔍 Item del carrito:', item)
+          console.log('🔍 Product:', item.product)
+          console.log('🔍 storeProductId:', item.product.storeProductId)
+          return {
+            storeProductId: item.product.storeProductId,
+            quantity: item.quantity,
+            price: item.product.price,
+          }
+        }),
+        notes: `Pedido desde tienda web - ${deliveryType === 'calculated' ? 'Con delivery' : 'Sin delivery'}`,
+        ...(deliveryType === 'calculated' && {
+          deliveryInfo: {
+            address: customer.addresses?.[0]?.name || 'Dirección del cliente',
+            cost: deliveryCost,
+            notes: `Coordenadas: ${customer.addresses?.[0]?.latitude}, ${customer.addresses?.[0]?.longitude}`,
+          },
+        }),
+      }
+
+      console.log('📦 OrderData a enviar:', JSON.stringify(orderData, null, 2))
+
+      const createdOrder = await orderService.createFromStore(store.id, orderData)
+
+      toast.success('¡Pedido confirmado exitosamente!', {
+        description: `Total: Bs ${total.toFixed(2)}`,
+      })
+
+      // Clear cart
+      clearCart()
+      setShowDeliveryDrawer(false)
+
+      // Redirect to order tracking con el ID real de la orden
+      router.push(`/${store.slug}/pedido/${createdOrder.id}`)
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast.error('Error al crear el pedido', {
+        description: 'Por favor intenta de nuevo',
+      })
+    } finally {
+      setIsCreatingOrder(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
@@ -84,260 +193,75 @@ export default function ClassicCheckout({ store }: ClassicCheckoutProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Columna Izquierda - Formulario y Pago */}
+          {/* Columna Izquierda - Información */}
           <div className="space-y-8">
-            {/* Información del Cliente */}
+            {/* Instrucciones de Pedido */}
             <div className="bg-white rounded-lg shadow-md border-2 border-amber-200 p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg">📋</span>
                 </div>
-                <h2 className="text-2xl font-serif text-amber-900">Información de Contacto</h2>
+                <h2 className="text-2xl font-serif text-amber-900">Finalizar Pedido</h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-serif text-amber-800 mb-2">Nombre Completo</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                    placeholder="Juan Pérez"
-                  />
+              {/* Classic Instructions */}
+              <div className="bg-white border-4 border-amber-300 rounded-lg p-6 relative mb-6">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-600 px-6 py-1 rounded-full">
+                  <span className="text-white text-sm font-serif font-bold">INSTRUCCIONES</span>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-serif text-amber-800 mb-2">Correo Electrónico</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                    placeholder="juan@ejemplo.com"
-                  />
-                </div>
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-white font-serif font-bold">I</span>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-amber-900 font-serif">Revise cuidadosamente su pedido en el resumen</p>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-serif text-amber-800 mb-2">Teléfono</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                    placeholder="+52 123 456 7890"
-                  />
-                </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-white font-serif font-bold">II</span>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-amber-900 font-serif">Al confirmar el pedido, nos contactaremos con usted para procesar el pago</p>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-serif text-amber-800 mb-2">Dirección de Entrega</label>
-                  <textarea
-                    required
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif resize-none"
-                    placeholder="Calle, número, colonia, ciudad"
-                  />
-                </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-white font-serif font-bold">III</span>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-amber-900 font-serif">Coordinaremos con usted los detalles de entrega y forma de pago</p>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-serif text-amber-800 mb-2">Notas Especiales (opcional)</label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    rows={2}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif resize-none"
-                    placeholder="Instrucciones de entrega"
-                  />
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-white font-serif font-bold">IV</span>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-amber-900 font-serif">Recibirá confirmación de su pedido una vez procesado</p>
+                    </div>
+                  </div>
                 </div>
-              </form>
-            </div>
-
-            {/* Método de Pago */}
-            <div className="bg-white rounded-lg shadow-md border-2 border-amber-200 p-8">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">💳</span>
-                </div>
-                <h2 className="text-2xl font-serif text-amber-900">Método de Pago</h2>
               </div>
 
-              {/* Classic Tabs */}
-              <div className="flex border-b-2 border-amber-200 mb-8">
-                <button
-                  onClick={() => setActiveTab('qr')}
-                  className={`flex-1 py-4 font-serif font-medium border-b-4 transition-all ${
-                    activeTab === 'qr'
-                      ? 'border-amber-600 text-amber-900 bg-amber-50'
-                      : 'border-transparent text-amber-600 hover:text-amber-800 hover:bg-amber-50'
-                  }`}
-                >
-                  <Smartphone className="w-5 h-5 inline-block mr-2" />
-                  Código QR
-                </button>
-                <button
-                  onClick={() => setActiveTab('card')}
-                  className={`flex-1 py-4 font-serif font-medium border-b-4 transition-all ${
-                    activeTab === 'card'
-                      ? 'border-amber-600 text-amber-900 bg-amber-50'
-                      : 'border-transparent text-amber-600 hover:text-amber-800 hover:bg-amber-50'
-                  }`}
-                >
-                  <CreditCard className="w-5 h-5 inline-block mr-2" />
-                  Tarjeta
-                </button>
-              </div>
-
-              {/* QR Payment - EMPHASIZED */}
-              {activeTab === 'qr' && (
-                <div className="space-y-6">
-                  {/* Ornate QR Code Frame */}
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-8 rounded-lg border-4 border-double border-amber-400 relative">
-                    {/* Decorative corners */}
-                    <div className="absolute top-2 left-2 w-6 h-6 border-l-2 border-t-2 border-amber-600"></div>
-                    <div className="absolute top-2 right-2 w-6 h-6 border-r-2 border-t-2 border-amber-600"></div>
-                    <div className="absolute bottom-2 left-2 w-6 h-6 border-l-2 border-b-2 border-amber-600"></div>
-                    <div className="absolute bottom-2 right-2 w-6 h-6 border-r-2 border-b-2 border-amber-600"></div>
-
-                    <div className="flex flex-col items-center">
-                      {/* Crown decoration */}
-                      <Crown className="w-10 h-10 text-amber-600 mb-4" />
-
-                      {/* QR Code with vintage border */}
-                      <div className="w-72 h-72 bg-white border-8 border-amber-700 rounded-lg p-6 shadow-lg mb-6 relative">
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-600 px-4 py-1 rounded-full">
-                          <span className="text-white text-xs font-serif font-bold">ESCANEAR</span>
-                        </div>
-                        <div className="w-full h-full bg-amber-900 flex items-center justify-center">
-                          <span className="text-amber-100 text-sm font-serif">QR CODE</span>
-                        </div>
-                      </div>
-
-                      {/* Ornamental Timer */}
-                      <div className="bg-white rounded-full px-6 py-3 border-2 border-amber-600 shadow-md mb-4">
-                        <div className="flex items-center space-x-3">
-                          <Clock className="w-5 h-5 text-amber-700" />
-                          <span className="text-sm font-serif text-amber-800">Tiempo restante:</span>
-                          <span className="text-lg font-serif font-bold text-amber-900">{formatTime(timeLeft)}</span>
-                        </div>
-                      </div>
-
-                      {/* Vintage Amount Display */}
-                      <div className="bg-gradient-to-r from-amber-600 to-amber-700 rounded-lg px-8 py-4 text-center shadow-lg border-2 border-amber-800">
-                        <p className="text-xs font-serif text-amber-200 mb-1 tracking-wide">MONTO A PAGAR</p>
-                        <p className="text-3xl font-serif font-bold text-white">${total.toLocaleString()}</p>
-                        <div className="flex justify-center mt-2 space-x-1">
-                          <Star className="w-3 h-3 text-amber-300" />
-                          <Star className="w-3 h-3 text-amber-300" />
-                          <Star className="w-3 h-3 text-amber-300" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Classic Instructions */}
-                  <div className="bg-white border-4 border-amber-300 rounded-lg p-6 relative">
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-600 px-6 py-1 rounded-full">
-                      <span className="text-white text-sm font-serif font-bold">INSTRUCCIONES</span>
-                    </div>
-
-                    <div className="mt-4 space-y-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
-                          <span className="text-white font-serif font-bold">I</span>
-                        </div>
-                        <div className="flex-1 pt-2">
-                          <p className="text-amber-900 font-serif">Abra su aplicación bancaria preferida o cartera digital</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
-                          <span className="text-white font-serif font-bold">II</span>
-                        </div>
-                        <div className="flex-1 pt-2">
-                          <p className="text-amber-900 font-serif">Escanee el código QR con la cámara de su dispositivo</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
-                          <span className="text-white font-serif font-bold">III</span>
-                        </div>
-                        <div className="flex-1 pt-2">
-                          <p className="text-amber-900 font-serif">Verifique el monto y confirme su transacción</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center shadow-md">
-                          <span className="text-white font-serif font-bold">IV</span>
-                        </div>
-                        <div className="flex-1 pt-2">
-                          <p className="text-amber-900 font-serif">Recibirá confirmación inmediata de su pedido</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vintage Button */}
-                  <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white py-5 text-lg font-serif font-bold hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg border-2 border-amber-800 rounded-lg relative overflow-hidden group"
-                  >
-                    <span className="relative z-10 flex items-center justify-center space-x-3">
-                      <Crown className="w-5 h-5" />
-                      <span>Confirmar Pago</span>
-                      <Crown className="w-5 h-5" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </button>
-                </div>
-              )}
-
-              {/* Card Payment */}
-              {activeTab === 'card' && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-serif text-amber-800 mb-2">Número de Tarjeta</label>
-                    <input
-                      type="text"
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-serif text-amber-800 mb-2">Fecha de Expiración</label>
-                      <input
-                        type="text"
-                        placeholder="MM/AA"
-                        className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-serif text-amber-800 mb-2">CVV</label>
-                      <input
-                        type="text"
-                        placeholder="123"
-                        className="w-full px-4 py-3 border-2 border-amber-200 rounded focus:border-amber-500 focus:outline-none transition-colors font-serif"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white py-5 text-lg font-serif font-bold hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg border-2 border-amber-800 rounded-lg mt-6"
-                  >
-                    Confirmar Pago
-                  </button>
-                </div>
-              )}
+              {/* Vintage Button */}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white py-5 text-lg font-serif font-bold hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg border-2 border-amber-800 rounded-lg relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center justify-center space-x-3">
+                  <Crown className="w-5 h-5" />
+                  <span>Confirmar Pedido</span>
+                  <Crown className="w-5 h-5" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
             </div>
           </div>
 
@@ -369,22 +293,22 @@ export default function ClassicCheckout({ store }: ClassicCheckoutProps) {
                       </h3>
                       <p className="text-xs font-serif text-amber-600">Cantidad: {item.quantity}</p>
                     </div>
-                    <div className="text-sm font-serif font-bold text-amber-900">
-                      ${(item.product.price * item.quantity).toLocaleString()}
+                    <div className="text-sm font-serif font-bold text-amber-900" style={{ fontVariantNumeric: 'lining-nums' }}>
+                      Bs {(item.product.price * item.quantity).toLocaleString()}
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Totales con estilo vintage */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6" style={{ fontVariantNumeric: 'lining-nums' }}>
                 <div className="flex justify-between items-center font-serif">
                   <span className="text-amber-700">Subtotal</span>
-                  <span className="text-amber-900 font-medium">${subtotal.toLocaleString()}</span>
+                  <span className="text-amber-900 font-medium">Bs {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center font-serif">
                   <span className="text-amber-700">Envío</span>
-                  <span className="text-amber-900 font-medium">Cortesía</span>
+                  <span className="text-amber-900 font-medium">{getDeliveryText()}</span>
                 </div>
                 <div className="flex justify-center">
                   <div className="flex items-center space-x-4">
@@ -395,12 +319,12 @@ export default function ClassicCheckout({ store }: ClassicCheckoutProps) {
                 </div>
                 <div className="flex justify-between items-center bg-gradient-to-r from-amber-100 to-amber-50 p-4 rounded-lg border-2 border-amber-300">
                   <span className="font-serif font-bold text-amber-900 text-lg">Total</span>
-                  <span className="text-2xl font-serif font-bold text-amber-900">${total.toLocaleString()}</span>
+                  <span className="text-2xl font-serif font-bold text-amber-900">Bs {total.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Seguridad con sello vintage */}
-              <div className="bg-gradient-to-br from-amber-600 to-amber-800 p-6 rounded-lg text-center border-2 border-amber-900 shadow-lg">
+              {/* <div className="bg-gradient-to-br from-amber-600 to-amber-800 p-6 rounded-lg text-center border-2 border-amber-900 shadow-lg">
                 <Shield className="w-10 h-10 text-amber-200 mx-auto mb-3" />
                 <p className="text-white font-serif font-bold mb-1">Pago Seguro Garantizado</p>
                 <p className="text-amber-200 text-xs font-serif italic">Encriptación de nivel bancario</p>
@@ -409,11 +333,51 @@ export default function ClassicCheckout({ store }: ClassicCheckoutProps) {
                   <Star className="w-4 h-4 text-amber-300" />
                   <Star className="w-4 h-4 text-amber-300" />
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Customer Registration Drawer */}
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="classic"
+      />
+
+      {/* Delivery Calculation Drawer */}
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="classic"
+        cartItems={items}
+        subtotal={subtotal}
+        onCreateOrder={createOrder}
+        isCreatingOrder={isCreatingOrder}
+      />
+
+      {/* Add Address Dialog */}
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          // Reabrir delivery drawer después de cerrar el dialog
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="classic"
+      />
     </div>
   )
 }

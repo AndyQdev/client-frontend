@@ -161,17 +161,17 @@ export default function DarkModeProductDetail({ product, store }: DarkModeProduc
               <div className="py-6 border-y border-zinc-800">
                 <div className="flex items-baseline gap-4">
                   <span className="text-4xl font-bold text-yellow-500">
-                    ${product.price.toLocaleString()}
+                    Bs {product.price.toLocaleString()}
                   </span>
                   {hasDiscount && (
                     <span className="text-xl text-zinc-600 line-through">
-                      ${product.originalPrice!.toLocaleString()}
+                      Bs {product.originalPrice!.toLocaleString()}
                     </span>
                   )}
                 </div>
                 {hasDiscount && (
                   <div className="mt-2 text-green-500 font-semibold text-sm">
-                    Ahorra ${(product.originalPrice! - product.price).toLocaleString()}
+                    Ahorra Bs {(product.originalPrice! - product.price).toLocaleString()}
                   </div>
                 )}
               </div>
@@ -250,7 +250,7 @@ export default function DarkModeProductDetail({ product, store }: DarkModeProduc
               <div className="grid grid-cols-1 gap-3 pt-4">
                 {[
                   { icon: Shield, text: 'Compra Segura' },
-                  { icon: Truck, text: 'Envío Gratis +$500' },
+                  { icon: Truck, text: 'Envío Gratis +Bs 500' },
                   { icon: RotateCcw, text: 'Devoluciones 30 días' }
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">

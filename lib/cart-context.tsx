@@ -18,6 +18,9 @@ interface CartContextType {
   getTotalPrice: () => number
   isInCart: (productId: string) => boolean
   getItemQuantity: (productId: string) => number
+  isCartOpen: boolean
+  openCart: () => void
+  closeCart: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -30,6 +33,7 @@ interface CartProviderProps {
 export function CartProvider({ children, storeSlug }: CartProviderProps) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   // Cargar carrito desde localStorage al montar
   useEffect(() => {
@@ -69,8 +73,12 @@ export function CartProvider({ children, storeSlug }: CartProviderProps) {
         )
       }
 
-      return [...prevItems, { product, quantity }]
+      const newItem = { product, quantity }
+      return [...prevItems, newItem]
     })
+    
+    // Abrir el carrito automáticamente al agregar un producto
+    setIsCartOpen(true)
   }
 
   const removeFromCart = (productId: string) => {
@@ -111,6 +119,14 @@ export function CartProvider({ children, storeSlug }: CartProviderProps) {
     return item ? item.quantity : 0
   }
 
+  const openCart = () => {
+    setIsCartOpen(true)
+  }
+
+  const closeCart = () => {
+    setIsCartOpen(false)
+  }
+
   return (
     <CartContext.Provider
       value={{
@@ -123,6 +139,9 @@ export function CartProvider({ children, storeSlug }: CartProviderProps) {
         getTotalPrice,
         isInCart,
         getItemQuantity,
+        isCartOpen,
+        openCart,
+        closeCart,
       }}
     >
       {children}

@@ -4,9 +4,11 @@ import { Store, Product, Category } from '@/lib/types'
 import DarkModeStoreHeader from './DarkModeStoreHeader'
 import DarkModeProductCard from './DarkModeProductCard'
 import DarkModeCartSheet from './DarkModeCartSheet'
-import { Sparkles, Star, TrendingUp, Mail, Search } from 'lucide-react'
-import { useState } from 'react'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import DarkModeMobileMenu from './DarkModeMobileMenu'
+import { Sparkles, Star, TrendingUp, Mail, Search, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface DarkModeStorePageProps {
   store: Store
@@ -15,24 +17,101 @@ interface DarkModeStorePageProps {
 }
 
 export default function DarkModeStorePage({ store, products, categories }: DarkModeStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // Use backend filters
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!productsData) return []
+    const pages = (productsData as any).pages
+    if (!pages) return []
+    return pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
 
   return (
     <div className="min-h-screen bg-zinc-900">
-      <DarkModeStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
+      <DarkModeStoreHeader 
+        store={store} 
+        onCartClick={openCart}
+        onMenuClick={() => setIsMobileMenuOpen(true)}
+      />
 
       {/* Cart Sheet */}
-      <DarkModeCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <DarkModeCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
+
+      {/* Mobile Menu */}
+      <DarkModeMobileMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+        storeSlug={store.slug}
+        storeName={store.name}
+      />
 
       {/* Hero Section - Minimalista */}
       <section className="relative bg-zinc-900 border-b border-zinc-800 overflow-hidden">
@@ -91,7 +170,7 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
                 placeholder="Buscar productos..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors disabled:opacity-50"
               />
             </div>
@@ -100,7 +179,7 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => handleCategoryChange(null)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
                   selectedCategory === null
                     ? 'bg-yellow-500 text-black'
@@ -113,7 +192,7 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
                     selectedCategory === category.id
                       ? 'bg-yellow-500 text-black'
@@ -143,18 +222,31 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
         </div>
 
         {/* Products Grid */}
-        {(filteredProducts && filteredProducts.length > 0) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${(index % 6) * 100}ms` }}
-              >
-                <DarkModeProductCard product={product} storeSlug={store.slug} />
-              </div>
-            ))}
+        {isLoading && filteredProducts.length === 0 ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-12 h-12 text-yellow-500 animate-spin" />
           </div>
+        ) : filteredProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product: Product, index: number) => (
+                <div
+                  key={product.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${(index % 9) * 100}ms` }}
+                >
+                  <DarkModeProductCard product={product} storeSlug={store.slug} />
+                </div>
+              ))}
+            </div>
+
+            {/* Intersection Observer Target */}
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isFetchingNextPage && (
+                <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center py-24">
             <div className="inline-block bg-zinc-800/50 backdrop-blur-sm rounded-lg p-16 border border-zinc-700 animate-scale-in">
@@ -169,10 +261,10 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
               {selectedCategory && (
                 <button
                   onClick={() => handleCategoryChange(null)}
-                  disabled={isPending}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide transition-all transform hover:scale-105 disabled:opacity-50"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-yellow-500 text-black rounded-full font-semibold hover:bg-yellow-400 transition-colors disabled:opacity-50"
                 >
-                  Ver Todos los Productos
+                  Ver Todos
                 </button>
               )}
             </div>

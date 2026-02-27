@@ -22,6 +22,11 @@ import {
   Star
 } from 'lucide-react'
 import Image from 'next/image'
+import { useCustomer } from '@/lib/customer-context'
+import { useDelivery } from '@/hooks/useDelivery'
+import CustomerDrawer from '@/components/shared/CustomerDrawer'
+import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
+import AddAddressDialog from '@/components/shared/AddAddressDialog'
 
 interface CreativeCheckoutProps {
   store: Store
@@ -39,6 +44,23 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
     address: '',
     notes: ''
   })
+
+  const { customer, login, addAddress } = useCustomer()
+
+  const deliveryConfig = store.config?.delivery
+  const storeCoordinates = store.config?.contact?.coordinates
+
+  const {
+    deliveryCost,
+    getDeliveryText,
+    getDeliveryType,
+    handleDeliveryConfirm,
+    shouldShowDeliveryDrawer,
+  } = useDelivery({ deliveryConfig, storeCoordinates })
+
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
+  const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
 
   // Timer countdown
   useEffect(() => {
@@ -63,8 +85,37 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  const handleCustomerRegister = async (
+    name: string,
+    phone: string,
+    country: string,
+    addressObject?: { name: string; latitude: number; longitude: number }
+  ) => {
+    await login(store.id, name, phone, country, addressObject)
+    setShowCustomerDrawer(false)
+    
+    if (getDeliveryType() === 'calculated') {
+      setTimeout(() => setShowDeliveryDrawer(true), 300)
+    }
+  }
+
+  const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
+    await addAddress(addressObject)
+    setShowAddAddressDialog(false)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!customer) {
+      setShowCustomerDrawer(true)
+      return
+    }
+
+    if (shouldShowDeliveryDrawer(!!customer)) {
+      setShowDeliveryDrawer(true)
+      return
+    }
 
     // Generate random order ID
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -222,7 +273,7 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
                           <div className="space-y-4">
                             <div className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl p-4 text-white transform hover:scale-105 transition-transform">
                               <p className="text-xs uppercase tracking-wider mb-2 opacity-90">Monto a Pagar</p>
-                              <p className="text-4xl font-black">${getTotalPrice().toLocaleString()}</p>
+                              <p className="text-4xl font-black">Bs {getTotalPrice().toLocaleString()}</p>
                             </div>
 
                             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 transform hover:scale-105 transition-transform">
@@ -329,7 +380,7 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
                       <div className="mt-4 pt-4 border-t border-white/20">
                         <p className="text-xs uppercase tracking-wider text-white/70 mb-2">Monto a Pagar</p>
                         <p className="text-4xl font-black bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-                          ${getTotalPrice().toLocaleString()}
+                          Bs {getTotalPrice().toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -460,10 +511,10 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-white text-sm line-clamp-2">{item.product.name}</p>
                             <p className="text-xs text-white/60">
-                              {item.quantity} × ${item.product.price.toLocaleString()}
+                              {item.quantity} × Bs {item.product.price.toLocaleString()}
                             </p>
                             <p className="font-bold text-pink-400 text-sm mt-1">
-                              ${(item.product.price * item.quantity).toLocaleString()}
+                              Bs {(item.product.price * item.quantity).toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -474,20 +525,20 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-white/70">Subtotal</span>
-                        <span className="font-bold text-white">${getTotalPrice().toLocaleString()}</span>
+                        <span className="font-bold text-white">Bs {getTotalPrice().toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-white/70">Envío</span>
                         <span className="font-bold text-green-400 uppercase text-xs tracking-wider flex items-center">
                           <Sparkles className="w-3 h-3 mr-1" />
-                          Gratis
+                          {getDeliveryText()}
                         </span>
                       </div>
                       <div className="h-0.5 bg-gradient-to-r from-pink-500 to-purple-500"></div>
                       <div className="flex justify-between items-center pt-2">
                         <span className="text-lg font-bold text-white">Total</span>
                         <span className="text-3xl font-black bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                          ${getTotalPrice().toLocaleString()}
+                          Bs {(getTotalPrice() + deliveryCost).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -520,6 +571,41 @@ export default function CreativeCheckout({ store }: CreativeCheckoutProps) {
           </div>
         </div>
       </div>
+
+      <CustomerDrawer
+        isOpen={showCustomerDrawer}
+        onClose={() => setShowCustomerDrawer(false)}
+        onRegister={handleCustomerRegister}
+        themeVariant="creative"
+      />
+
+      <DeliveryDrawer
+        isOpen={showDeliveryDrawer}
+        onClose={() => setShowDeliveryDrawer(false)}
+        onConfirm={(address, cost) => {
+          handleDeliveryConfirm(address, cost)
+          setShowDeliveryDrawer(false)
+        }}
+        storeCoordinates={storeCoordinates}
+        customerAddresses={customer?.addresses || []}
+        onAddAddress={() => {
+          setShowDeliveryDrawer(false)
+          setShowAddAddressDialog(true)
+        }}
+        themeVariant="creative"
+        cartItems={items}
+        subtotal={subtotal}
+      />
+
+      <AddAddressDialog
+        isOpen={showAddAddressDialog}
+        onClose={() => {
+          setShowAddAddressDialog(false)
+          setTimeout(() => setShowDeliveryDrawer(true), 300)
+        }}
+        onSave={handleAddAddress}
+        themeVariant="creative"
+      />
     </div>
   )
 }

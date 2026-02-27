@@ -2,60 +2,109 @@ import { StoreEntity, ProductEntity, CategoryEntity } from './types'
 import { Store, Product, Category } from '../types'
 
 /**
+ * Mapeo de categorías a temas por defecto
+ */
+const CATEGORY_TO_THEME: Record<string, string> = {
+  'tecnologia': 'modern',
+  'electronica': 'modern',
+  'technology': 'modern',
+  'moda': 'elegante',
+  'fashion': 'elegante',
+  'ropa': 'elegante',
+  'hogar': 'minimal',
+  'home': 'minimal',
+  'casa': 'minimal',
+  'abarrotes': 'minimal',
+  'grocery': 'minimal',
+  'belleza': 'classic',
+  'beauty': 'classic',
+  'cosmeticos': 'classic',
+  'deportes': 'darkmode',
+  'sports': 'darkmode',
+  'arte': 'creative',
+  'art': 'creative',
+  'artesania': 'creative',
+}
+
+/**
+ * Obtiene el tema por defecto basado en la categoría de la tienda
+ */
+function getDefaultTheme(category?: string): string {
+  if (!category) return 'minimal' // Tema por defecto global
+  
+  const normalizedCategory = category.toLowerCase().trim()
+  return CATEGORY_TO_THEME[normalizedCategory] || 'minimal'
+}
+
+/**
  * Convert backend StoreEntity to frontend Store type
  */
 export function mapStoreEntityToStore(entity: StoreEntity): Store {
+  const config = entity.config || {} as any
+  const branding = config.branding || {}
+  const contact = config.contact || {}
+  const socialMedia = config.socialMedia || {}
+
+  // Obtener themeId: usa el configurado o asigna uno por defecto basado en categoría
+  const themeId = config.themeId || getDefaultTheme(config.category)
+
   return {
     id: entity.id,
     slug: entity.slug,
     name: entity.name,
     description: entity.description,
 
-    // Branding
-    logoUrl: entity.logoUrl,
-    bannerUrl: entity.bannerUrl,
-    faviconUrl: entity.faviconUrl,
+    // Branding - con valores por defecto para evitar placeholders externos
+    logoUrl: branding.logoUrl || undefined,
+    bannerUrl: branding.bannerUrl || undefined,
+    faviconUrl: branding.faviconUrl || undefined,
+    
+    // Alias para compatibilidad (sin placeholders)
+    logo: branding.logoUrl || undefined,
+    banner: branding.bannerUrl || undefined,
 
     // Content
-    aboutUs: entity.aboutUs,
-    heroTitle: entity.heroTitle,
+    aboutUs: config.aboutUs,
+    heroTitle: branding.heroTitle,
 
     // Contact
-    phone: entity.phone,
-    email: entity.email,
-    address: entity.address,
-    city: entity.city,
+    phone: contact.phone,
+    email: contact.email,
+    address: contact.address,
+    city: contact.city,
 
     // Social Media
-    facebookUrl: entity.facebookUrl,
-    instagramUrl: entity.instagramUrl,
-    whatsappNumber: entity.whatsappNumber,
+    facebookUrl: socialMedia.facebookUrl,
+    instagramUrl: socialMedia.instagramUrl,
+    whatsappNumber: contact.phone,
 
     // Features
-    features: entity.features,
+    features: config.features as any,
 
     // Config
-    category: entity.category,
-    themeId: entity.themeId,
-    currency: entity.currency,
-    isActive: entity.isActive,
+    category: config.category,
+    themeId: themeId, // Siempre tendrá un valor (configurado o por defecto)
+    currency: config.currency,
+    isActive: entity.enabled, // Map enabled from backend to isActive for frontend
 
-    // Stats - default values (can be updated later with real analytics)
+    // Stats - default values
     stats: {
-      totalProducts: 0, // Will be updated when products are loaded
+      totalProducts: 0,
       totalOrders: 0,
       totalViews: 0,
       rating: 5.0,
     },
 
-    // Legacy fields for compatibility
-    logo: entity.logoUrl,
+    // Legacy contact for compatibility
     contact: {
-      email: entity.email || '',
-      phone: entity.phone || '',
-      address: entity.address || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      address: contact.address || '',
     },
-  }
+
+    // IMPORTANT: Include the full config object for delivery and other configurations
+    config: entity.config,
+  } as Store
 }
 
 /**
@@ -98,8 +147,11 @@ export function mapProductEntityToProduct(entity: ProductEntity, categories?: Ca
   // Get category - either from entity.category object or find in categories array
   const categoryObj = entity.category || categories?.find(c => c.id === (entity.category_id || ''))
 
-  // Handle price - can be string or number
-  const price = typeof entity.price === 'string' ? parseFloat(entity.price) : entity.price
+  // Handle price - can be string, number, or undefined (with fallback to 0)
+  let price = 0
+  if (entity.price !== undefined && entity.price !== null) {
+    price = typeof entity.price === 'string' ? parseFloat(entity.price) : entity.price
+  }
 
   // Get stock quantity - support both camelCase and snake_case
   const stockQuantity = entity.stockQuantity ?? entity.stock_quantity ?? 0
@@ -109,28 +161,36 @@ export function mapProductEntityToProduct(entity: ProductEntity, categories?: Ca
 
   return {
     id: entity.id,
+    storeProductId: (entity as any).storeProductId || entity.id, // ID del StoreProduct, fallback a product.id
     name: entity.name,
+    slug: entity.name.toLowerCase().replace(/\s+/g, '-'), // Generate slug from name
     description: entity.description || '',
     price: price,
-    image: imageUrls[0] || '', // First image or empty string
     images: imageUrls, // All images
     category: categoryObj ? {
       id: categoryObj.id,
       name: categoryObj.name,
       slug: categoryObj.name.toLowerCase().replace(/\s+/g, '-'),
+      description: categoryObj.description,
+      icon: categoryObj.icon,
+      productCount: categoryObj.productCount || 0,
     } : {
       id: entity.category_id || '',
       name: 'Sin categoría',
       slug: 'sin-categoria',
+      description: '',
+      icon: '',
+      productCount: 0,
     },
-    inStock: stockQuantity > 0,
     stock: stockQuantity,
     sku: entity.sku,
     isFeatured: isFeatured,
+    isActive: true, // Assume active if retrieved from backend
     tags,
     specifications,
-    rating: 5, // Default rating
-    reviews: 0, // Default reviews
+    storeId: entity.store_id || '',
+    createdAt: new Date(entity.createdAt),
+    updatedAt: new Date(entity.updatedAt),
   }
 }
 
@@ -143,5 +203,7 @@ export function mapCategoryEntityToCategory(entity: CategoryEntity): Category {
     name: entity.name,
     slug: entity.name.toLowerCase().replace(/\s+/g, '-'),
     description: entity.description,
+    icon: entity.icon,
+    productCount: entity.productCount || 0,
   }
 }

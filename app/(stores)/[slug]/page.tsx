@@ -4,7 +4,13 @@ import { getStoreProfessionalThemeSerializable } from '@/lib/fake-data'
 import ThemeProvider from '@/components/ThemeProvider'
 import ThemeComponentSelector from '@/components/themes/ThemeComponentSelector'
 
-export default async function StorePage({ params }: { params: { slug: string } }) {
+export default async function StorePage({ 
+  params,
+  searchParams 
+}: { 
+  params: { slug: string }
+  searchParams: { theme?: string; preview?: string }
+}) {
   // Filter out invalid slugs (like serviceWorker.js, manifest.json, etc.)
   if (params.slug.includes('.') || params.slug.startsWith('_')) {
     notFound()
@@ -20,14 +26,21 @@ export default async function StorePage({ params }: { params: { slug: string } }
   const categories = await getStoreCategories(store.id)
 
   // Get serializable professional theme data (without functions)
-  const serializableTheme = getStoreProfessionalThemeSerializable(store)
+  // If theme parameter is provided in URL, use it to override store theme
+  const themeOverride = searchParams.theme
+  const serializableTheme = themeOverride 
+    ? getStoreProfessionalThemeSerializable({ ...store, themeId: themeOverride })
+    : getStoreProfessionalThemeSerializable(store)
 
   if (!serializableTheme) {
     notFound()
   }
 
   return (
-    <ThemeProvider serializableTheme={serializableTheme}>
+    <ThemeProvider 
+      serializableTheme={serializableTheme}
+      isPreviewMode={searchParams.preview === 'true'}
+    >
       <ThemeComponentSelector
         themeId={serializableTheme.id}
         store={store}

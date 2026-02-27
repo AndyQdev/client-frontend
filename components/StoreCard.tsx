@@ -38,7 +38,7 @@ export default function StoreCard({ store }: StoreCardProps) {
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
         {/* Store Banner */}
         <div className="relative h-32" style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}>
-          {store.banner && (
+          {store.banner && !store.banner.includes('placeholder') && (
             <Image
               src={store.banner}
               alt={store.name}
@@ -54,7 +54,7 @@ export default function StoreCard({ store }: StoreCardProps) {
           {/* Logo */}
           <div className="absolute -top-8 left-4">
             <div className="w-16 h-16 bg-white border-2 border-white rounded-lg overflow-hidden shadow-md">
-              {store.logo ? (
+              {store.logo && !store.logo.includes('placeholder') ? (
                 <Image
                   src={store.logo}
                   alt={store.name}
@@ -92,11 +92,11 @@ export default function StoreCard({ store }: StoreCardProps) {
             <div className="flex items-center justify-between text-xs text-gray-500">
               <div className="flex items-center space-x-1">
                 <ShoppingBag className="w-3 h-3" />
-                <span>{store.stats.totalProducts} productos</span>
+                <span>{store.stats?.totalProducts || 0} productos</span>
               </div>
               <div className="flex items-center space-x-1">
                 <TrendingUp className="w-3 h-3" />
-                <span>{store.stats.totalOrders} órdenes</span>
+                <span>{store.stats?.totalOrders || 0} órdenes</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Eye className="w-3 h-3" />

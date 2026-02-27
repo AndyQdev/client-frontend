@@ -4,10 +4,11 @@ import { Store, Product, Category } from '@/lib/types'
 import EleganteStoreHeader from './EleganteStoreHeader'
 import EleganteProductCard from './EleganteProductCard'
 import EleganteCartSheet from './EleganteCartSheet'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Search } from 'lucide-react'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import { Search, Loader2 } from 'lucide-react'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface EleganteStorePageProps {
   store: Store
@@ -16,25 +17,87 @@ interface EleganteStorePageProps {
 }
 
 export default function EleganteStorePage({ store, products, categories }: EleganteStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // Use backend filters
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!(productsData as any)?.pages) return []
+    return (productsData as any).pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
 
   return (
     <div id="inicio" className="min-h-screen bg-white">
       {/* Header elegante */}
-      <EleganteStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
+      <EleganteStoreHeader store={store} onCartClick={openCart} />
 
       {/* Cart Sheet */}
-      <EleganteCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <EleganteCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
 
       {/* Banner hero minimalista y elegante - REDUCIDO para priorizar productos */}
       <section className="relative h-96 flex items-center justify-center overflow-hidden">
@@ -74,7 +137,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
                 placeholder="Buscar productos..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-none focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all duration-300 disabled:opacity-50 font-light tracking-wide"
               />
             </div>
@@ -85,7 +148,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
             <div className="flex flex-wrap justify-center gap-12">
               <button
                 onClick={() => handleCategoryChange(null)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 disabled:opacity-50 ${
                   selectedCategory === null
                     ? 'text-black border-b border-black'
@@ -98,7 +161,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 disabled:opacity-50 ${
                     selectedCategory === category.id
                       ? 'text-black border-b border-black'
@@ -128,18 +191,31 @@ export default function EleganteStorePage({ store, products, categories }: Elega
               </p>
             </div>
 
-            {(filteredProducts && filteredProducts.length > 0) ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
-                {filteredProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    className="animate-fade-in-up"
-                    style={{ animationDelay: `${(index % 8) * 100}ms` }}
-                  >
-                    <EleganteProductCard product={product} storeSlug={store.slug} />
-                  </div>
-                ))}
+            {isLoading && filteredProducts.length === 0 ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="w-12 h-12 text-black animate-spin" />
               </div>
+            ) : filteredProducts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
+                  {filteredProducts.map((product: any, index: number) => (
+                    <div
+                      key={product.id}
+                      className="animate-fade-in-up"
+                      style={{ animationDelay: `${(index % 9) * 100}ms` }}
+                    >
+                      <EleganteProductCard product={product} storeSlug={store.slug} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Intersection Observer Target */}
+                <div ref={loadMoreRef} className="flex justify-center py-8">
+                  {isFetchingNextPage && (
+                    <Loader2 className="w-8 h-8 text-black animate-spin" />
+                  )}
+                </div>
+              </>
             ) : (
               <div className="text-center py-20">
                 <div className="max-w-md mx-auto">
@@ -149,8 +225,7 @@ export default function EleganteStorePage({ store, products, categories }: Elega
                   <h3 className="text-2xl font-thin text-gray-900 mb-4 tracking-wider uppercase">
                     Sin Productos
                   </h3>
-                  <div className="w-12 h-px bg-gray-300 mx-auto mb-6"></div>
-                  <p className="text-gray-600 font-light text-lg mb-8">
+                  <p className="text-gray-600 font-light tracking-wide mb-8">
                     {selectedCategory 
                       ? 'Esta categoría no tiene productos disponibles en este momento' 
                       : 'No hay productos disponibles actualmente'
@@ -159,10 +234,10 @@ export default function EleganteStorePage({ store, products, categories }: Elega
                   {selectedCategory && (
                     <button
                       onClick={() => handleCategoryChange(null)}
-                      disabled={isPending}
+                      disabled={isLoading}
                       className="bg-black text-white px-8 py-3 text-sm uppercase tracking-widest font-light hover:bg-gray-800 transition-all duration-300 disabled:opacity-50"
                     >
-                      Ver Toda la Colección
+                      Ver Todos
                     </button>
                   )}
                 </div>

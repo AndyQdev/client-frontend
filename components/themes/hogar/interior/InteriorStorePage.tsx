@@ -1,14 +1,15 @@
 'use client'
 
 import { Store, Product, Category } from '@/lib/types'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import InteriorProductCard from './InteriorProductCard'
 import InteriorStoreHeader from './InteriorStoreHeader'
 import InteriorCartSheet from './InteriorCartSheet'
+import InteriorMobileMenu from './InteriorMobileMenu'
 import { useCart } from '@/lib/cart-context'
-import { ChevronDown, Truck, Shield, Headphones, Search, X } from 'lucide-react'
+import { ChevronDown, Truck, Shield, Headphones, Search, X, Loader2 } from 'lucide-react'
 import Image from 'next/image'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
 
 interface InteriorStorePageProps {
   store: Store
@@ -17,30 +18,101 @@ interface InteriorStorePageProps {
 }
 
 export default function InteriorStorePage({ store, products, categories }: InteriorStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const { items } = useCart()
+  const { isCartOpen, openCart, closeCart, items } = useCart()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!(productsData as any)?.pages) return []
+    return (productsData as any).pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
 
   return (
     <div id="inicio" className="min-h-screen bg-stone-50">
       <InteriorStoreHeader
         store={store}
-        onCartClick={() => setIsCartOpen(true)}
+        onCartClick={openCart}
+        onMenuClick={() => setIsMobileMenuOpen(true)}
         cartItemsCount={items.length}
       />
 
       <InteriorCartSheet
         isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
+        onClose={closeCart}
         storeSlug={store.slug}
+      />
+
+      <InteriorMobileMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+        storeSlug={store.slug}
+        storeName={store.name}
       />
       {/* Hero Section */}
       <section className="relative h-[70vh] bg-stone-900 overflow-hidden">
@@ -87,13 +159,13 @@ export default function InteriorStorePage({ store, products, categories }: Inter
                 placeholder="Buscar productos..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full pl-12 pr-12 py-4 bg-white border-2 border-amber-200 rounded-lg text-stone-800 placeholder-amber-400 focus:outline-none focus:border-amber-400 transition-colors shadow-sm disabled:opacity-50"
               />
               {search && (
                 <button
                   onClick={() => handleSearchChange('')}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-600 hover:text-amber-700 transition-colors disabled:opacity-50"
                 >
                   <X className="w-5 h-5" />
@@ -108,7 +180,7 @@ export default function InteriorStorePage({ store, products, categories }: Inter
             <div className="category-filter flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => handleCategoryChange(null)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`${selectedCategory === null ? 'active' : ''} disabled:opacity-50`}
               >
                 Todos
@@ -117,26 +189,13 @@ export default function InteriorStorePage({ store, products, categories }: Inter
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className={`${selectedCategory === cat.id ? 'active' : ''} disabled:opacity-50`}
                 >
                   {cat.name}
                 </button>
               ))}
             </div>
-
-            {/* Sort - TODO: Implementar ordenamiento en el backend */}
-            {/* <div className="relative">
-              <select
-                className="appearance-none bg-white border border-stone-200 px-6 py-2 pr-10 text-sm font-medium text-stone-700 focus:outline-none focus:border-stone-400 cursor-pointer"
-              >
-                <option value="featured">Destacados</option>
-                <option value="price-asc">Precio: Menor a Mayor</option>
-                <option value="price-desc">Precio: Mayor a Menor</option>
-                <option value="newest">Más Recientes</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
-            </div> */}
           </div>
 
           {/* Product Counter */}
@@ -149,17 +208,30 @@ export default function InteriorStorePage({ store, products, categories }: Inter
           </div>
 
           {/* Products Grid */}
-          {(filteredProducts && filteredProducts.length > 0) ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredProducts.slice(0, 12).map((product, index) => (
-                <InteriorProductCard
-                  key={product.id}
-                  product={product}
-                  storeSlug={store.slug}
-                  index={index}
-                />
-              ))}
+          {isLoading && filteredProducts.length === 0 ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
             </div>
+          ) : filteredProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {filteredProducts.map((product: Product, index: number) => (
+                  <InteriorProductCard
+                    key={product.id}
+                    product={product}
+                    storeSlug={store.slug}
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              {/* Intersection Observer Target */}
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {isFetchingNextPage && (
+                  <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+                )}
+              </div>
+            </>
           ) : (
             <div className="text-center py-16">
               <div className="max-w-md mx-auto">
@@ -180,7 +252,8 @@ export default function InteriorStorePage({ store, products, categories }: Inter
                     {search && (
                       <button
                         onClick={() => handleSearchChange('')}
-                        className="btn-secondary mr-4"
+                        disabled={isLoading}
+                        className="btn-primary disabled:opacity-50"
                       >
                         Limpiar Búsqueda
                       </button>
@@ -188,7 +261,8 @@ export default function InteriorStorePage({ store, products, categories }: Inter
                     {selectedCategory && (
                       <button
                         onClick={() => handleCategoryChange(null)}
-                        className="btn-primary"
+                        disabled={isLoading}
+                        className="btn-secondary disabled:opacity-50"
                       >
                         Ver Todos los Productos
                       </button>
@@ -196,14 +270,6 @@ export default function InteriorStorePage({ store, products, categories }: Inter
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {filteredProducts && filteredProducts.length > 12 && (
-            <div className="text-center mt-16">
-              <button className="btn-secondary">
-                Ver Más Productos
-              </button>
             </div>
           )}
         </div>

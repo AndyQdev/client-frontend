@@ -4,9 +4,11 @@ import { Store, Product, Category } from '@/lib/types'
 import ModernStoreHeader from './ModernStoreHeader'
 import ModernProductGrid from './ModernProductGrid'
 import ModernCartSheet from './ModernCartSheet'
-import { useState } from 'react'
-import { Zap, Shield, Truck, HeadphonesIcon, Search } from 'lucide-react'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import ModernMobileMenu from './ModernMobileMenu'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { Zap, Shield, Truck, HeadphonesIcon, Search, Loader2 } from 'lucide-react'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface ModernStorePageProps {
   store: Store
@@ -15,22 +17,97 @@ interface ModernStorePageProps {
 }
 
 export default function ModernStorePage({ store, products, categories }: ModernStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // Use backend filters
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!productsData) return []
+    const pages = (productsData as any).pages
+    if (!pages) return []
+    return pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
 
   return (
     <div id="inicio" className="min-h-screen bg-[#0F0F0F]">
-      <ModernStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
-      <ModernCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <ModernStoreHeader 
+        store={store} 
+        onCartClick={openCart}
+        onMenuClick={() => setIsMobileMenuOpen(true)}
+      />
+      <ModernCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
+      <ModernMobileMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+        storeSlug={store.slug}
+        storeName={store.name}
+      />
 
       {/* Hero Section - Elegant Professional */}
       <section className="relative overflow-hidden py-20 lg:py-32">
@@ -110,7 +187,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
                 placeholder="Buscar productos..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full pl-12 pr-4 py-4 bg-[#1A1A1A] border border-[#2A2A2A] text-[#F5F5F5] placeholder-[#6B7280] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all duration-300 disabled:opacity-50"
               />
             </div>
@@ -120,7 +197,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
           <div className="category-filter mb-12 animate-fade-in">
             <button
               onClick={() => handleCategoryChange(null)}
-              disabled={isPending}
+              disabled={isLoading}
               className={selectedCategory === null ? 'active' : ''}
             >
               Todos
@@ -129,7 +206,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={selectedCategory === category.id ? 'active' : ''}
               >
                 {category.name}
@@ -150,8 +227,21 @@ export default function ModernStorePage({ store, products, categories }: ModernS
           </div>
 
           {/* Products Grid */}
-          {(filteredProducts && filteredProducts.length > 0) ? (
-            <ModernProductGrid products={filteredProducts} storeSlug={store.slug} />
+          {isLoading && filteredProducts.length === 0 ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-12 h-12 text-[#D4AF37] animate-spin" />
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            <>
+              <ModernProductGrid products={filteredProducts} storeSlug={store.slug} />
+              
+              {/* Intersection Observer Target */}
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {isFetchingNextPage && (
+                  <Loader2 className="w-8 h-8 text-[#D4AF37] animate-spin" />
+                )}
+              </div>
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="inline-block bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-16 animate-scale-in">
@@ -166,7 +256,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
                 {selectedCategory && (
                   <button
                     onClick={() => handleCategoryChange(null)}
-                    disabled={isPending}
+                    disabled={isLoading}
                     className="btn-primary px-8 py-3"
                   >
                     Ver Todos los Productos
@@ -189,7 +279,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
             {(store.features && store.features.length > 0 ? store.features : [
               { icon: 'Zap', title: 'Envío Express', description: '24-48 horas' },
               { icon: 'Shield', title: 'Garantía Total', description: '2 años' },
-              { icon: 'Truck', title: 'Envío Gratis', description: 'Desde $100.000' },
+              { icon: 'Truck', title: 'Envío Gratis', description: 'Desde Bs 100.000' },
               { icon: 'HeadphonesIcon', title: 'Soporte 24/7', description: 'Siempre disponibles' }
             ]).map((feature, i) => {
               const IconComponent = feature.icon === 'Zap' ? Zap :
@@ -300,7 +390,7 @@ export default function ModernStorePage({ store, products, categories }: ModernS
             <div className="space-y-6 animate-fade-in-up">
               {store.email && (
                 <div>
-                  <h4 className="text-[#F5F5F5] font-semibold mb-2">Email</h4>
+                  <h4 className="text-[#F5F5F5] font-semibold mb-2">Correo</h4>
                   <a href={`mailto:${store.email}`} className="text-[#D4AF37] hover:text-[#E5C158] transition-colors">
                     {store.email}
                   </a>

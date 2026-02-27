@@ -31,7 +31,7 @@ export default function DarkModeCartSheet({ isOpen, onClose, storeSlug }: DarkMo
       />
 
       {/* Sheet */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-zinc-900 border-l border-zinc-800 shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-[75%] max-w-sm bg-zinc-900 border-l border-zinc-800 shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
         {/* Header */}
         <div className="bg-black border-b border-zinc-800 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -116,7 +116,7 @@ export default function DarkModeCartSheet({ isOpen, onClose, storeSlug }: DarkMo
                         {/* Price */}
                         <div className="mb-3">
                           <span className="text-lg font-bold text-yellow-500">
-                            ${item.product.price.toLocaleString()}
+                            Bs {item.product.price.toLocaleString()}
                           </span>
                           <span className="text-xs text-zinc-600 ml-2">
                             por unidad
@@ -160,11 +160,11 @@ export default function DarkModeCartSheet({ isOpen, onClose, storeSlug }: DarkMo
                           Subtotal
                         </span>
                         <span className="text-xs text-zinc-600">
-                          {item.quantity} × ${item.product.price.toLocaleString()}
+                          {item.quantity} × Bs {item.product.price.toLocaleString()}
                         </span>
                       </div>
                       <span className="text-xl font-bold text-zinc-100">
-                        ${(item.product.price * item.quantity).toLocaleString()}
+                        Bs {(item.product.price * item.quantity).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export default function DarkModeCartSheet({ isOpen, onClose, storeSlug }: DarkMo
                     Subtotal
                   </span>
                   <span className="text-lg font-semibold text-zinc-300">
-                    ${getTotalPrice().toLocaleString()}
+                    Bs {getTotalPrice().toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -207,7 +207,7 @@ export default function DarkModeCartSheet({ isOpen, onClose, storeSlug }: DarkMo
                     </p>
                   </div>
                   <span className="text-3xl font-bold text-yellow-500">
-                    ${getTotalPrice().toLocaleString()}
+                    Bs {getTotalPrice().toLocaleString()}
                   </span>
                 </div>
               </div>

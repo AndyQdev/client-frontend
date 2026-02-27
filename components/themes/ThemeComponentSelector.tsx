@@ -110,7 +110,7 @@ export default function ThemeComponentSelector({
             {products.map((product) => (
               <div key={product.id} className="border rounded-lg p-4">
                 <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-gray-600">${product.price}</p>
+                <p className="text-gray-600">Bs {product.price}</p>
               </div>
             ))}
           </div>

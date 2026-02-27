@@ -4,9 +4,10 @@ import { Store, Product, Category } from '@/lib/types'
 import CreativeStoreHeader from './CreativeStoreHeader'
 import CreativeProductCard from './CreativeProductCard'
 import CreativeCartSheet from './CreativeCartSheet'
-import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search } from 'lucide-react'
-import { useState } from 'react'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface CreativeStorePageProps {
   store: Store
@@ -15,16 +16,71 @@ interface CreativeStorePageProps {
 }
 
 export default function CreativeStorePage({ store, products, categories }: CreativeStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search: searchTerm,
-    selectedCategory,
-    isPending,
-    handleSearchChange: setSearchTerm,
-    handleCategoryChange: setSelectedCategory
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!(productsData as any)?.pages) return []
+    return (productsData as any).pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-100 via-fuchsia-50 to-orange-100 relative overflow-hidden">
@@ -36,8 +92,8 @@ export default function CreativeStorePage({ store, products, categories }: Creat
         <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full blur-3xl opacity-15 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <CreativeStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
-      <CreativeCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <CreativeStoreHeader store={store} onCartClick={openCart} />
+      <CreativeCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
 
       {/* Hero Creativo */}
       <section className="relative py-16 lg:py-24 overflow-hidden">
@@ -125,13 +181,13 @@ export default function CreativeStorePage({ store, products, categories }: Creat
                   placeholder="Busca tu producto creativo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className="w-full pl-16 pr-6 py-5 bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none font-bold text-lg disabled:opacity-50"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    disabled={isPending}
+                    disabled={isLoading}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform font-black text-sm disabled:opacity-50"
                   >
                     ×
@@ -145,7 +201,7 @@ export default function CreativeStorePage({ store, products, categories }: Creat
           <div className="flex flex-wrap justify-center gap-4 mb-16">
             <button
               onClick={() => setSelectedCategory(null)}
-              disabled={isPending}
+              disabled={isLoading}
               className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 disabled:opacity-50 ${
                 selectedCategory === null
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-110'
@@ -158,7 +214,7 @@ export default function CreativeStorePage({ store, products, categories }: Creat
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 hover:rotate-2 disabled:opacity-50 ${
                   selectedCategory === category.id
                     ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg scale-110'
@@ -192,18 +248,31 @@ export default function CreativeStorePage({ store, products, categories }: Creat
             </div>
           </div>
 
-          {(filteredProducts && filteredProducts.length > 0) ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CreativeProductCard product={product} storeSlug={store.slug} />
-                </div>
-              ))}
+          {isLoading && filteredProducts.length === 0 ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
             </div>
+          ) : filteredProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredProducts.map((product: Product, index: number) => (
+                  <div
+                    key={product.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${(index % 9) * 100}ms` }}
+                  >
+                    <CreativeProductCard product={product} storeSlug={store.slug} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Intersection Observer Target */}
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {isFetchingNextPage && (
+                  <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+                )}
+              </div>
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="inline-block bg-white/80 backdrop-blur-sm rounded-3xl p-16 shadow-2xl transform hover:scale-105 transition-transform">
@@ -218,8 +287,8 @@ export default function CreativeStorePage({ store, products, categories }: Creat
                 {selectedCategory && (
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    disabled={isPending}
-                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-110 disabled:opacity-50"
+                    disabled={isLoading}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-black hover:scale-110 transition-transform disabled:opacity-50"
                   >
                     Ver Todos
                   </button>

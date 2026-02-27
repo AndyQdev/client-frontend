@@ -92,12 +92,12 @@ export default function InteriorProductDetail({ store, product }: InteriorProduc
             )}
 
             <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-3xl font-serif text-stone-900">${product.price.toLocaleString()}</span>
+              <span className="text-3xl font-serif text-stone-900">Bs {product.price.toLocaleString()}</span>
               {product.originalPrice && (
                 <>
-                  <span className="text-xl text-stone-400 line-through">${product.originalPrice.toLocaleString()}</span>
+                  <span className="text-xl text-stone-400 line-through">Bs {product.originalPrice.toLocaleString()}</span>
                   <span className="text-sm bg-amber-100 text-amber-800 px-3 py-1 font-medium">
-                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% DESC
                   </span>
                 </>
               )}

@@ -72,7 +72,7 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
           <h1 className="text-4xl font-serif text-amber-900 mb-2">
             Seguimiento de Pedido
           </h1>
-          <p className="text-amber-700 font-serif italic">
+          <p className="text-amber-700 font-serif italic" style={{ fontVariantNumeric: 'lining-nums' }}>
             Orden No. {orderId}
           </p>
         </div>

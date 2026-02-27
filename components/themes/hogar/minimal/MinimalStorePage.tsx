@@ -4,10 +4,11 @@ import { Store, Product, Category } from '@/lib/types'
 import MinimalStoreHeader from './MinimalStoreHeader'
 import MinimalProductCard from './MinimalProductCard'
 import MinimalCartSheet from './MinimalCartSheet'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Search } from 'lucide-react'
-import { useProductFilters } from '@/hooks/useProductFilters'
+import { Search, Loader2 } from 'lucide-react'
+import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
+import { useCart } from '@/lib/cart-context'
 
 interface MinimalStorePageProps {
   store: Store
@@ -16,23 +17,88 @@ interface MinimalStorePageProps {
 }
 
 export default function MinimalStorePage({ store, products, categories }: MinimalStorePageProps) {
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const { isCartOpen, openCart, closeCart } = useCart()
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
+  // Debounce del término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [search])
+
+  // Hook de productos con scroll infinito
   const {
-    products: filteredProducts,
-    search,
-    selectedCategory,
-    isPending,
-    handleSearchChange,
-    handleCategoryChange
-  } = useProductFilters(store.id, products)
+    data: productsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteProducts({
+    storeId: store.id,
+    pageSize: 9,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(selectedCategory && { categoryId: selectedCategory }),
+  })
+
+  // Intersection Observer para scroll infinito
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Productos aplanados de todas las páginas
+  const filteredProducts = useMemo(() => {
+    if (!productsData) return []
+    const pages = (productsData as any).pages
+    if (!pages) return []
+    return pages.flatMap((page: any) => 
+      page.data.map((inventory: any) => ({
+        id: inventory.product.id,
+        storeProductId: inventory.storeProductId,
+        name: inventory.product.name,
+        price: inventory.product.price || 0,
+        originalPrice: inventory.product.originalPrice,
+        images: inventory.product.imageUrls || [],
+        description: inventory.product.description,
+        category: inventory.product.category,
+        brand: inventory.product.brand,
+        sku: inventory.product.sku,
+        stock: inventory.stockQuantity || 0,
+        isFeatured: inventory.product.metadata?.isFeatured || false,
+      }))
+    )
+  }, [productsData])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId)
+  }
 
   return (
     <div id="inicio" className="min-h-screen bg-white">
-      <MinimalStoreHeader store={store} onCartClick={() => setIsCartOpen(true)} />
+      <MinimalStoreHeader store={store} onCartClick={openCart} />
 
       {/* Cart Sheet */}
-      <MinimalCartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} storeSlug={store.slug} />
+      <MinimalCartSheet isOpen={isCartOpen} onClose={closeCart} storeSlug={store.slug} />
 
       {/* Hero ultra minimal - REDUCIDO para priorizar productos */}
       <section className="bg-gray-50 overflow-hidden">
@@ -66,7 +132,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
               placeholder="Buscar productos..."
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              disabled={isPending}
+              disabled={isLoading}
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
             />
           </div>
@@ -77,7 +143,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
           <div className="flex flex-wrap gap-8 text-sm">
             <button
               onClick={() => handleCategoryChange(null)}
-              disabled={isPending}
+              disabled={isLoading}
               className={`pb-1 transition-colors ${
                 selectedCategory === null
                   ? 'text-gray-900 border-b border-gray-900'
@@ -90,7 +156,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                disabled={isPending}
+                disabled={isLoading}
                 className={`pb-1 transition-colors ${
                   selectedCategory === category.id
                     ? 'text-gray-900 border-b border-gray-900'
@@ -108,38 +174,51 @@ export default function MinimalStorePage({ store, products, categories }: Minima
         </div>
 
         {/* Grid con espacios generosos */}
-        {(filteredProducts && filteredProducts.length > 0) ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
-            {filteredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${(index % 6) * 100}ms` }}
-              >
-                <MinimalProductCard product={product} storeSlug={store.slug} />
-              </div>
-            ))}
+        {isLoading && filteredProducts.length === 0 ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-12 h-12 text-gray-900 animate-spin" />
           </div>
+        ) : filteredProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+              {filteredProducts.map((product: Product, index: number) => (
+                <div
+                  key={product.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${(index % 9) * 100}ms` }}
+                >
+                  <MinimalProductCard product={product} storeSlug={store.slug} />
+                </div>
+              ))}
+            </div>
+
+            {/* Intersection Observer Target */}
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isFetchingNextPage && (
+                <Loader2 className="w-8 h-8 text-gray-900 animate-spin" />
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center py-20">
             <div className="max-w-sm mx-auto">
               <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-8">
                 <div className="text-4xl font-light text-gray-400">∅</div>
               </div>
-              <h3 className="text-2xl font-light text-gray-900 mb-4">No Products</h3>
+              <h3 className="text-2xl font-light text-gray-900 mb-4">Sin Productos</h3>
               <p className="text-gray-600 mb-8">
                 {selectedCategory 
-                  ? 'This category has no products available right now' 
-                  : 'No products are currently available'
+                  ? 'Esta categoría no tiene productos disponibles en este momento' 
+                  : 'No hay productos disponibles actualmente'
                 }
               </p>
               {selectedCategory && (
                 <button
                   onClick={() => handleCategoryChange(null)}
-                  disabled={isPending}
+                  disabled={isLoading}
                   className="bg-gray-900 text-white px-6 py-2 text-sm font-medium hover:bg-gray-800 transition-all duration-300 disabled:opacity-50"
                 >
-                  View All Products
+                  Ver Todos los Productos
                 </button>
               )}
             </div>
@@ -153,7 +232,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="animate-slide-in-left">
-              <h2 className="text-3xl font-light text-gray-900 mb-6">About Us</h2>
+              <h2 className="text-3xl font-light text-gray-900 mb-6">Nosotros</h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {store.aboutUs || `At ${store.name}, we believe in simplicity and quality. Every product is carefully selected to bring you the best in design and functionality.`}
               </p>
@@ -189,19 +268,19 @@ export default function MinimalStorePage({ store, products, categories }: Minima
             {/* Newsletter minimal */}
             <div className="animate-slide-in-left">
               <h3 className="text-2xl font-light text-gray-900 mb-6">
-                Stay Updated
+                Manténte Informado
               </h3>
               <p className="text-gray-600 mb-8">
-                Receive updates on new arrivals and exclusive offers.
+                Recibe actualizaciones sobre nuevos productos y ofertas exclusivas.
               </p>
               <div className="flex">
                 <input
                   type="email"
-                  placeholder="Email address"
+                  placeholder="Correo electrónico"
                   className="flex-1 px-0 py-3 border-0 border-b border-gray-200 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
                 />
                 <button className="ml-6 text-gray-900 hover:text-gray-600 transition-all duration-300 text-sm font-medium transform hover:scale-105">
-                  Subscribe
+                  Suscribirse
                 </button>
               </div>
             </div>
@@ -210,7 +289,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
             <div className="space-y-6 animate-fade-in delay-200">
               {store.email && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Email</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Correo</h4>
                   <a href={`mailto:${store.email}`} className="text-gray-600 hover:text-gray-900 transition-colors">
                     {store.email}
                   </a>
@@ -218,7 +297,7 @@ export default function MinimalStorePage({ store, products, categories }: Minima
               )}
               {store.phone && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Phone</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Teléfono</h4>
                   <a href={`tel:${store.phone}`} className="text-gray-600 hover:text-gray-900 transition-colors">
                     {store.phone}
                   </a>

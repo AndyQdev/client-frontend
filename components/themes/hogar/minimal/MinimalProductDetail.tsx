@@ -127,11 +127,11 @@ export default function MinimalProductDetail({ product, store }: MinimalProductD
             {/* Price */}
             <div className="flex items-center space-x-4">
               <span className="text-3xl font-medium text-gray-900">
-                ${product.price.toLocaleString()}
+                Bs {product.price.toLocaleString()}
               </span>
               {product.originalPrice && (
                 <span className="text-xl text-gray-400 line-through">
-                  ${product.originalPrice.toLocaleString()}
+                  Bs {product.originalPrice.toLocaleString()}
                 </span>
               )}
             </div>
