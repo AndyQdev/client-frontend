@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Store } from '@/lib/types'
 import MinimalStoreHeader from './MinimalStoreHeader'
-import { Package, Truck, MapPin, CheckCircle2, Phone } from 'lucide-react'
+import { Package, Truck, CheckCircle2, Phone, Wifi, WifiOff } from 'lucide-react'
+import { useWebSocket } from '@/lib/websocket-context'
+import { toast } from 'sonner'
 
 interface MinimalOrderTrackingProps {
   store: Store
@@ -15,37 +17,101 @@ const steps = [
     id: 1,
     title: 'Contactando con el proveedor',
     description: 'Estamos confirmando su pedido con el proveedor',
-    icon: Phone
+    icon: Phone,
+    status: 'pendiente'
   },
   {
     id: 2,
     title: 'Preparando su pedido',
     description: 'Su pedido está siendo preparado cuidadosamente',
-    icon: Package
+    icon: Package,
+    status: 'en-proceso'
   },
   {
     id: 3,
     title: 'Su pedido está en camino',
     description: 'El pedido ha sido enviado y está en tránsito',
-    icon: Truck
+    icon: Truck,
+    status: 'en-camino'
   },
   {
     id: 4,
-    title: 'Pedido llegó al destino',
-    description: 'Su pedido ha llegado a la ubicación de entrega',
-    icon: MapPin
-  },
-  {
-    id: 5,
-    title: '¡Gracias por su compra!',
-    description: 'Esperamos que disfrute su pedido',
-    icon: CheckCircle2
+    title: '¡Pedido Completado!',
+    description: 'Entregado con éxito. ¡Gracias por su compra!',
+    icon: CheckCircle2,
+    status: 'completado'
   }
 ]
 
 export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTrackingProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [showCartSheet, setShowCartSheet] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const { isConnected, onOrderStatusChange } = useWebSocket()
+
+  // Obtener estado inicial de la orden al cargar
+  useEffect(() => {
+    if (!orderId) return
+
+    const fetchOrderStatus = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/public/${orderId}`)
+        
+        if (response.ok) {
+          const result = await response.json()
+          const order = result.data
+          
+          const statusToStep: Record<string, number> = {
+            'pendiente': 1,
+            'en-proceso': 2,
+            'en-camino': 3,
+            'completado': 4,
+          }
+          
+          const step = statusToStep[order.status]
+          if (step !== undefined) {
+            setCurrentStep(step)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderStatus()
+  }, [orderId])
+
+  // Escuchar cambios de status en tiempo real
+  useEffect(() => {
+    if (!orderId) return
+    
+    const unsubscribe = onOrderStatusChange((data) => {
+      console.log('🔔 [MinimalTracking] Order status changed:', data)
+      
+      if (data.orderId === orderId) {
+        toast.success('¡Estado del pedido actualizado!', {
+          description: `Nuevo estado: ${data.status}`,
+        })
+        
+        const statusToStep: Record<string, number> = {
+          'pendiente': 1,
+          'en-proceso': 2,
+          'en-camino': 3,
+          'completado': 4,
+        }
+        
+        const newStep = statusToStep[data.status]
+        if (newStep !== undefined) {
+          setCurrentStep(newStep)
+        }
+      }
+    })
+    
+    return unsubscribe
+  }, [orderId, onOrderStatusChange])
 
   const handleNextStep = () => {
     if (currentStep < steps.length) {
@@ -60,6 +126,27 @@ export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTra
       <MinimalStoreHeader store={store} onCartClick={() => setShowCartSheet(true)} />
 
       <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* WebSocket Connection Indicator */}
+        <div className="flex justify-end mb-6">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+            isConnected 
+              ? 'bg-green-100 text-green-700 border border-green-200' 
+              : 'bg-red-100 text-red-700 border border-red-200'
+          }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-4 h-4" />
+                <span>Conectado</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span>Desconectado</span>
+              </>
+            )}
+          </div>
+        </div>
+        
         {/* Order Info Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 mb-8">
           <div className="flex justify-between items-start mb-6">

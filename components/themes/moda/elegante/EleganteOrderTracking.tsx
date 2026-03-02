@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Phone, Package, Truck, MapPin, Heart, Check } from 'lucide-react'
+import { Phone, Package, Truck, CheckCircle, Check, Wifi, WifiOff, Heart } from 'lucide-react'
 import EleganteStoreHeader from './EleganteStoreHeader'
 import { Store } from '@/lib/types'
+import { useWebSocket } from '@/lib/websocket-context'
+import { toast } from 'sonner'
 
 interface EleganteOrderTrackingProps {
   store: Store
@@ -17,43 +19,106 @@ const STEPS = [
     title: 'Contactando con el proveedor',
     description: 'Estamos confirmando tu pedido con el proveedor',
     icon: Phone,
-    decorativeChar: '◆'
+    decorativeChar: '◆',
+    status: 'pendiente'
   },
   {
     id: 1,
     title: 'Preparando su pedido',
     description: 'El proveedor está preparando cuidadosamente tu pedido',
     icon: Package,
-    decorativeChar: '◆'
+    decorativeChar: '◆',
+    status: 'en-proceso'
   },
   {
     id: 2,
     title: 'Su pedido está en camino',
     description: 'Tu pedido está en ruta hacia el destino',
     icon: Truck,
-    decorativeChar: '◆'
+    decorativeChar: '◆',
+    status: 'en-camino'
   },
   {
     id: 3,
-    title: 'Pedido llegó al destino',
-    description: 'Tu pedido ha llegado a la dirección de entrega',
-    icon: MapPin,
-    decorativeChar: '◆'
-  },
-  {
-    id: 4,
-    title: '¡Gracias por su compra!',
-    description: 'Esperamos que disfrutes tu pedido. Vuelve pronto.',
-    icon: Heart,
-    decorativeChar: '◆'
+    title: '¡Pedido Completado!',
+    description: 'Entregado con éxito. ¡Gracias por tu compra!',
+    icon: CheckCircle,
+    decorativeChar: '◆',
+    status: 'completado'
   }
 ]
 
 export default function EleganteOrderTracking({ store, orderId, onCartClick }: EleganteOrderTrackingProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [animatingStep, setAnimatingStep] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const { isConnected, onOrderStatusChange } = useWebSocket()
 
   const progress = ((currentStep + 1) / STEPS.length) * 100
+
+  // Obtener estado inicial de la orden al cargar
+  useEffect(() => {
+    if (!orderId) return
+
+    const fetchOrderStatus = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/public/${orderId}`)
+        
+        if (response.ok) {
+          const result = await response.json()
+          const order = result.data
+          
+          const statusToStep: Record<string, number> = {
+            'pendiente': 0,
+            'en-proceso': 1,
+            'en-camino': 2,
+            'completado': 3,
+          }
+          
+          const step = statusToStep[order.status]
+          if (step !== undefined) {
+            setCurrentStep(step)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderStatus()
+  }, [orderId])
+
+  // Escuchar cambios de status en tiempo real
+  useEffect(() => {
+    if (!orderId) return
+    
+    const unsubscribe = onOrderStatusChange((data) => {
+      console.log('🔔 [EleganteTracking] Order status changed:', data)
+      
+      if (data.orderId === orderId) {
+        toast.success('¡Estado del pedido actualizado!', {
+          description: `Nuevo estado: ${data.status}`,
+        })
+        
+        const statusToStep: Record<string, number> = {
+          'pendiente': 0,
+          'en-proceso': 1,
+          'en-camino': 2,
+          'completado': 3,
+        }
+        
+        const newStep = statusToStep[data.status]
+        if (newStep !== undefined) {
+          setCurrentStep(newStep)
+        }
+      }
+    })
+    
+    return unsubscribe
+  }, [orderId, onOrderStatusChange])
 
   useEffect(() => {
     setAnimatingStep(currentStep)
@@ -62,7 +127,7 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
   }, [currentStep])
 
   const handleNextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 4))
+    setCurrentStep(prev => Math.min(prev + 1, 3))
   }
 
   const getEstimatedTime = () => {
@@ -70,8 +135,7 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
       case 0: return '5-10 minutos'
       case 1: return '15-20 minutos'
       case 2: return '20-30 minutos'
-      case 3: return 'Ya llegó'
-      case 4: return 'Completado'
+      case 3: return 'Completado'
       default: return '30-40 minutos'
     }
   }
@@ -81,6 +145,27 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
       <EleganteStoreHeader store={store} onCartClick={onCartClick} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* WebSocket Connection Indicator */}
+        <div className="flex justify-end mb-6">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium tracking-wider uppercase ${
+            isConnected 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-3 h-3" />
+                <span>Conectado</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3" />
+                <span>Desconectado</span>
+              </>
+            )}
+          </div>
+        </div>
+        
         {/* Decorative Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">

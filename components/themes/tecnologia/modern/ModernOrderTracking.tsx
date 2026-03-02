@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Phone, Package, Truck, MapPin, Heart, Check, ChevronRight } from 'lucide-react'
+import { Phone, Package, Truck, CheckCircle, Check, ChevronRight, Wifi, WifiOff } from 'lucide-react'
 import ModernStoreHeader from './ModernStoreHeader'
 import { Store } from '@/lib/types'
+import { useWebSocket } from '@/lib/websocket-context'
+import { toast } from 'sonner'
 
 interface ModernOrderTrackingProps {
   store: Store
@@ -19,7 +21,8 @@ const STEPS = [
     icon: Phone,
     gradient: 'from-blue-500 to-blue-600',
     bgGradient: 'from-blue-50 to-blue-100',
-    color: 'text-blue-600'
+    color: 'text-blue-600',
+    status: 'pendiente'
   },
   {
     id: 1,
@@ -28,7 +31,8 @@ const STEPS = [
     icon: Package,
     gradient: 'from-purple-500 to-purple-600',
     bgGradient: 'from-purple-50 to-purple-100',
-    color: 'text-purple-600'
+    color: 'text-purple-600',
+    status: 'en-proceso'
   },
   {
     id: 2,
@@ -37,25 +41,18 @@ const STEPS = [
     icon: Truck,
     gradient: 'from-indigo-500 to-indigo-600',
     bgGradient: 'from-indigo-50 to-indigo-100',
-    color: 'text-indigo-600'
+    color: 'text-indigo-600',
+    status: 'en-camino'
   },
   {
     id: 3,
-    title: 'Pedido llegó al destino',
-    description: 'Tu pedido ha llegado a la dirección de entrega',
-    icon: MapPin,
+    title: '¡Pedido Completado!',
+    description: 'Entregado con éxito. ¡Gracias por tu compra!',
+    icon: CheckCircle,
     gradient: 'from-green-500 to-green-600',
     bgGradient: 'from-green-50 to-green-100',
-    color: 'text-green-600'
-  },
-  {
-    id: 4,
-    title: '¡Gracias por su compra!',
-    description: 'Esperamos que disfrutes tu pedido. ¡Vuelve pronto!',
-    icon: Heart,
-    gradient: 'from-pink-500 to-pink-600',
-    bgGradient: 'from-pink-50 to-pink-100',
-    color: 'text-pink-600'
+    color: 'text-green-600',
+    status: 'completado'
   }
 ]
 
@@ -63,11 +60,83 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
   const [currentStep, setCurrentStep] = useState(0)
   const [showConfetti, setShowConfetti] = useState(false)
   const [animatingStep, setAnimatingStep] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const { isConnected, onOrderStatusChange } = useWebSocket()
 
   const progress = ((currentStep + 1) / STEPS.length) * 100
 
+  // Obtener estado inicial de la orden al cargar
   useEffect(() => {
-    if (currentStep === 4) {
+    if (!orderId) return
+
+    const fetchOrderStatus = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/public/${orderId}`)
+        
+        if (response.ok) {
+          const result = await response.json()
+          const order = result.data
+          
+          const statusToStep: Record<string, number> = {
+            'pendiente': 0,
+            'en-proceso': 1,
+            'en-camino': 2,
+            'completado': 3,
+          }
+          
+          const step = statusToStep[order.status]
+          if (step !== undefined) {
+            setCurrentStep(step)
+            if (step === 3) {
+              setShowConfetti(true)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderStatus()
+  }, [orderId])
+
+  // Escuchar cambios de status en tiempo real
+  useEffect(() => {
+    if (!orderId) return
+    
+    const unsubscribe = onOrderStatusChange((data) => {
+      console.log('🔔 [ModernTracking] Order status changed:', data)
+      
+      if (data.orderId === orderId) {
+        toast.success('¡Estado del pedido actualizado!', {
+          description: `Nuevo estado: ${data.status}`,
+        })
+        
+        const statusToStep: Record<string, number> = {
+          'pendiente': 0,
+          'en-proceso': 1,
+          'en-camino': 2,
+          'completado': 3,
+        }
+        
+        const newStep = statusToStep[data.status]
+        if (newStep !== undefined) {
+          setCurrentStep(newStep)
+          if (newStep === 3) {
+            setShowConfetti(true)
+          }
+        }
+      }
+    })
+    
+    return unsubscribe
+  }, [orderId, onOrderStatusChange])
+
+  useEffect(() => {
+    if (currentStep === 3) {
       setShowConfetti(true)
       const timer = setTimeout(() => setShowConfetti(false), 3000)
       return () => clearTimeout(timer)
@@ -81,7 +150,7 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
   }, [currentStep])
 
   const handleNextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 4))
+    setCurrentStep(prev => Math.min(prev + 1, 3))
   }
 
   const getEstimatedTime = () => {
@@ -89,8 +158,7 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
       case 0: return '5-10 minutos'
       case 1: return '15-20 minutos'
       case 2: return '20-30 minutos'
-      case 3: return 'Ya llegó'
-      case 4: return 'Completado'
+      case 3: return 'Completado'
       default: return '30-40 minutos'
     }
   }
@@ -120,6 +188,26 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
       )}
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* WebSocket Connection Indicator */}
+        <div className="flex justify-end mb-6">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+            isConnected 
+              ? 'bg-green-100 text-green-700 border border-green-200' 
+              : 'bg-red-100 text-red-700 border border-red-200'
+          }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-4 h-4" />
+                <span>Conectado en tiempo real</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span>Desconectado</span>
+              </>
+            )}
+          </div>
+        </div>
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">

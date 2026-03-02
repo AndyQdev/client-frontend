@@ -1,10 +1,12 @@
 'use client'
 
 import { Store } from '@/lib/types'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import InteriorStoreHeader from './InteriorStoreHeader'
-import { Package, Truck, CheckCircle, MapPin } from 'lucide-react'
+import { Package, Truck, CheckCircle, Phone, Wifi, WifiOff } from 'lucide-react'
+import { useWebSocket } from '@/lib/websocket-context'
+import { toast } from 'sonner'
 
 interface InteriorOrderTrackingProps {
   store: Store
@@ -13,36 +15,106 @@ interface InteriorOrderTrackingProps {
 
 export default function InteriorOrderTracking({ store, orderId }: InteriorOrderTrackingProps) {
   const [currentStep, setCurrentStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { isConnected, onOrderStatusChange } = useWebSocket()
+
+  // Obtener estado inicial de la orden al cargar
+  useEffect(() => {
+    if (!orderId) return
+
+    const fetchOrderStatus = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/public/${orderId}`)
+        
+        if (response.ok) {
+          const result = await response.json()
+          const order = result.data
+          
+          const statusToStep: Record<string, number> = {
+            'pendiente': 1,
+            'en-proceso': 2,
+            'en-camino': 3,
+            'completado': 4,
+          }
+          
+          const step = statusToStep[order.status]
+          if (step !== undefined) {
+            setCurrentStep(step)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderStatus()
+  }, [orderId])
+
+  // Escuchar cambios de status en tiempo real
+  useEffect(() => {
+    if (!orderId) return
+    
+    const unsubscribe = onOrderStatusChange((data) => {
+      console.log('🔔 [InteriorTracking] Order status changed:', data)
+      
+      if (data.orderId === orderId) {
+        toast.success('¡Estado del pedido actualizado!', {
+          description: `Nuevo estado: ${data.status}`,
+        })
+        
+        const statusToStep: Record<string, number> = {
+          'pendiente': 1,
+          'en-proceso': 2,
+          'en-camino': 3,
+          'completado': 4,
+        }
+        
+        const newStep = statusToStep[data.status]
+        if (newStep !== undefined) {
+          setCurrentStep(newStep)
+        }
+      }
+    })
+    
+    return unsubscribe
+  }, [orderId, onOrderStatusChange])
 
   const steps = [
     {
       id: 1,
-      title: 'Pedido Confirmado',
+      title: 'Contactando con el proveedor',
       description: 'Tu pedido ha sido recibido y confirmado',
-      icon: CheckCircle,
-      date: new Date().toLocaleDateString()
+      icon: Phone,
+      date: new Date().toLocaleDateString(),
+      status: 'pendiente'
     },
     {
       id: 2,
       title: 'En Preparación',
       description: 'Estamos preparando tu pedido con cuidado',
       icon: Package,
-      date: ''
+      date: '',
+      status: 'en-proceso'
     },
     {
       id: 3,
       title: 'En Camino',
       description: 'Tu pedido está siendo enviado',
       icon: Truck,
-      date: ''
+      date: '',
+      status: 'en-camino'
     },
     {
       id: 4,
-      title: 'Entregado',
-      description: '¡Tu pedido ha sido entregado!',
-      icon: MapPin,
-      date: ''
+      title: '¡Pedido Completado!',
+      description: 'Entregado con éxito. ¡Gracias por tu compra!',
+      icon: CheckCircle,
+      date: '',
+      status: 'completado'
     }
   ]
 
@@ -59,6 +131,30 @@ export default function InteriorOrderTracking({ store, orderId }: InteriorOrderT
         onCartClick={() => router.push(`/${store.slug}`)}
         cartItemsCount={0}
       />
+      
+      {/* WebSocket Connection Indicator */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="flex justify-end mb-4">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+            isConnected 
+              ? 'bg-green-100 text-green-700 border border-green-200' 
+              : 'bg-red-100 text-red-700 border border-red-200'
+          }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-4 h-4" />
+                <span>Conectado en tiempo real</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span>Desconectado</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      
       <div className="py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 animate-fade-in-up">

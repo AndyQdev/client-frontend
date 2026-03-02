@@ -11,6 +11,8 @@ import { useDelivery } from '@/hooks/useDelivery'
 import CustomerDrawer from '@/components/shared/CustomerDrawer'
 import DeliveryDrawer from '@/components/shared/DeliveryDrawer'
 import AddAddressDialog from '@/components/shared/AddAddressDialog'
+import { orderService } from '@/lib/api/services/order.service'
+import { toast } from 'sonner'
 
 interface InteriorCheckoutProps {
   store: Store
@@ -36,6 +38,11 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
   const [showCustomerDrawer, setShowCustomerDrawer] = useState(false)
   const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false)
   const [showAddAddressDialog, setShowAddAddressDialog] = useState(false)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false)
+  const [calculatedDeliveryCost, setCalculatedDeliveryCost] = useState(0)
+
+  const subtotal = getTotalPrice()
+  const total = subtotal + deliveryCost
 
   const handleCustomerRegister = async (
     name: string,
@@ -56,21 +63,125 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
     setShowAddAddressDialog(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleSubmit = async () => {
+    // Si no está registrado, mostrar drawer de registro
     if (!customer) {
       setShowCustomerDrawer(true)
       return
     }
 
+    // Si es calculated y no se ha calculado el costo, mostrar drawer de delivery
     if (shouldShowDeliveryDrawer(!!customer)) {
       setShowDeliveryDrawer(true)
       return
     }
-    const orderId = `ORD-${Date.now()}`
-    clearCart()
-    router.push(`/${store.slug}/pedido/${orderId}`)
+
+    await createOrder()
+  }
+
+  const createOrder = async () => {
+    if (!customer) return
+    
+    setIsCreatingOrder(true)
+    try {
+      // Crear la orden en el backend
+      const deliveryType = getDeliveryType()
+      const finalDeliveryCost = deliveryType === 'calculated' ? calculatedDeliveryCost : deliveryCost
+      const actualTotal = subtotal + finalDeliveryCost
+      
+      const orderData = {
+        totalAmount: actualTotal,
+        type: deliveryType === 'calculated' ? 'delivery' as const : 'quick' as const,
+        paymentMethod: 'pending',
+        paymentDate: new Date().toISOString(),
+        totalReceived: 0,
+        customerId: customer.id,
+        items: items.map(item => ({
+          storeProductId: item.product.storeProductId,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        notes: `Pedido desde tienda web - ${deliveryType === 'calculated' ? 'Con delivery' : 'Sin delivery'}`,
+        ...(deliveryType === 'calculated' && {
+          deliveryInfo: {
+            address: customer.addresses?.[0]?.name || 'Dirección del cliente',
+            cost: finalDeliveryCost,
+            coordinates: {
+              latitude: customer.addresses?.[0]?.latitude || 0,
+              longitude: customer.addresses?.[0]?.longitude || 0,
+            },
+            notes: '',
+          },
+        }),
+      }
+
+      const createdOrder = await orderService.createFromStore(store.id, orderData)
+
+      console.log('📦 [InteriorCheckout] deliveryType:', deliveryType)
+      console.log('📦 [InteriorCheckout] deliveryCost (hook):', deliveryCost)
+      console.log('📦 [InteriorCheckout] calculatedDeliveryCost:', calculatedDeliveryCost)
+      console.log('📦 [InteriorCheckout] finalDeliveryCost:', finalDeliveryCost)
+      console.log('📦 [InteriorCheckout] actualTotal:', actualTotal)
+      console.log('📦 [InteriorCheckout] subtotal:', subtotal)
+
+      // Enviar notificación WhatsApp a la tienda
+      try {
+        const storePhone = store.config?.contact?.phone || ''
+        if (storePhone) {
+          const itemsList = items.map((item, index) => 
+            `${index + 1}. ${item.product.name} x${item.quantity} - Bs ${(item.product.price * item.quantity).toFixed(2)}`
+          ).join('\n')
+
+          const deliveryText = deliveryType === 'calculated' 
+            ? `\n📍 *Dirección:* ${customer.addresses?.[0]?.name || 'Sin dirección'}\n🚚 *Costo de Envío:* Bs ${finalDeliveryCost.toFixed(2)}\n📍 *Ubicación:* https://maps.google.com/?q=${customer.addresses?.[0]?.latitude},${customer.addresses?.[0]?.longitude}`
+            : ''
+
+          const message = `🛍️ *NUEVO PEDIDO RECIBIDO*\n\n` +
+            `📋 *Pedido:* #${createdOrder.id.slice(0, 8)}\n` +
+            `👤 *Cliente:* ${customer.name}\n` +
+            `📱 *Teléfono:* ${customer.country} ${customer.phone}\n\n` +
+            `*PRODUCTOS:*\n${itemsList}\n${deliveryText}\n\n` +
+            `💰 *TOTAL:* Bs ${actualTotal.toFixed(2)}\n\n` +
+            `⏰ *Fecha:* ${new Date().toLocaleString('es-BO')}\n` +
+            `🌐 *Tienda:* ${store.name}`
+
+          // Enviar mensaje usando el endpoint público del backend
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+          await fetch(`${apiUrl}/whatsapp/send-message`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: '59164528384_ALORA', // Bot userId
+              to: storePhone,
+              message: message,
+            }),
+          })
+        }
+      } catch (whatsappError) {
+        // No mostrar error al usuario si falla WhatsApp
+        console.error('Error enviando notificación WhatsApp:', whatsappError)
+      }
+
+      toast.success('¡Pedido confirmado exitosamente!', {
+        description: `Total: Bs ${total.toFixed(2)}`,
+      })
+
+      // Clear cart
+      clearCart()
+      setShowDeliveryDrawer(false)
+
+      // Redirect to order tracking con el ID real de la orden
+      router.push(`/${store.slug}/pedido/${createdOrder.id}`)
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast.error('Error al crear el pedido', {
+        description: 'Por favor intenta de nuevo',
+      })
+    } finally {
+      setIsCreatingOrder(false)
+    }
   }
 
   if (items.length === 0) {
@@ -218,8 +329,10 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
         onClose={() => setShowDeliveryDrawer(false)}
         onConfirm={(address, cost) => {
           handleDeliveryConfirm(address, cost)
-          setShowDeliveryDrawer(false)
         }}
+        onCreateOrder={createOrder}
+        isCreatingOrder={isCreatingOrder}
+        onDeliveryCostCalculated={setCalculatedDeliveryCost}
         storeCoordinates={storeCoordinates}
         customerAddresses={customer?.addresses || []}
         onAddAddress={() => {

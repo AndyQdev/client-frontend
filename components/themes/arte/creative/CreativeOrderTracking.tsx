@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Store } from '@/lib/types'
-import { Package, Truck, MapPin, CheckCircle, Phone, Sparkles, Star } from 'lucide-react'
+import { Package, Truck, MapPin, CheckCircle, Phone, Sparkles, Star, Wifi, WifiOff } from 'lucide-react'
 import CreativeStoreHeader from './CreativeStoreHeader'
+import { useWebSocket } from '@/lib/websocket-context'
+import { toast } from 'sonner'
 
 interface CreativeOrderTrackingProps {
   store: Store
@@ -19,6 +21,7 @@ const TIMELINE_STEPS = [
     emoji: '📞',
     gradient: 'from-blue-500 to-cyan-500',
     bgGradient: 'from-blue-50 to-cyan-50',
+    status: 'pendiente'
   },
   {
     id: 2,
@@ -28,6 +31,7 @@ const TIMELINE_STEPS = [
     emoji: '📦',
     gradient: 'from-purple-500 to-pink-500',
     bgGradient: 'from-purple-50 to-pink-50',
+    status: 'en-proceso'
   },
   {
     id: 3,
@@ -37,24 +41,17 @@ const TIMELINE_STEPS = [
     emoji: '🚚',
     gradient: 'from-orange-500 to-red-500',
     bgGradient: 'from-orange-50 to-red-50',
+    status: 'en-camino'
   },
   {
     id: 4,
-    title: 'PEDIDO LLEGÓ AL DESTINO',
-    description: 'Entregado en su dirección',
-    icon: MapPin,
-    emoji: '📍',
-    gradient: 'from-green-500 to-emerald-500',
-    bgGradient: 'from-green-50 to-emerald-50',
-  },
-  {
-    id: 5,
-    title: '¡GRACIAS POR SU COMPRA!',
-    description: 'Su satisfacción es nuestra prioridad',
+    title: '¡PEDIDO COMPLETADO!',
+    description: 'Entregado con éxito. ¡Gracias por su compra!',
     icon: CheckCircle,
     emoji: '🎉',
-    gradient: 'from-yellow-500 to-orange-500',
-    bgGradient: 'from-yellow-50 to-orange-50',
+    gradient: 'from-green-500 to-emerald-500',
+    bgGradient: 'from-green-50 to-emerald-50',
+    status: 'completado'
   },
 ]
 
@@ -63,6 +60,89 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
   const [isCompleted, setIsCompleted] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number }>>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { isConnected, onOrderStatusChange } = useWebSocket()
+
+  // Obtener estado inicial de la orden al cargar
+  useEffect(() => {
+    if (!orderId) return
+
+    const fetchOrderStatus = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/public/${orderId}`)
+        
+        if (response.ok) {
+          const result = await response.json()
+          const order = result.data
+          
+          const statusToStep: Record<string, number> = {
+            'pendiente': 1,
+            'en-proceso': 2,
+            'en-camino': 3,
+            'completado': 4,
+          }
+          
+          const step = statusToStep[order.status]
+          if (step !== undefined) {
+            setCurrentStep(step)
+            if (step === 4) {
+              setIsCompleted(true)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderStatus()
+  }, [orderId])
+
+  // Escuchar cambios de status en tiempo real
+  useEffect(() => {
+    if (!orderId) return
+
+    const unsubscribe = onOrderStatusChange((data) => {
+      console.log('🔔 [CreativeTracking] Order status changed:', data)
+      
+      // Solo actualizar si es la orden que estamos viendo
+      if (data.orderId === orderId) {
+        toast.success('¡Estado del pedido actualizado!', {
+          description: `Nuevo estado: ${data.status}`,
+        })
+
+        // Mapear status del backend a pasos del tracking
+        const statusToStep: Record<string, number> = {
+          'pendiente': 1,
+          'en-proceso': 2,
+          'en-camino': 3,
+          'completado': 4,
+        }
+
+        const newStep = statusToStep[data.status]
+        if (newStep !== undefined) {
+          setCurrentStep(newStep)
+
+          if (newStep === 4) {
+            setIsCompleted(true)
+            setShowConfetti(true)
+            const newSparkles = Array.from({ length: 20 }, (_, i) => ({
+              id: i,
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+            }))
+            setSparkles(newSparkles)
+            setTimeout(() => setShowConfetti(false), 3000)
+          }
+        }
+      }
+    })
+
+    return unsubscribe
+  }, [orderId, onOrderStatusChange])
 
   const handleNextStep = () => {
     if (currentStep < TIMELINE_STEPS.length) {
@@ -131,6 +211,27 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
         <CreativeStoreHeader store={store} onCartClick={() => {}} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* WebSocket Connection Status */}
+          <div className="mb-6 flex justify-end">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+              isConnected 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-red-100 text-red-700'
+            }`}>
+              {isConnected ? (
+                <>
+                  <Wifi className="w-4 h-4" />
+                  Conectado en tiempo real
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-4 h-4" />
+                  Desconectado
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Header Creativo */}
           <div className="mb-12 text-center relative">
             <div className="absolute inset-0 flex items-center justify-center opacity-10">

@@ -23,6 +23,7 @@ interface DeliveryDrawerProps {
   subtotal?: number
   onCreateOrder?: () => Promise<void> // Función para crear la orden
   isCreatingOrder?: boolean // Estado de loading
+  onDeliveryCostCalculated?: (cost: number) => void // Callback para actualizar costo en componente padre
 }
 
 const THEME_STYLES = {
@@ -121,6 +122,7 @@ export default function DeliveryDrawer({
   subtotal = 0,
   onCreateOrder,
   isCreatingOrder = false,
+  onDeliveryCostCalculated,
 }: DeliveryDrawerProps) {
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0)
   const [distance, setDistance] = useState<number>(0)
@@ -161,9 +163,15 @@ export default function DeliveryDrawer({
         customerAddr.longitude
       )
       setDistance(dist)
-      setDeliveryCost(calculateDeliveryCost(dist))
+      const calculatedCost = calculateDeliveryCost(dist)
+      setDeliveryCost(calculatedCost)
+      
+      // Actualizar estado en componente padre
+      if (onDeliveryCostCalculated) {
+        onDeliveryCostCalculated(calculatedCost)
+      }
     }
-  }, [selectedAddressIndex, storeCoordinates, customerAddresses])
+  }, [selectedAddressIndex, storeCoordinates, customerAddresses, onDeliveryCostCalculated])
 
   // Cargar Google Maps y mostrar ruta
   useEffect(() => {
