@@ -7,6 +7,7 @@ import InteriorStoreHeader from './InteriorStoreHeader'
 import { Package, Truck, CheckCircle, Phone, Wifi, WifiOff } from 'lucide-react'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface InteriorOrderTrackingProps {
   store: Store
@@ -173,38 +174,67 @@ export default function InteriorOrderTracking({ store, orderId }: InteriorOrderT
           <div className="relative">
             {/* Progress line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-stone-200"></div>
-            <div
-              className="absolute left-8 top-0 w-0.5 bg-stone-800 transition-all duration-500 ease-out"
-              style={{ height: `${((currentStep - 1) / 3) * 100}%` }}
-            ></div>
+            <motion.div
+              className="absolute left-8 top-0 w-0.5 bg-stone-800"
+              initial={{ height: 0 }}
+              animate={{ height: `${((currentStep - 1) / 3) * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
 
             {/* Steps */}
             <div className="space-y-12">
-              {steps.map((step) => {
+              {steps.map((step, index) => {
                 const Icon = step.icon
                 const isCompleted = step.id < currentStep
                 const isCurrent = step.id === currentStep
                 const isPending = step.id > currentStep
 
                 return (
-                  <div
+                  <motion.div
                     key={step.id}
-                    className={`relative flex items-start gap-6 transition-all duration-500 ${
-                      isCompleted || isCurrent ? 'opacity-100' : 'opacity-40'
-                    }`}
+                    className="relative flex items-start gap-6"
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ 
+                      opacity: isCompleted || isCurrent ? 1 : 0.4,
+                      x: 0
+                    }}
+                    transition={{ 
+                      duration: 0.5,
+                      delay: index * 0.1,
+                      ease: "easeOut"
+                    }}
                   >
                     {/* Icon */}
-                    <div
-                      className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    <motion.div
+                      className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center ${
                         isCompleted
                           ? 'bg-stone-800 text-white'
                           : isCurrent
-                          ? 'bg-stone-800 text-white scale-110 shadow-lg'
+                          ? 'bg-stone-800 text-white shadow-lg'
                           : 'bg-white border-2 border-stone-200 text-stone-400'
                       }`}
+                      animate={{ 
+                        scale: isCurrent ? 1.1 : 1,
+                        rotate: isCurrent && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                        y: isCurrent && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                        x: isCurrent && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                      }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300,
+                        rotate: { duration: 0.8, repeat: isCurrent ? Infinity : 0, repeatDelay: 0.5 },
+                        y: { duration: 1, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" },
+                        x: { duration: 1.2, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" }
+                      }}
                     >
-                      <Icon className="w-7 h-7" />
-                    </div>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: index * 0.1 + 0.2, type: "spring" }}
+                      >
+                        <Icon className="w-7 h-7" />
+                      </motion.div>
+                    </motion.div>
 
                     {/* Content */}
                     <div className="flex-1 pt-2">
@@ -224,12 +254,20 @@ export default function InteriorOrderTracking({ store, orderId }: InteriorOrderT
                     </div>
 
                     {/* Checkmark for completed */}
-                    {isCompleted && (
-                      <div className="pt-2">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
-                      </div>
-                    )}
-                  </div>
+                    <AnimatePresence>
+                      {isCompleted && (
+                        <motion.div 
+                          className="pt-2"
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <CheckCircle className="w-6 h-6 text-green-600" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 )
               })}
             </div>

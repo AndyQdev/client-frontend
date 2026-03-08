@@ -6,6 +6,7 @@ import { Package, Truck, MapPin, CheckCircle, Phone, Sparkles, Star, Wifi, WifiO
 import CreativeStoreHeader from './CreativeStoreHeader'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface CreativeOrderTrackingProps {
   store: Store
@@ -253,12 +254,14 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
           {/* Rainbow Progress Bar */}
           <div className="mb-12 relative">
             <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full overflow-hidden shadow-lg">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 via-orange-500 to-yellow-500 transition-all duration-700 ease-out relative"
-                style={{ width: `${(currentStep / TIMELINE_STEPS.length) * 100}%` }}
+              <motion.div
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 via-orange-500 to-yellow-500 relative"
+                initial={{ width: 0 }}
+                animate={{ width: `${(currentStep / TIMELINE_STEPS.length) * 100}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse" />
-              </div>
+              </motion.div>
             </div>
             <div className="flex justify-between mt-2">
               <span className="text-sm font-bold text-gray-600">0%</span>
@@ -312,11 +315,21 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
                 const isPending = currentStep < step.id
 
                 return (
-                  <div
+                  <motion.div
                     key={step.id}
-                    className={`relative transition-all duration-700 ${
-                      isActive ? 'scale-105' : 'scale-100'
-                    }`}
+                    className="relative"
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ 
+                      opacity: isPending ? 0.6 : 1,
+                      x: 0,
+                      scale: isActive ? 1.05 : 1
+                    }}
+                    transition={{ 
+                      duration: 0.5,
+                      delay: index * 0.1,
+                      type: "spring",
+                      stiffness: 100
+                    }}
                   >
                     <div className={`rounded-3xl bg-gradient-to-br ${step.bgGradient} p-8 border-4 ${
                       isActive
@@ -328,33 +341,91 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
                       isActive ? 'rotate-1' : 'rotate-0'
                     }`}>
                       {/* Background Animation */}
-                      {isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-pulse" />
-                      )}
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: '100%' }}
+                            exit={{ x: '100%' }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                        )}
+                      </AnimatePresence>
 
                       <div className="flex items-start space-x-6 relative z-10">
                         {/* Icon with Emoji */}
                         <div className="relative flex-shrink-0">
-                          <div
-                            className={`w-24 h-24 rounded-3xl flex items-center justify-center transition-all duration-500 transform ${
+                          <motion.div
+                            className={`w-24 h-24 rounded-3xl flex items-center justify-center ${
                               isActive
-                                ? `bg-gradient-to-br ${step.gradient} scale-110 rotate-12 shadow-2xl animate-bounce`
+                                ? `bg-gradient-to-br ${step.gradient} shadow-2xl`
                                 : isCompleted
-                                ? `bg-gradient-to-br from-green-400 to-emerald-500 rotate-6`
+                                ? `bg-gradient-to-br from-green-400 to-emerald-500`
                                 : 'bg-gradient-to-br from-gray-200 to-gray-300'
                             }`}
+                            animate={{ 
+                              scale: isActive || isCompleted ? 1.1 : 1,
+                              rotate: isActive ? 12 : isCompleted ? 6 : 0
+                            }}
+                            transition={{ 
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20
+                            }}
                           >
-                            <div className="text-4xl">{step.emoji}</div>
-                          </div>
-                          {isActive && (
-                            <>
-                              <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${step.gradient} animate-ping opacity-30`} />
-                              <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400 animate-spin" />
-                            </>
-                          )}
-                          {isCompleted && (
-                            <CheckCircle className="absolute -top-2 -right-2 w-8 h-8 text-green-500 animate-bounce" />
-                          )}
+                            <motion.div 
+                              className="text-4xl"
+                              initial={{ scale: 0 }}
+                              animate={{ 
+                                scale: 1,
+                                // Animaciones específicas por icono cuando está activo
+                                rotate: isActive && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                                y: isActive && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                                x: isActive && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                              }}
+                              transition={{ 
+                                delay: index * 0.1 + 0.2, 
+                                type: "spring",
+                                rotate: { duration: 0.8, repeat: isActive ? Infinity : 0, repeatDelay: 0.5 },
+                                y: { duration: 1, repeat: isActive ? Infinity : 0, ease: "easeInOut" },
+                                x: { duration: 1.2, repeat: isActive ? Infinity : 0, ease: "easeInOut" }
+                              }}
+                            >
+                              {step.emoji}
+                            </motion.div>
+                          </motion.div>
+                          <AnimatePresence>
+                            {isActive && (
+                              <>
+                                <motion.div 
+                                  className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${step.gradient}`}
+                                  initial={{ scale: 1, opacity: 0.3 }}
+                                  animate={{ scale: 1.5, opacity: 0 }}
+                                  exit={{ scale: 1, opacity: 0 }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                />
+                                <motion.div
+                                  initial={{ scale: 0, rotate: 0 }}
+                                  animate={{ scale: 1, rotate: 360 }}
+                                  exit={{ scale: 0 }}
+                                  transition={{ duration: 0.5 }}
+                                >
+                                  <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400 animate-spin" />
+                                </motion.div>
+                              </>
+                            )}
+                            {isCompleted && (
+                              <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                exit={{ scale: 0 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                              >
+                                <CheckCircle className="absolute -top-2 -right-2 w-8 h-8 text-green-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Content */}
@@ -398,24 +469,32 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
                           </div>
 
                           {/* Animated Progress for Active Step */}
-                          {isActive && (
-                            <div className="mt-6">
-                              <div className="flex items-center space-x-3 mb-2">
-                                <div className="flex space-x-1">
-                                  {[0, 1, 2, 3, 4].map((i) => (
-                                    <div
-                                      key={i}
-                                      className="w-2 h-8 bg-white rounded-full animate-pulse"
-                                      style={{ animationDelay: `${i * 100}ms` }}
-                                    />
-                                  ))}
+                          <AnimatePresence>
+                            {isActive && (
+                              <motion.div 
+                                className="mt-6"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                              >
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <div className="flex space-x-1">
+                                    {[0, 1, 2, 3, 4].map((i) => (
+                                      <motion.div
+                                        key={i}
+                                        className="w-2 h-8 bg-white rounded-full"
+                                        animate={{ scale: [1, 1.5, 1] }}
+                                        transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-bold text-white uppercase tracking-wider animate-pulse">
+                                    Procesando...
+                                  </span>
                                 </div>
-                                <span className="text-sm font-bold text-white uppercase tracking-wider animate-pulse">
-                                  Procesando...
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>
@@ -423,14 +502,20 @@ export default function CreativeOrderTracking({ store, orderId = 'CR-2024-001' }
                     {/* Connection Line */}
                     {index < TIMELINE_STEPS.length - 1 && (
                       <div className="flex justify-center py-4">
-                        <div className={`w-1 h-8 rounded-full transition-all duration-500 ${
-                          currentStep > step.id
-                            ? `bg-gradient-to-b ${TIMELINE_STEPS[index + 1].gradient}`
-                            : 'bg-gray-300'
-                        }`} />
+                        <motion.div 
+                          className={`w-1 h-8 rounded-full ${
+                            currentStep > step.id
+                              ? `bg-gradient-to-b ${TIMELINE_STEPS[index + 1].gradient}`
+                              : 'bg-gray-300'
+                          }`}
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: currentStep > step.id ? 1 : 0 }}
+                          transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                          style={{ originY: 0 }}
+                        />
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

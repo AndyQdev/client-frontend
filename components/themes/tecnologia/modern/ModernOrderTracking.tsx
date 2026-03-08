@@ -6,6 +6,7 @@ import ModernStoreHeader from './ModernStoreHeader'
 import { Store } from '@/lib/types'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface ModernOrderTrackingProps {
   store: Store
@@ -211,9 +212,11 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-700 ease-out"
-              style={{ width: `${progress}%` }}
+            <motion.div
+              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             />
           </div>
           <div className="mt-2 text-right">
@@ -292,37 +295,70 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
               const isAnimating = animatingStep === index
 
               return (
-                <div
+                <motion.div
                   key={step.id}
-                  className={`relative flex gap-6 mb-8 last:mb-0 transition-all duration-500 ${
-                    isAnimating ? 'scale-105' : ''
-                  } ${
-                    isCurrent ? 'opacity-100' : isFuture ? 'opacity-40' : 'opacity-100'
-                  }`}
-                  style={{
-                    transform: isAnimating ? 'translateY(-4px)' : 'translateY(0)',
+                  className="relative flex gap-6 mb-8 last:mb-0"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ 
+                    opacity: isFuture ? 0.4 : 1,
+                    x: 0,
+                    scale: isAnimating ? 1.05 : 1
+                  }}
+                  transition={{ 
+                    duration: 0.5,
+                    delay: index * 0.1,
+                    type: "spring",
+                    stiffness: 100
                   }}
                 >
                   {/* Icon */}
                   <div className="relative z-10 flex-shrink-0">
                     {isCompleted ? (
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                      <motion.div 
+                        className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg"
+                        animate={{ scale: [1, 1.1, 1], rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 0.5 }}
+                      >
                         <Check className="w-6 h-6 text-white" strokeWidth={3} />
-                      </div>
+                      </motion.div>
                     ) : (
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-500 ${
+                      <motion.div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
                           isCurrent
-                            ? `bg-gradient-to-br ${step.gradient} animate-pulse`
+                            ? `bg-gradient-to-br ${step.gradient}`
                             : 'bg-gray-200'
                         }`}
+                        animate={{ 
+                          scale: isCurrent ? 1.1 : 1,
+                          rotate: isCurrent && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                          y: isCurrent && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                          x: isCurrent && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                        }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 300,
+                          rotate: { duration: 0.8, repeat: isCurrent ? Infinity : 0, repeatDelay: 0.5 },
+                          y: { duration: 1, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" },
+                          x: { duration: 1.2, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" }
+                        }}
                       >
                         <StepIcon
                           className={`w-6 h-6 ${isCurrent ? 'text-white' : 'text-gray-400'}`}
                           strokeWidth={isCurrent ? 2.5 : 2}
                         />
-                      </div>
+                      </motion.div>
                     )}
+                    <AnimatePresence>
+                      {isCurrent && (
+                        <motion.div 
+                          className="absolute inset-0 w-12 h-12 rounded-full border-2 border-current opacity-75"
+                          initial={{ scale: 1, opacity: 0.75 }}
+                          animate={{ scale: 1.8, opacity: 0 }}
+                          exit={{ scale: 1, opacity: 0 }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Content */}
@@ -350,32 +386,45 @@ export default function ModernOrderTracking({ store, orderId, onCartClick }: Mod
                       }`}>
                         {step.description}
                       </p>
-                      {isCurrent && (
-                        <div className="mt-4 flex items-center gap-2">
-                          <div className="flex gap-1">
-                            {[...Array(3)].map((_, i) => (
-                              <div
-                                key={i}
-                                className={`w-2 h-2 rounded-full bg-gradient-to-r ${step.gradient}`}
-                                style={{
-                                  animation: `pulse 1.5s ease-in-out ${i * 0.2}s infinite`
-                                }}
-                              />
-                            ))}
-                          </div>
-                          <span className={`text-xs font-semibold ${step.color}`}>
-                            En progreso...
-                          </span>
-                        </div>
-                      )}
-                      {isCompleted && (
-                        <div className="mt-4 text-xs font-semibold text-green-600">
-                          Completado
-                        </div>
-                      )}
+                      <AnimatePresence>
+                        {isCurrent && (
+                          <motion.div 
+                            className="mt-4 flex items-center gap-2"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <div className="flex gap-1">
+                              {[...Array(3)].map((_, i) => (
+                                <motion.div
+                                  key={i}
+                                  className={`w-2 h-2 rounded-full bg-gradient-to-r ${step.gradient}`}
+                                  animate={{ scale: [1, 1.5, 1] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                />
+                              ))}
+                            </div>
+                            <span className={`text-xs font-semibold ${step.color}`}>
+                              En progreso...
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <AnimatePresence>
+                        {isCompleted && (
+                          <motion.div 
+                            className="mt-4 text-xs font-semibold text-green-600"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                          >
+                            Completado
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>

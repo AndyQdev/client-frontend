@@ -6,6 +6,7 @@ import { Package, Truck, CheckCircle, Phone, Wifi, WifiOff } from 'lucide-react'
 import DarkModeStoreHeader from './DarkModeStoreHeader'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface DarkModeOrderTrackingProps {
   store: Store
@@ -222,9 +223,11 @@ export default function DarkModeOrderTracking({ store, orderId = 'DM-2024-001' }
           <div className="relative">
             {/* Progress Line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-zinc-700">
-              <div
-                className="bg-yellow-500 transition-all duration-700 ease-in-out w-full"
-                style={{ height: `${((currentStep - 1) / (TIMELINE_STEPS.length - 1)) * 100}%` }}
+              <motion.div
+                className="bg-yellow-500 w-full"
+                initial={{ height: 0 }}
+                animate={{ height: `${((currentStep - 1) / (TIMELINE_STEPS.length - 1)) * 100}%` }}
+                transition={{ duration: 0.7, ease: "easeInOut" }}
               />
             </div>
 
@@ -237,36 +240,67 @@ export default function DarkModeOrderTracking({ store, orderId = 'DM-2024-001' }
                 const isPending = currentStep < step.id
 
                 return (
-                  <div
+                  <motion.div
                     key={step.id}
-                    className={`relative flex items-start transition-all duration-500 ${
-                      isActive ? 'scale-105' : 'scale-100'
-                    }`}
+                    className="relative flex items-start"
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ 
+                      opacity: isPending ? 0.6 : 1,
+                      x: 0,
+                      scale: isActive ? 1.05 : 1
+                    }}
+                    transition={{ 
+                      duration: 0.5,
+                      delay: index * 0.1,
+                      type: "spring",
+                      stiffness: 100
+                    }}
                   >
                     {/* Icon Container */}
                     <div className="relative z-10">
-                      <div
-                        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
+                      <motion.div
+                        className={`w-16 h-16 rounded-full flex items-center justify-center ${
                           isActive
-                            ? 'bg-yellow-500 scale-110 shadow-lg shadow-yellow-500/50'
+                            ? 'bg-yellow-500'
                             : isCompleted
                             ? 'bg-yellow-500/20 border-2 border-yellow-500'
                             : 'bg-zinc-800 border-2 border-zinc-700'
                         }`}
+                        animate={{ 
+                          scale: isActive ? 1.1 : 1,
+                          rotate: isActive && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                          y: isActive && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                          x: isActive && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                        }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 300,
+                          rotate: { duration: 0.8, repeat: isActive ? Infinity : 0, repeatDelay: 0.5 },
+                          y: { duration: 1, repeat: isActive ? Infinity : 0, ease: "easeInOut" },
+                          x: { duration: 1.2, repeat: isActive ? Infinity : 0, ease: "easeInOut" }
+                        }}
                       >
                         <Icon
-                          className={`w-8 h-8 transition-all duration-500 ${
+                          className={`w-8 h-8 ${
                             isActive
                               ? 'text-black'
                               : isCompleted
                               ? 'text-yellow-500'
                               : 'text-zinc-600'
-                          } ${isActive ? 'animate-pulse' : ''}`}
+                          }`}
                         />
-                      </div>
-                      {isActive && (
-                        <div className="absolute inset-0 rounded-full border-2 border-yellow-500 animate-ping opacity-20" />
-                      )}
+                      </motion.div>
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div 
+                            className="absolute inset-0 rounded-full border-2 border-yellow-500"
+                            initial={{ scale: 1, opacity: 0.2 }}
+                            animate={{ scale: 1.8, opacity: 0 }}
+                            exit={{ scale: 1, opacity: 0 }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Content */}
@@ -319,21 +353,33 @@ export default function DarkModeOrderTracking({ store, orderId = 'DM-2024-001' }
                         </div>
 
                         {/* Animated indicator for active step */}
-                        {isActive && (
-                          <div className="mt-4 flex items-center gap-2">
-                            <div className="flex gap-1">
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                            </div>
-                            <span className="text-xs font-bold text-yellow-500 uppercase tracking-wide">
-                              Procesando...
-                            </span>
-                          </div>
-                        )}
+                        <AnimatePresence>
+                          {isActive && (
+                            <motion.div 
+                              className="mt-4 flex items-center gap-2"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                            >
+                              <div className="flex gap-1">
+                                {[0, 1, 2].map((i) => (
+                                  <motion.div 
+                                    key={i}
+                                    className="w-2 h-2 bg-yellow-500 rounded-full"
+                                    animate={{ scale: [1, 1.5, 1] }}
+                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs font-bold text-yellow-500 uppercase tracking-wide">
+                                Procesando...
+                              </span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

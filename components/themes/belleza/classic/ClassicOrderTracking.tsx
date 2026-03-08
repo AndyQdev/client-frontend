@@ -6,6 +6,7 @@ import ClassicStoreHeader from './ClassicStoreHeader'
 import { Package, Truck, Crown, Phone, Wifi, WifiOff, CheckCircle } from 'lucide-react'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface ClassicOrderTrackingProps {
   store: Store
@@ -182,20 +183,35 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
           )}
 
           {/* Progress Section */}
-          <div className="mb-10">
+          <motion.div 
+            className="mb-10"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-serif text-amber-800">Progreso del Pedido</span>
-              <span className="text-lg font-serif font-bold text-amber-900">{Math.round(progress)}%</span>
+              <motion.span 
+                key={progress}
+                className="text-lg font-serif font-bold text-amber-900"
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {Math.round(progress)}%
+              </motion.span>
             </div>
             <div className="relative w-full bg-amber-100 rounded-full h-4 overflow-hidden border-2 border-amber-200">
-              <div
-                className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 h-full rounded-full transition-all duration-700 ease-out relative"
-                style={{ width: `${progress}%` }}
+              <motion.div
+                className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 h-full rounded-full relative"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-amber-700/30 to-transparent"></div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Timeline */}
           <div className="space-y-8">
@@ -206,20 +222,41 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
               const isFuture = currentStep < step.id
 
               return (
-                <div
+                <motion.div
                   key={step.id}
-                  className={`relative flex items-start space-x-6 transition-all duration-500 ${
-                    isActive ? 'opacity-100 scale-100' : isFuture ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
-                  }`}
+                  className="relative flex items-start space-x-6"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ 
+                    opacity: isFuture ? 0.5 : 1,
+                    x: 0,
+                    scale: isActive ? 1 : isFuture ? 0.95 : 1
+                  }}
+                  transition={{ 
+                    duration: 0.5,
+                    delay: index * 0.1,
+                    type: "spring",
+                    stiffness: 100
+                  }}
                 >
                   {/* Vintage Connector */}
                   {index < steps.length - 1 && (
                     <div className="absolute left-8 top-16 w-px h-16 flex flex-col justify-between">
                       {isCompleted ? (
                         <>
-                          <div className="w-px h-full bg-gradient-to-b from-amber-600 to-amber-400"></div>
+                          <motion.div 
+                            className="w-px h-full bg-gradient-to-b from-amber-600 to-amber-400"
+                            initial={{ scaleY: 0 }}
+                            animate={{ scaleY: 1 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                            style={{ originY: 0 }}
+                          />
                           <div className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2">
-                            <div className="w-2 h-2 bg-amber-500 rotate-45"></div>
+                            <motion.div 
+                              className="w-2 h-2 bg-amber-500 rotate-45"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: index * 0.1 + 0.5 }}
+                            />
                           </div>
                         </>
                       ) : (
@@ -230,32 +267,75 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
 
                   {/* Icon Circle with Ornament */}
                   <div className="relative z-10 flex-shrink-0">
-                    <div
-                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    <motion.div
+                      className={`w-16 h-16 rounded-full flex items-center justify-center ${
                         isCompleted
-                          ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-lg scale-110'
+                          ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-lg'
                           : isActive
-                          ? 'bg-white border-4 border-amber-500 text-amber-700 shadow-md scale-110'
+                          ? 'bg-white border-4 border-amber-500 text-amber-700 shadow-md'
                           : 'bg-white border-4 border-amber-200 text-amber-400'
                       }`}
+                      animate={{ 
+                        scale: isActive || isCompleted ? 1.1 : 1,
+                        rotate: isCompleted ? [0, 10, -10, 0] : 0
+                      }}
+                      transition={{ 
+                        scale: { type: "spring", stiffness: 300 },
+                        rotate: { duration: 0.5, delay: index * 0.1 }
+                      }}
                     >
-                      {isCompleted ? (
-                        <Crown className="w-8 h-8" />
-                      ) : (
-                        <Icon className="w-8 h-8" />
-                      )}
-                    </div>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ 
+                          scale: 1,
+                          // Animaciones específicas por icono cuando está activo
+                          rotate: isActive && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                          y: isActive && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                          x: isActive && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                        }}
+                        transition={{ 
+                          delay: index * 0.1 + 0.2, 
+                          type: "spring",
+                          rotate: { duration: 0.8, repeat: isActive ? Infinity : 0, repeatDelay: 0.5 },
+                          y: { duration: 1, repeat: isActive ? Infinity : 0, ease: "easeInOut" },
+                          x: { duration: 1.2, repeat: isActive ? Infinity : 0, ease: "easeInOut" }
+                        }}
+                      >
+                        {isCompleted ? (
+                          <motion.div
+                            animate={{ rotate: [0, -15, 15, -15, 0] }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <Crown className="w-8 h-8" />
+                          </motion.div>
+                        ) : (
+                          <Icon className="w-8 h-8" />
+                        )}
+                      </motion.div>
+                    </motion.div>
                     {/* Outer Ornamental Ring for Active */}
-                    {isActive && (
-                      <div className="absolute inset-0 w-16 h-16 rounded-full border-2 border-amber-300 animate-ping opacity-75"></div>
-                    )}
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.div 
+                          className="absolute inset-0 w-16 h-16 rounded-full border-2 border-amber-300"
+                          initial={{ scale: 1, opacity: 0.75 }}
+                          animate={{ scale: 1.5, opacity: 0 }}
+                          exit={{ scale: 1, opacity: 0 }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Content Card */}
-                  <div
+                  <motion.div
                     className={`flex-1 pt-2 ${
                       isActive ? 'bg-amber-50 border-2 border-amber-200 rounded-lg p-4 -ml-2' : ''
                     }`}
+                    animate={{
+                      backgroundColor: isActive ? 'rgb(255 251 235)' : 'transparent'
+                    }}
+                    transition={{ duration: 0.3 }}
                   >
                     <h3
                       className={`text-xl font-serif font-semibold mb-2 transition-colors ${
@@ -271,26 +351,45 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
                     >
                       {step.description}
                     </p>
-                    {isActive && (
-                      <div className="mt-3 flex items-center space-x-3">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse delay-75"></div>
-                          <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse delay-150"></div>
-                        </div>
-                        <span className="text-sm font-serif font-semibold text-amber-800">
-                          En progreso
-                        </span>
-                      </div>
-                    )}
-                    {isCompleted && (
-                      <div className="mt-3 flex items-center space-x-2 text-amber-700">
-                        <Crown className="w-4 h-4" />
-                        <span className="text-sm font-serif italic">Completado con éxito</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.div 
+                          className="mt-3 flex items-center space-x-3"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          <div className="flex space-x-1">
+                            {[0, 1, 2].map((i) => (
+                              <motion.div
+                                key={i}
+                                className="w-2 h-2 bg-amber-600 rounded-full"
+                                animate={{ scale: [1, 1.5, 1] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-serif font-semibold text-amber-800">
+                            En progreso
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <AnimatePresence>
+                      {isCompleted && (
+                        <motion.div 
+                          className="mt-3 flex items-center space-x-2 text-amber-700"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                        >
+                          <Crown className="w-4 h-4" />
+                          <span className="text-sm font-serif italic">Completado con éxito</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </motion.div>
               )
             })}
           </div>

@@ -6,6 +6,7 @@ import MinimalStoreHeader from './MinimalStoreHeader'
 import { Package, Truck, CheckCircle2, Phone, Wifi, WifiOff } from 'lucide-react'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface MinimalOrderTrackingProps {
   store: Store
@@ -173,9 +174,11 @@ export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTra
               <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-gray-900 h-full rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
+              <motion.div
+                className="bg-gray-900 h-full rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
           </div>
@@ -189,37 +192,68 @@ export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTra
               const isFuture = currentStep < step.id
 
               return (
-                <div
+                <motion.div
                   key={step.id}
-                  className={`relative flex items-start space-x-4 transition-all duration-300 ${
-                    isActive ? 'opacity-100' : isFuture ? 'opacity-40' : 'opacity-100'
-                  }`}
+                  className="relative flex items-start space-x-4"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ 
+                    opacity: isFuture ? 0.4 : 1,
+                    x: 0
+                  }}
+                  transition={{ 
+                    duration: 0.3,
+                    delay: index * 0.1,
+                    ease: "easeOut"
+                  }}
                 >
                   {/* Connector Line */}
                   {index < steps.length - 1 && (
-                    <div
-                      className={`absolute left-6 top-12 w-0.5 h-12 transition-all duration-500 ${
+                    <motion.div
+                      className={`absolute left-6 top-12 w-0.5 h-12 ${
                         isCompleted ? 'bg-gray-900' : 'bg-gray-200'
                       }`}
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+                      style={{ originY: 0 }}
                     />
                   )}
 
                   {/* Icon Circle */}
-                  <div
-                    className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  <motion.div
+                    className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
                       isCompleted
                         ? 'bg-gray-900 text-white'
                         : isActive
                         ? 'bg-white border-2 border-gray-900 text-gray-900'
                         : 'bg-white border-2 border-gray-200 text-gray-400'
                     }`}
+                    animate={{ 
+                      scale: isActive || isCompleted ? 1.1 : 1,
+                      rotate: isActive && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                      y: isActive && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                      x: isActive && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                    }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 300,
+                      rotate: { duration: 0.8, repeat: isActive ? Infinity : 0, repeatDelay: 0.5 },
+                      y: { duration: 1, repeat: isActive ? Infinity : 0, ease: "easeInOut" },
+                      x: { duration: 1.2, repeat: isActive ? Infinity : 0, ease: "easeInOut" }
+                    }}
                   >
                     {isCompleted ? (
-                      <CheckCircle2 className="w-6 h-6" />
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <CheckCircle2 className="w-6 h-6" />
+                      </motion.div>
                     ) : (
                       <Icon className="w-6 h-6" />
                     )}
-                  </div>
+                  </motion.div>
 
                   {/* Content */}
                   <div className="flex-1 pt-2">
@@ -237,14 +271,25 @@ export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTra
                     >
                       {step.description}
                     </p>
-                    {isActive && (
-                      <div className="mt-2 flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-gray-900 rounded-full animate-pulse" />
-                        <span className="text-xs font-medium text-gray-900">En progreso</span>
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.div 
+                          className="mt-2 flex items-center space-x-2"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          <motion.div 
+                            className="w-2 h-2 bg-gray-900 rounded-full"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                          <span className="text-xs font-medium text-gray-900">En progreso</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>

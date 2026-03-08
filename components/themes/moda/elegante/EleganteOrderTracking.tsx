@@ -6,6 +6,7 @@ import EleganteStoreHeader from './EleganteStoreHeader'
 import { Store } from '@/lib/types'
 import { useWebSocket } from '@/lib/websocket-context'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface EleganteOrderTrackingProps {
   store: Store
@@ -190,9 +191,11 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
             </span>
           </div>
           <div className="h-px bg-gray-200 relative overflow-hidden">
-            <div
-              className="h-full bg-black transition-all duration-1000 ease-out"
-              style={{ width: `${progress}%` }}
+            <motion.div
+              className="h-full bg-black"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -265,42 +268,70 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
               const isAnimating = animatingStep === index
 
               return (
-                <div
+                <motion.div
                   key={step.id}
-                  className={`relative flex gap-8 mb-12 last:mb-0 transition-all duration-700 ${
-                    isFuture ? 'opacity-30' : 'opacity-100'
-                  }`}
-                  style={{
-                    transform: isAnimating ? 'translateX(8px)' : 'translateX(0)',
+                  className="relative flex gap-8 mb-12 last:mb-0"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ 
+                    opacity: isFuture ? 0.3 : 1,
+                    x: isAnimating ? 8 : 0
+                  }}
+                  transition={{ 
+                    duration: 0.7,
+                    delay: index * 0.1,
+                    ease: "easeOut"
                   }}
                 >
                   {/* Decorative Icon Container */}
                   <div className="relative z-10 flex-shrink-0">
                     {isCompleted ? (
-                      <div className="w-12 h-12 border-2 border-black bg-black flex items-center justify-center transition-all duration-500">
+                      <motion.div 
+                        className="w-12 h-12 border-2 border-black bg-black flex items-center justify-center"
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 0.5 }}
+                      >
                         <Check className="w-6 h-6 text-white" strokeWidth={1.5} />
-                      </div>
+                      </motion.div>
                     ) : (
-                      <div
-                        className={`w-12 h-12 border-2 flex items-center justify-center transition-all duration-500 ${
+                      <motion.div
+                        className={`w-12 h-12 border-2 flex items-center justify-center ${
                           isCurrent
                             ? 'border-black bg-white'
                             : 'border-gray-300 bg-white'
                         }`}
+                        animate={{ 
+                          scale: isCurrent ? 1.1 : 1,
+                          rotate: isCurrent && step.icon === Phone ? [0, -10, 10, -10, 10, 0] : 0,
+                          y: isCurrent && step.icon === Package ? [0, -5, 0, -5, 0] : 0,
+                          x: isCurrent && step.icon === Truck ? [0, 3, 0, 3, 0] : 0,
+                        }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 300,
+                          rotate: { duration: 0.8, repeat: isCurrent ? Infinity : 0, repeatDelay: 0.5 },
+                          y: { duration: 1, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" },
+                          x: { duration: 1.2, repeat: isCurrent ? Infinity : 0, ease: "easeInOut" }
+                        }}
                       >
                         <StepIcon
                           className={`w-6 h-6 ${isCurrent ? 'text-black' : 'text-gray-300'}`}
                           strokeWidth={1.5}
                         />
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Decorative Element */}
-                    <div className={`absolute -right-4 top-1/2 -translate-y-1/2 text-xs transition-all duration-500 ${
-                      isCurrent ? 'text-black scale-125' : isCompleted ? 'text-black' : 'text-gray-300'
-                    }`}>
+                    <motion.div 
+                      className={`absolute -right-4 top-1/2 -translate-y-1/2 text-xs ${
+                        isCurrent ? 'text-black' : isCompleted ? 'text-black' : 'text-gray-300'
+                      }`}
+                      animate={{ 
+                        scale: isCurrent ? 1.25 : 1
+                      }}
+                      transition={{ duration: 0.5 }}
+                    >
                       {step.decorativeChar}
-                    </div>
+                    </motion.div>
                   </div>
 
                   {/* Content */}
@@ -328,36 +359,49 @@ export default function EleganteOrderTracking({ store, orderId, onCartClick }: E
                       }`}>
                         {step.description}
                       </p>
-                      {isCurrent && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <div className="flex items-center gap-3">
-                            <div className="flex gap-1">
-                              {[...Array(3)].map((_, i) => (
-                                <div
-                                  key={i}
-                                  className="w-1 h-1 bg-black"
-                                  style={{
-                                    animation: `elegant-pulse 1.5s ease-in-out ${i * 0.3}s infinite`
-                                  }}
-                                />
-                              ))}
+                      <AnimatePresence>
+                        {isCurrent && (
+                          <motion.div 
+                            className="mt-4 pt-4 border-t border-gray-200"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex gap-1">
+                                {[...Array(3)].map((_, i) => (
+                                  <motion.div
+                                    key={i}
+                                    className="w-1 h-1 bg-black"
+                                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                                    transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs tracking-widest uppercase text-gray-600">
+                                En progreso
+                              </span>
                             </div>
-                            <span className="text-xs tracking-widest uppercase text-gray-600">
-                              En progreso
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <AnimatePresence>
+                        {isCompleted && (
+                          <motion.div 
+                            className="mt-4 pt-4 border-t border-gray-200"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                          >
+                            <span className="text-xs tracking-widest uppercase text-gray-500">
+                              ✓ Completado
                             </span>
-                          </div>
-                        </div>
-                      )}
-                      {isCompleted && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <span className="text-xs tracking-widest uppercase text-gray-500">
-                            ✓ Completado
-                          </span>
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>
