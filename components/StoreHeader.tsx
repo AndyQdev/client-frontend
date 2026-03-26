@@ -34,7 +34,7 @@ export default function StoreHeader({ store }: StoreHeaderProps) {
               ) : (
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
-                  style={{ backgroundColor: store.theme.colors.primary }}
+                  style={{ backgroundColor: store.theme?.colors.primary }}
                 >
                   {store.name.charAt(0)}
                 </div>
@@ -45,16 +45,16 @@ export default function StoreHeader({ store }: StoreHeaderProps) {
                   {store.name}
                 </h1>
                 <div className="flex items-center space-x-4 text-xs text-text-secondary">
-                  {store.contact.phone && (
+                  {store.contact?.phone && (
                     <div className="flex items-center space-x-1">
                       <Phone className="w-3 h-3" />
-                      <span>{store.contact.phone}</span>
+                      <span>{store.contact?.phone}</span>
                     </div>
                   )}
-                  {store.contact.email && (
+                  {store.contact?.email && (
                     <div className="flex items-center space-x-1">
                       <Mail className="w-3 h-3" />
-                      <span>{store.contact.email}</span>
+                      <span>{store.contact?.email}</span>
                     </div>
                   )}
                 </div>
@@ -64,9 +64,9 @@ export default function StoreHeader({ store }: StoreHeaderProps) {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            {store.contact.whatsapp && (
+            {store.contact?.whatsapp && (
               <Link
-                href={`https://wa.me/${store.contact.whatsapp.replace(/[^0-9]/g, '')}`}
+                href={`https://wa.me/${store.contact?.whatsapp.replace(/[^0-9]/g, '')}`}
                 target="_blank"
                 className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
               >

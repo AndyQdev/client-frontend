@@ -338,6 +338,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Juan Electronics - Smartphones
   {
     id: '1',
+    storeProductId: 'sp-1',
     name: 'iPhone 15 Pro',
     slug: 'iphone-15-pro',
     description: 'El último iPhone con chip A17 Pro, cámara profesional y titanio',
@@ -366,6 +367,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '2',
+    storeProductId: 'sp-2',
     name: 'Samsung Galaxy S24',
     slug: 'samsung-galaxy-s24',
     description: 'Samsung Galaxy S24 con IA integrada y cámara profesional',
@@ -394,6 +396,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Juan Electronics - Laptops
   {
     id: '3',
+    storeProductId: 'sp-3',
     name: 'MacBook Pro 14"',
     slug: 'macbook-pro-14',
     description: 'MacBook Pro 14" con chip M3 Pro, perfecto para profesionales',
@@ -422,6 +425,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // María Fashion - Vestidos
   {
     id: '4',
+    storeProductId: 'sp-4',
     name: 'Vestido Elegante Rosa',
     slug: 'vestido-elegante-rosa',
     description: 'Hermoso vestido rosa perfecto para ocasiones especiales',
@@ -451,6 +455,7 @@ export const FAKE_PRODUCTS: Product[] = [
 
   {
     id: '5',
+    storeProductId: 'sp-5',
     name: 'Blusa Casual Blanca',
     slug: 'blusa-casual-blanca',
     description: 'Blusa casual blanca perfecta para el día a día',
@@ -478,6 +483,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Carlos Orgánico - Frutas
   {
     id: '6',
+    storeProductId: 'sp-6',
     name: 'Manzanas Orgánicas',
     slug: 'manzanas-organicas',
     description: 'Manzanas orgánicas frescas, cultivadas sin pesticidas',
@@ -505,6 +511,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Ana Belleza - Maquillaje
   {
     id: '7',
+    storeProductId: 'sp-7',
     name: 'Base Líquida Premium',
     slug: 'base-liquida-premium',
     description: 'Base líquida de cobertura completa con acabado natural',
@@ -532,6 +539,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Roberto Deportes - Fútbol
   {
     id: '8',
+    storeProductId: 'sp-8',
     name: 'Balón de Fútbol Profesional',
     slug: 'balon-futbol-profesional',
     description: 'Balón oficial FIFA para entrenamientos y partidos profesionales',
@@ -560,6 +568,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Creative Studio - Arte Digital
   {
     id: '101',
+    storeProductId: 'sp-101',
     name: 'Colección NFT Galaxias',
     slug: 'nft-galaxias',
     description: 'Colección exclusiva de 10 obras de arte digital únicas inspiradas en el cosmos',
@@ -587,6 +596,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '102',
+    storeProductId: 'sp-102',
     name: 'Arte Generativo "Fractales"',
     slug: 'arte-generativo-fractales',
     description: 'Pieza de arte generativo única creada con algoritmos matemáticos',
@@ -614,6 +624,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Creative Studio - Ilustración
   {
     id: '103',
+    storeProductId: 'sp-103',
     name: 'Ilustración Personalizada Retrato',
     slug: 'ilustracion-retrato',
     description: 'Retrato personalizado en estilo acuarela digital hecho a mano',
@@ -641,6 +652,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '104',
+    storeProductId: 'sp-104',
     name: 'Pack Stickers Animales Kawaii',
     slug: 'stickers-animales-kawaii',
     description: 'Set de 50 stickers digitales de animales en estilo kawaii para redes sociales',
@@ -668,6 +680,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Creative Studio - Diseño Gráfico
   {
     id: '105',
+    storeProductId: 'sp-105',
     name: 'Pack Identidad Visual Completa',
     slug: 'identidad-visual-completa',
     description: 'Identidad visual profesional: logo, paleta de colores, tipografía y guía de marca',
@@ -695,6 +708,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '106',
+    storeProductId: 'sp-106',
     name: 'Plantillas Instagram Feed Aesthetic',
     slug: 'plantillas-instagram-aesthetic',
     description: 'Pack de 30 plantillas editables para Instagram con estilo minimalista',
@@ -722,6 +736,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Creative Studio - Fotografía
   {
     id: '107',
+    storeProductId: 'sp-107',
     name: 'Preset Pack Pro Lightroom',
     slug: 'preset-pack-lightroom',
     description: 'Colección de 25 presets profesionales para Adobe Lightroom estilo cinematográfico',
@@ -749,6 +764,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '108',
+    storeProductId: 'sp-108',
     name: 'Stock Photos Abstracto',
     slug: 'stock-photos-abstracto',
     description: 'Pack de 100 fotografías abstractas en alta resolución para diseño',
@@ -776,6 +792,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Casa Elegante - Muebles
   {
     id: '109',
+    storeProductId: 'sp-109',
     name: 'Sofá Escandinavo 3 Puestos',
     slug: 'sofa-escandinavo-3-puestos',
     description: 'Elegante sofá de 3 puestos con diseño escandinavo, tapizado en tela premium y patas de madera de roble',
@@ -803,6 +820,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '110',
+    storeProductId: 'sp-110',
     name: 'Mesa de Centro Mármol',
     slug: 'mesa-centro-marmol',
     description: 'Mesa de centro con tapa de mármol blanco y base de metal dorado, perfecta para salas modernas',
@@ -828,6 +846,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '111',
+    storeProductId: 'sp-111',
     name: 'Comedor 6 Puestos Roble',
     slug: 'comedor-6-puestos-roble',
     description: 'Set de comedor elegante con mesa extensible de roble y 6 sillas tapizadas en cuero sintético',
@@ -854,6 +873,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '112',
+    storeProductId: 'sp-112',
     name: 'Cama King Size Lino',
     slug: 'cama-king-lino',
     description: 'Cama king size con cabecero tapizado en lino natural, incluye base y somier de madera',
@@ -881,6 +901,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Casa Elegante - Decoración
   {
     id: '113',
+    storeProductId: 'sp-113',
     name: 'Set 3 Espejos Decorativos',
     slug: 'set-espejos-decorativos',
     description: 'Conjunto de 3 espejos redondos con marcos dorados en diferentes tamaños para decoración de pared',
@@ -906,6 +927,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '114',
+    storeProductId: 'sp-114',
     name: 'Cuadro Abstracto XL',
     slug: 'cuadro-abstracto-xl',
     description: 'Cuadro grande abstracto moderno con tonos tierra y dorados, impresión en canvas premium',
@@ -931,6 +953,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '115',
+    storeProductId: 'sp-115',
     name: 'Jarrones Cerámicos Set 3',
     slug: 'jarrones-ceramicos-set',
     description: 'Set de 3 jarrones de cerámica artesanal en tonos beige y terracota con diseños únicos',
@@ -956,6 +979,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '116',
+    storeProductId: 'sp-116',
     name: 'Cojines Decorativos Set 4',
     slug: 'cojines-decorativos-set',
     description: 'Set de 4 cojines decorativos en tonos neutros con texturas variadas y fundas removibles',
@@ -983,6 +1007,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Casa Elegante - Iluminación
   {
     id: '117',
+    storeProductId: 'sp-117',
     name: 'Lámpara de Techo Moderna',
     slug: 'lampara-techo-moderna',
     description: 'Lámpara colgante moderna con pantalla de metal en acabado negro mate y detalles dorados',
@@ -1008,6 +1033,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '118',
+    storeProductId: 'sp-118',
     name: 'Lámpara de Mesa Mármol',
     slug: 'lampara-mesa-marmol',
     description: 'Elegante lámpara de mesa con base de mármol blanco y pantalla de lino en tono crema',
@@ -1033,6 +1059,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '119',
+    storeProductId: 'sp-119',
     name: 'Lámpara de Piso Arco',
     slug: 'lampara-piso-arco',
     description: 'Lámpara de piso tipo arco con base de mármol y brazo ajustable en metal dorado',
@@ -1061,6 +1088,7 @@ export const FAKE_PRODUCTS: Product[] = [
   // Casa Elegante - Textiles
   {
     id: '120',
+    storeProductId: 'sp-120',
     name: 'Juego Sábanas King Premium',
     slug: 'sabanas-king-premium',
     description: 'Juego completo de sábanas king en algodón egipcio 600 hilos, ultra suaves y duraderas',
@@ -1086,6 +1114,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '121',
+    storeProductId: 'sp-121',
     name: 'Manta Tejida Artesanal',
     slug: 'manta-tejida-artesanal',
     description: 'Manta de algodón tejida a mano en tonos naturales, perfecta para sofás y camas',
@@ -1111,6 +1140,7 @@ export const FAKE_PRODUCTS: Product[] = [
   },
   {
     id: '122',
+    storeProductId: 'sp-122',
     name: 'Cortinas Lino Natural Set',
     slug: 'cortinas-lino-natural',
     description: 'Par de cortinas en lino 100% natural con sistema de argollas, filtran luz suavemente',

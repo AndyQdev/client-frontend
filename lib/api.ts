@@ -84,6 +84,7 @@ export async function getProductById(id: string, storeId?: string): Promise<Prod
     // Mapear los datos al formato Product
     return {
       id: productData.id,
+      storeProductId: productData.storeProductId || productData.id,
       name: productData.name,
       slug: productData.slug || productData.name.toLowerCase().replace(/\s+/g, '-'),
       description: productData.description || '',

@@ -100,7 +100,7 @@ export default function StoreCard({ store }: StoreCardProps) {
               </div>
               <div className="flex items-center space-x-1">
                 <Eye className="w-3 h-3" />
-                <span>{store.stats.totalViews}</span>
+                <span>{store.stats?.totalViews}</span>
               </div>
             </div>
 

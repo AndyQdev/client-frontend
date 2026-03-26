@@ -1,6 +1,4 @@
 import { Store } from './types'
-import { MODERN_THEME } from './themes/modern'
-import { INTERIOR_THEME } from './themes/interior'
 
 // Mock stores con datos completos según StoreEntity del backend
 export const MOCK_STORES: Store[] = [
@@ -62,7 +60,7 @@ export const MOCK_STORES: Store[] = [
     isActive: true,
 
     // Legacy fields
-    theme: MODERN_THEME.generateTheme({ primary: '#D4AF37', secondary: '#6B7280' }),
+    theme: undefined,
     user: {
       id: 'user-1',
       name: 'Juan Pérez',
@@ -150,7 +148,7 @@ export const MOCK_STORES: Store[] = [
     isActive: true,
 
     // Legacy fields
-    theme: INTERIOR_THEME.generateTheme({ primary: '#8B7355', secondary: '#F5F5DC' }),
+    theme: undefined,
     user: {
       id: 'user-2',
       name: 'María González',
@@ -238,7 +236,7 @@ export const MOCK_STORES: Store[] = [
     isActive: true,
 
     // Legacy fields
-    theme: MODERN_THEME.generateTheme({ primary: '#E85D75', secondary: '#2C3E50' }),
+    theme: undefined,
     user: {
       id: 'user-3',
       name: 'Carolina Restrepo',
@@ -326,7 +324,7 @@ export const MOCK_STORES: Store[] = [
     isActive: true,
 
     // Legacy fields
-    theme: MODERN_THEME.generateTheme({ primary: '#FF6B35', secondary: '#004E89' }),
+    theme: undefined,
     user: {
       id: 'user-4',
       name: 'Carlos Martínez',

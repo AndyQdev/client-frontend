@@ -326,16 +326,16 @@ export default function MinimalOrderTracking({ store, orderId }: MinimalOrderTra
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <h3 className="font-medium text-gray-900 mb-4">Información de Contacto</h3>
           <div className="space-y-3 text-sm">
-            {store.contact.phone && (
+            {store.contact?.phone && (
               <div className="flex items-center space-x-3 text-gray-600">
                 <Phone className="w-4 h-4" />
-                <span>{store.contact.phone}</span>
+                <span>{store.contact?.phone}</span>
               </div>
             )}
-            {store.contact.email && (
+            {store.contact?.email && (
               <div className="flex items-center space-x-3 text-gray-600">
                 <span className="w-4 h-4 flex items-center justify-center">@</span>
-                <span>{store.contact.email}</span>
+                <span>{store.contact?.email}</span>
               </div>
             )}
           </div>

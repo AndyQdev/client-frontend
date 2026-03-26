@@ -153,6 +153,8 @@ export interface Category {
   description?: string
   icon?: string
   productCount: number
+  isActive?: boolean
+  storeId?: string
 }
 
 export interface Brand {

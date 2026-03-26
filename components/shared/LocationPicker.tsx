@@ -102,7 +102,7 @@ export default function LocationPicker({
         
         // Geocodificación inversa para obtener la dirección
         const geocoder = new window.google.maps.Geocoder()
-        geocoder.geocode({ location }, (results, status) => {
+        geocoder.geocode({ location }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
           if (status === 'OK' && results && results[0]) {
             onAddressChange(results[0].formatted_address)
           }
@@ -110,7 +110,7 @@ export default function LocationPicker({
       }
 
       // Actualizar coordenadas cuando se arrastra el marcador
-      markerRef.current.addListener('dragend', () => {
+      markerRef.current!.addListener('dragend', () => {
         const position = markerRef.current?.getPosition()
         if (position) {
           const newLocation = {
@@ -122,7 +122,7 @@ export default function LocationPicker({
       })
 
       // Permitir hacer click en el mapa para mover el marcador
-      mapInstanceRef.current.addListener('click', (e: google.maps.MapMouseEvent) => {
+      mapInstanceRef.current!.addListener('click', (e: google.maps.MapMouseEvent) => {
         if (e.latLng) {
           const newLocation = {
             lat: e.latLng.lat(),
@@ -165,7 +165,7 @@ export default function LocationPicker({
         types: ['address'],
       })
 
-      autocompleteRef.current.addListener('place_changed', () => {
+      autocompleteRef.current!.addListener('place_changed', () => {
         const place = autocompleteRef.current?.getPlace()
         if (place && place.geometry && place.geometry.location) {
           const newLocation = {

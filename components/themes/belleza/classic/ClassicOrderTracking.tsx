@@ -441,16 +441,16 @@ export default function ClassicOrderTracking({ store, orderId }: ClassicOrderTra
           </h3>
 
           <div className="space-y-4">
-            {store.contact.phone && (
+            {store.contact?.phone && (
               <div className="flex items-center justify-center space-x-3 text-amber-800 bg-amber-50 rounded-lg py-3 px-4 border border-amber-100">
                 <Phone className="w-5 h-5 text-amber-600" />
-                <span className="font-serif">{store.contact.phone}</span>
+                <span className="font-serif">{store.contact?.phone}</span>
               </div>
             )}
-            {store.contact.email && (
+            {store.contact?.email && (
               <div className="flex items-center justify-center space-x-3 text-amber-800 bg-amber-50 rounded-lg py-3 px-4 border border-amber-100">
                 <span className="w-5 h-5 flex items-center justify-center text-amber-600 font-serif font-bold">@</span>
-                <span className="font-serif">{store.contact.email}</span>
+                <span className="font-serif">{store.contact?.email}</span>
               </div>
             )}
           </div>
