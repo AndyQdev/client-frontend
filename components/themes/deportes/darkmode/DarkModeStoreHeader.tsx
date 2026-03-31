@@ -27,6 +27,7 @@ export default function DarkModeStoreHeader({ store, onCartClick, onMenuClick }:
   }
 
   return (
+    <>
     <header className="bg-black border-b border-zinc-800 sticky top-0 z-40 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Main Header */}
@@ -107,13 +108,15 @@ export default function DarkModeStoreHeader({ store, onCartClick, onMenuClick }:
         themeVariant="darkmode"
       />
 
-      {/* Customer registration drawer */}
-      <CustomerDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
-        themeVariant="darkmode"
-      />
     </header>
+
+    {/* Customer registration drawer */}
+    <CustomerDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onRegister={handleRegister}
+      themeVariant="darkmode"
+    />
+    </>
   )
 }

@@ -114,6 +114,13 @@ export default function DarkModeProductCard({ product, storeSlug }: DarkModeProd
             </div>
           )}
 
+          {/* Badge de Agotado */}
+          {product.stock === 0 && !product.isFeatured && (
+            <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1.5 rounded-lg z-10 shadow-lg shadow-red-500/50 flex items-center gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide">Agotado</span>
+            </div>
+          )}
+
           {/* Badge de Stock bajo */}
           {product.stock < 10 && product.stock > 0 && !product.isFeatured && (
             <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-lg z-10 shadow-lg shadow-orange-500/50 flex items-center gap-1 animate-pulse">

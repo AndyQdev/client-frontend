@@ -108,8 +108,8 @@ export async function getProductById(id: string, storeId?: string): Promise<Prod
       sku: productData.sku || '',
       isFeatured: productData.metadata?.isFeatured || false,
       isActive: true,
-      tags: productData.tags || [],
-      specifications: productData.specifications || {},
+      tags: productData.metadata?.tags || productData.tags || [],
+      specifications: productData.metadata?.specifications || productData.specifications || {},
       storeId: storeId || '',
       createdAt: productData.createdAt || new Date(),
       updatedAt: productData.updatedAt || new Date(),
@@ -120,17 +120,15 @@ export async function getProductById(id: string, storeId?: string): Promise<Prod
   }
 }
 
-export async function getAllStores(): Promise<Store[]> {
+export async function getAllStores(search?: string): Promise<Store[]> {
   try {
-    const { data } = await storeService.findAll({ limit: 100 })
-    console.log('📦 Stores from API:', data.length, 'stores')
-    console.log('📦 First store:', data[0])
-    
-    const mappedStores = data.map(mapStoreEntityToStore)
-    console.log('📦 Mapped stores:', mappedStores.length)
-    console.log('📦 First mapped store:', mappedStores[0])
-    
-    return mappedStores
+    const query: any = { limit: 100 }
+    if (search) {
+      query.attr = 'name'
+      query.value = search
+    }
+    const { data } = await storeService.findAllPublic(query)
+    return data.map(mapStoreEntityToStore)
   } catch (error) {
     console.error('Error fetching all stores:', error)
     return []

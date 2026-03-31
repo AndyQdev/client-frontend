@@ -119,6 +119,13 @@ export default function InteriorProductCard({ product, storeSlug, index = 0 }: I
               </div>
             )}
 
+            {/* Badge agotado */}
+            {product.stock === 0 && (
+              <div className="absolute top-4 right-4 bg-stone-800 text-white px-3 py-1 text-xs font-medium uppercase tracking-wider z-10">
+                Agotado
+              </div>
+            )}
+
             {/* Badge de stock bajo */}
             {product.stock > 0 && product.stock < 5 && (
               <div className="absolute top-4 right-4 bg-stone-800 text-white px-3 py-1 text-xs font-medium uppercase tracking-wider z-10">

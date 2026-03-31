@@ -6,7 +6,8 @@ import EleganteProductCard from './EleganteProductCard'
 import EleganteCartSheet from './EleganteCartSheet'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { getCategoryIcon } from '@/lib/category-icons'
 import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
 import { useCart } from '@/lib/cart-context'
 
@@ -22,6 +23,11 @@ export default function EleganteStorePage({ store, products, categories }: Elega
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+
+  const scrollCategories = (dir: 'left' | 'right') => {
+    categoriesRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' })
+  }
 
   // Debounce del término de búsqueda
   useEffect(() => {
@@ -143,35 +149,59 @@ export default function EleganteStorePage({ store, products, categories }: Elega
             </div>
           </div>
 
-          {/* Navegación de categorías elegante */}
-          <div className="text-center mb-16">
-            <div className="flex flex-wrap justify-center gap-12">
+          {/* Navegación de categorías elegante - Carousel */}
+          <div className="relative mb-16">
+            <button
+              onClick={() => scrollCategories('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-black text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div
+              ref={categoriesRef}
+              className="flex gap-3 overflow-x-auto pb-2 scroll-smooth px-1 sm:px-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               <button
                 onClick={() => handleCategoryChange(null)}
                 disabled={isLoading}
-                className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 disabled:opacity-50 ${
-                  selectedCategory === null
-                    ? 'text-black border-b border-black'
-                    : 'text-gray-500 hover:text-black hover:border-b hover:border-gray-300'
+                className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-xl transition-all disabled:opacity-50 ${
+                  selectedCategory === null ? 'bg-black text-white' : 'text-gray-500 hover:text-black'
                 }`}
               >
-                Todos
+                <div className={`p-2 rounded-lg ${selectedCategory === null ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-light uppercase tracking-widest whitespace-nowrap">Todos</span>
               </button>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryChange(category.id)}
-                  disabled={isLoading}
-                  className={`text-sm pb-1 uppercase tracking-widest font-light transition-colors duration-300 disabled:opacity-50 ${
-                    selectedCategory === category.id
-                      ? 'text-black border-b border-black'
-                      : 'text-gray-500 hover:text-black hover:border-b hover:border-gray-300'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+
+              {categories.map((category) => {
+                const Icon = getCategoryIcon(category.name, category.icon)
+                const isActive = selectedCategory === category.id
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryChange(category.id)}
+                    disabled={isLoading}
+                    className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-xl transition-all disabled:opacity-50 ${
+                      isActive ? 'bg-black text-white' : 'text-gray-500 hover:text-black'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${isActive ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-light uppercase tracking-widest whitespace-nowrap">{category.name}</span>
+                  </button>
+                )
+              })}
             </div>
+
+            <button
+              onClick={() => scrollCategories('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-black text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Grid de productos elegante */}
@@ -192,8 +222,14 @@ export default function EleganteStorePage({ store, products, categories }: Elega
             </div>
 
             {isLoading && filteredProducts.length === 0 ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 className="w-12 h-12 text-black animate-spin" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 lg:gap-16">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-[3/4] bg-gray-100 rounded mb-4" />
+                    <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
+                    <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  </div>
+                ))}
               </div>
             ) : filteredProducts.length > 0 ? (
               <>
@@ -212,7 +248,11 @@ export default function EleganteStorePage({ store, products, categories }: Elega
                 {/* Intersection Observer Target */}
                 <div ref={loadMoreRef} className="flex justify-center py-8">
                   {isFetchingNextPage && (
-                    <Loader2 className="w-8 h-8 text-black animate-spin" />
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
+                    </div>
                   )}
                 </div>
               </>

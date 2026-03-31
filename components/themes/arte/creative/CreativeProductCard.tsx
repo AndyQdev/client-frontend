@@ -124,6 +124,13 @@ export default function CreativeProductCard({ product, storeSlug }: CreativeProd
             </div>
           )}
 
+          {/* Badge agotado */}
+          {product.stock === 0 && (
+            <div className="absolute bottom-4 left-4 bg-red-500 text-white px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg z-10">
+              Agotado
+            </div>
+          )}
+
           {/* Badge de descuento si aplica */}
           {product.originalPrice && (
             <div className="absolute top-4 right-4 bg-gradient-to-br from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg transform rotate-6 z-10">

@@ -1,41 +1,67 @@
+import { Suspense } from 'react'
 import MarketplaceHeader from '@/components/MarketplaceHeader'
 import StoreGrid from '@/components/StoreGrid'
-import MarketplaceStats from '@/components/MarketplaceStats'
+import MarketplaceSearch from '@/components/MarketplaceSearch'
 import { getAllStores } from '@/lib/api'
+import { Store } from 'lucide-react'
 
-export default async function MarketplacePage() {
-  const stores = await getAllStores()
+interface PageProps {
+  searchParams: Promise<{ q?: string }>
+}
+
+export default async function MarketplacePage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const search = params?.q || ''
+  const stores = await getAllStores(search || undefined)
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-gray-50/50">
       <MarketplaceHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <MarketplaceStats stores={stores} />
-
-        <section className="mt-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-text-primary">
-                Todas las Tiendas
-              </h2>
-              <p className="text-text-secondary mt-2">
-                Descubre productos únicos de emprendedores locales
-              </p>
-            </div>
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-slate-900 to-slate-800 pt-16 pb-20 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+            <Store className="w-4 h-4" />
+            Marketplace de tiendas online
           </div>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
+            Encuentra tu tienda <span className="text-emerald-400">favorita</span>
+          </h1>
+          <p className="text-lg text-slate-400 mb-10 max-w-xl mx-auto">
+            Descubre productos únicos de emprendedores que digitalizaron su negocio con Vendfy
+          </p>
 
-          {stores.length > 0 ? (
-            <StoreGrid stores={stores} />
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-text-secondary text-lg">
-                No hay tiendas disponibles en este momento
+          <Suspense fallback={null}>
+            <MarketplaceSearch />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* Stores */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            {search ? (
+              <p className="text-sm text-gray-500">
+                {stores.length} resultado{stores.length !== 1 ? 's' : ''} para "<span className="font-medium text-gray-700">{search}</span>"
               </p>
-            </div>
-          )}
-        </section>
-      </div>
+            ) : (
+              <p className="text-sm text-gray-500">{stores.length} tienda{stores.length !== 1 ? 's' : ''} disponibles</p>
+            )}
+          </div>
+        </div>
+
+        <StoreGrid stores={stores} />
+
+        {/* Footer */}
+        <footer className="mt-20 pb-10 text-center">
+          <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
+            <Store className="w-4 h-4" />
+            <span>Vendfy - Digitaliza tu negocio</span>
+          </div>
+        </footer>
+      </section>
     </main>
   )
 }

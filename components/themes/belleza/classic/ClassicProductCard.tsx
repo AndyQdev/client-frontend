@@ -59,6 +59,13 @@ export default function ClassicProductCard({ product, storeSlug }: ClassicProduc
             </div>
           )}
 
+          {/* Badge agotado */}
+          {product.stock === 0 && (
+            <div className="absolute top-4 right-4 bg-amber-900 text-white px-3 py-1 rounded-full text-xs font-serif z-10">
+              Agotado
+            </div>
+          )}
+
           {/* Controles del carrusel */}
           {images.length > 1 && (
             <>
@@ -145,10 +152,15 @@ export default function ClassicProductCard({ product, storeSlug }: ClassicProduc
           {/* Botón Agregar al Carrito */}
           <button
             onClick={handleAddToCart}
-            className="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white text-sm font-serif hover:from-amber-700 hover:to-amber-800 transition-all duration-300 rounded flex items-center justify-center space-x-2 shadow-md"
+            disabled={product.stock === 0}
+            className={`w-full py-3 text-white text-sm font-serif transition-all duration-300 rounded flex items-center justify-center space-x-2 shadow-md ${
+              product.stock === 0
+                ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                : 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800'
+            }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>{isInCart(product.id) ? 'Agregar Más' : 'Agregar al Carrito'}</span>
+            <span>{product.stock === 0 ? 'Agotado' : isInCart(product.id) ? 'Agregar Más' : 'Agregar al Carrito'}</span>
           </button>
 
           {/* Ornamento inferior */}

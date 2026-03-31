@@ -6,7 +6,8 @@ import MinimalProductCard from './MinimalProductCard'
 import MinimalCartSheet from './MinimalCartSheet'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { getCategoryIcon } from '@/lib/category-icons'
 import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
 import { useCart } from '@/lib/cart-context'
 
@@ -22,6 +23,11 @@ export default function MinimalStorePage({ store, products, categories }: Minima
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+
+  const scrollCategories = (dir: 'left' | 'right') => {
+    categoriesRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' })
+  }
 
   // Debounce del término de búsqueda
   useEffect(() => {
@@ -138,34 +144,60 @@ export default function MinimalStorePage({ store, products, categories }: Minima
           </div>
         </div>
 
-        {/* Filtros ultra simples */}
+        {/* Filtros ultra simples - Carousel */}
         <div className="mb-16">
-          <div className="flex flex-wrap gap-8 text-sm">
+          <div className="relative mb-4">
             <button
-              onClick={() => handleCategoryChange(null)}
-              disabled={isLoading}
-              className={`pb-1 transition-colors ${
-                selectedCategory === null
-                  ? 'text-gray-900 border-b border-gray-900'
-                  : 'text-gray-500 hover:text-gray-900'
-              } disabled:opacity-50`}
+              onClick={() => scrollCategories('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-gray-900 text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
             >
-              All
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            {categories.map((category) => (
+
+            <div
+              ref={categoriesRef}
+              className="flex gap-3 overflow-x-auto pb-2 scroll-smooth px-1 sm:px-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               <button
-                key={category.id}
-                onClick={() => handleCategoryChange(category.id)}
+                onClick={() => handleCategoryChange(null)}
                 disabled={isLoading}
-                className={`pb-1 transition-colors ${
-                  selectedCategory === category.id
-                    ? 'text-gray-900 border-b border-gray-900'
-                    : 'text-gray-500 hover:text-gray-900'
-                } disabled:opacity-50`}
+                className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-xl transition-all disabled:opacity-50 ${
+                  selectedCategory === null ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'
+                }`}
               >
-                {category.name}
+                <div className={`p-2 rounded-lg ${selectedCategory === null ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-medium whitespace-nowrap">All</span>
               </button>
-            ))}
+
+              {categories.map((category) => {
+                const Icon = getCategoryIcon(category.name, category.icon)
+                const isActive = selectedCategory === category.id
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryChange(category.id)}
+                    disabled={isLoading}
+                    className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-xl transition-all disabled:opacity-50 ${
+                      isActive ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${isActive ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-medium whitespace-nowrap">{category.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => scrollCategories('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-gray-900 text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
           <p className="text-sm text-gray-500 mt-4">
             {filteredProducts?.length || 0} {(filteredProducts?.length || 0) === 1 ? 'product' : 'products'}
@@ -175,8 +207,14 @@ export default function MinimalStorePage({ store, products, categories }: Minima
 
         {/* Grid con espacios generosos */}
         {isLoading && filteredProducts.length === 0 ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-12 h-12 text-gray-900 animate-spin" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-square bg-gray-100 rounded-lg mb-3" />
+                <div className="h-3 bg-gray-100 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-100 rounded w-1/3" />
+              </div>
+            ))}
           </div>
         ) : filteredProducts.length > 0 ? (
           <>
@@ -195,7 +233,11 @@ export default function MinimalStorePage({ store, products, categories }: Minima
             {/* Intersection Observer Target */}
             <div ref={loadMoreRef} className="flex justify-center py-8">
               {isFetchingNextPage && (
-                <Loader2 className="w-8 h-8 text-gray-900 animate-spin" />
+                <div className="flex items-center justify-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
+                </div>
               )}
             </div>
           </>

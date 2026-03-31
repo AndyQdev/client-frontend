@@ -26,6 +26,7 @@ export default function InteriorStoreHeader({ store, onCartClick, onMenuClick, c
   }
 
   return (
+    <>
     <header className="store-header sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top bar - Info */}
@@ -122,13 +123,15 @@ export default function InteriorStoreHeader({ store, onCartClick, onMenuClick, c
         themeVariant="interior"
       />
 
-      {/* Customer registration drawer */}
-      <CustomerDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
-        themeVariant="interior"
-      />
     </header>
+
+    {/* Customer registration drawer */}
+    <CustomerDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onRegister={handleRegister}
+      themeVariant="interior"
+    />
+    </>
   )
 }

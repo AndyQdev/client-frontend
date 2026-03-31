@@ -125,15 +125,20 @@ export interface ProductEntity {
   enabled: boolean
   name: string
   description?: string
-  price?: number | string // Optional - can be string from backend
+  price?: number | string
   stockQuantity?: number
-  imageUrls?: string | string[] // Can be comma-separated string or array
+  imageUrls?: string | string[]
   sku?: string
   isFeatured?: boolean
-  tags?: string | string[] | null // Can be string, array, or null
+  tags?: string | string[] | null
   specifications?: string | Record<string, string> | null
-  category?: CategoryEntity // Category object if included
-  brand?: BrandEntity // Brand object if included
+  metadata?: {
+    isFeatured?: boolean
+    tags?: string[]
+    specifications?: Record<string, string>
+  }
+  category?: CategoryEntity
+  brand?: BrandEntity
   // Legacy snake_case support
   stock_quantity?: number
   image_urls?: string | string[]

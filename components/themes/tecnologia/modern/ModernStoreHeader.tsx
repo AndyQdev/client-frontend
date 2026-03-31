@@ -28,6 +28,7 @@ export default function ModernStoreHeader({ store, onCartClick, onMenuClick }: M
   }
 
   return (
+    <>
     <header className="bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-[#2A2A2A] sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -125,13 +126,15 @@ export default function ModernStoreHeader({ store, onCartClick, onMenuClick }: M
         themeVariant="modern"
       />
 
-      {/* Customer registration drawer */}
-      <CustomerDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
-        themeVariant="modern"
-      />
     </header>
+
+    {/* Customer registration drawer - outside header to avoid z-index/sticky issues */}
+    <CustomerDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onRegister={handleRegister}
+      themeVariant="modern"
+    />
+    </>
   )
 }

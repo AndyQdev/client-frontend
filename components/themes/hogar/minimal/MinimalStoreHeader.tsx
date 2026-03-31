@@ -27,6 +27,7 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
   }
 
   return (
+    <>
     <header className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -118,13 +119,15 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
         themeVariant="minimal"
       />
 
-      {/* Customer registration drawer */}
-      <CustomerDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
-        themeVariant="minimal"
-      />
     </header>
+
+    {/* Customer registration drawer */}
+    <CustomerDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onRegister={handleRegister}
+      themeVariant="minimal"
+    />
+    </>
   )
 }

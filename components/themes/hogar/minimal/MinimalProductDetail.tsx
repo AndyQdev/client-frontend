@@ -101,6 +101,23 @@ export default function MinimalProductDetail({ product, store }: MinimalProductD
                 ))}
               </div>
             )}
+
+            {/* Specifications */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="pt-8 border-t border-gray-100 space-y-4">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Specifications
+                </h2>
+                <dl className="space-y-3">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between text-sm">
+                      <dt className="text-gray-500">{key}</dt>
+                      <dd className="text-gray-900 font-medium">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -204,41 +221,6 @@ export default function MinimalProductDetail({ product, store }: MinimalProductD
               </div>
             )}
 
-            {/* Specifications */}
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <div className="pt-8 border-t border-gray-100 space-y-4">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Specifications
-                </h2>
-                <dl className="space-y-3">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex justify-between text-sm">
-                      <dt className="text-gray-500">{key}</dt>
-                      <dd className="text-gray-900 font-medium">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
-
-            {/* Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div className="pt-8 border-t border-gray-100 space-y-4">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Tags
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

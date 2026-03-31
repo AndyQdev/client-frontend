@@ -111,6 +111,23 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
                 ))}
               </div>
             )}
+
+            {/* Specifications */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-light text-gray-900 uppercase tracking-widest">
+                  Especificaciones
+                </h2>
+                <div className="space-y-4">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between py-4 border-b border-gray-100">
+                      <span className="text-sm text-gray-500 uppercase tracking-widest font-light">{key}</span>
+                      <span className="text-sm text-gray-900 font-light">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -256,7 +273,7 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
 
         {/* Product Details & Specifications */}
         <div className="mt-24 border-t border-gray-200">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 pt-16">
+          <div className="pt-16">
             {/* Description */}
             <div className="space-y-6">
               <h2 className="text-2xl font-light text-gray-900 uppercase tracking-widest">
@@ -271,23 +288,6 @@ export default function EleganteProductDetail({ product, store, relatedProducts 
                 </p>
               </div>
             </div>
-
-            {/* Specifications */}
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-light text-gray-900 uppercase tracking-widest">
-                  Especificaciones
-                </h2>
-                <div className="space-y-4">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex justify-between py-4 border-b border-gray-100">
-                      <span className="text-sm text-gray-500 uppercase tracking-widest font-light">{key}</span>
-                      <span className="text-sm text-gray-900 font-light">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

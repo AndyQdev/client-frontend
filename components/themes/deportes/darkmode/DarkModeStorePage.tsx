@@ -5,7 +5,8 @@ import DarkModeStoreHeader from './DarkModeStoreHeader'
 import DarkModeProductCard from './DarkModeProductCard'
 import DarkModeCartSheet from './DarkModeCartSheet'
 import DarkModeMobileMenu from './DarkModeMobileMenu'
-import { Sparkles, Star, TrendingUp, Mail, Search, Loader2 } from 'lucide-react'
+import { Sparkles, Star, TrendingUp, Mail, Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { getCategoryIcon } from '@/lib/category-icons'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
 import { useCart } from '@/lib/cart-context'
@@ -23,6 +24,11 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+
+  const scrollCategories = (dir: 'left' | 'right') => {
+    categoriesRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' })
+  }
 
   // Debounce del término de búsqueda
   useEffect(() => {
@@ -175,33 +181,59 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
               />
             </div>
 
-            {/* Category Filters */}
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+            {/* Category Filters - Carousel */}
+            <div className="relative">
               <button
-                onClick={() => handleCategoryChange(null)}
-                disabled={isLoading}
-                className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
-                  selectedCategory === null
-                    ? 'bg-yellow-500 text-black'
-                    : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
-                }`}
+                onClick={() => scrollCategories('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-yellow-500 text-black rounded-full shadow-md items-center justify-center hidden sm:flex"
               >
-                Todo
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              {categories.map((category) => (
+
+              <div
+                ref={categoriesRef}
+                className="flex gap-3 overflow-x-auto pb-2 scroll-smooth px-1 sm:px-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              >
                 <button
-                  key={category.id}
-                  onClick={() => handleCategoryChange(category.id)}
+                  onClick={() => handleCategoryChange(null)}
                   disabled={isLoading}
-                  className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide whitespace-nowrap transition-all disabled:opacity-50 ${
-                    selectedCategory === category.id
-                      ? 'bg-yellow-500 text-black'
-                      : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                  className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-full transition-all disabled:opacity-50 ${
+                    selectedCategory === null ? 'bg-yellow-500 text-black shadow-lg' : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700'
                   }`}
                 >
-                  {category.name}
+                  <div className={`p-2 rounded-lg ${selectedCategory === null ? 'bg-yellow-400' : 'bg-zinc-700'}`}>
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Todo</span>
                 </button>
-              ))}
+
+                {categories.map((category) => {
+                  const Icon = getCategoryIcon(category.name, category.icon)
+                  const isActive = selectedCategory === category.id
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => handleCategoryChange(category.id)}
+                      disabled={isLoading}
+                      className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-full transition-all disabled:opacity-50 ${
+                        isActive ? 'bg-yellow-500 text-black shadow-lg' : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${isActive ? 'bg-yellow-400' : 'bg-zinc-700'}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">{category.name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                onClick={() => scrollCategories('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-yellow-500 text-black rounded-full shadow-md items-center justify-center hidden sm:flex"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -223,8 +255,17 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
 
         {/* Products Grid */}
         {isLoading && filteredProducts.length === 0 ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-12 h-12 text-yellow-500 animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-zinc-800 rounded-xl overflow-hidden animate-pulse">
+                <div className="aspect-square bg-zinc-700" />
+                <div className="p-4">
+                  <div className="h-4 bg-zinc-700 rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-zinc-700 rounded w-1/2 mb-4" />
+                  <div className="h-5 bg-zinc-700 rounded w-1/3" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredProducts.length > 0 ? (
           <>
@@ -243,7 +284,11 @@ export default function DarkModeStorePage({ store, products, categories }: DarkM
             {/* Intersection Observer Target */}
             <div ref={loadMoreRef} className="flex justify-center py-8">
               {isFetchingNextPage && (
-                <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+                <div className="flex items-center justify-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-bounce" />
+                </div>
               )}
             </div>
           </>

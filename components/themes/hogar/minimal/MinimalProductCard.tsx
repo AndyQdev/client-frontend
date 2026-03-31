@@ -66,6 +66,13 @@ export default function MinimalProductCard({ product, storeSlug }: MinimalProduc
           />
         </button>
 
+        {/* Badge agotado */}
+        {product.stock === 0 && (
+          <div className="absolute top-3 left-3 bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium z-20">
+            Agotado
+          </div>
+        )}
+
         {/* Imagen con gradiente suave y carrusel */}
         <div className="relative aspect-square bg-gradient-to-br from-rose-50 via-white to-emerald-50 mb-4 overflow-hidden rounded-xl">
           <Image
@@ -160,9 +167,16 @@ export default function MinimalProductCard({ product, storeSlug }: MinimalProduc
           {/* Fixed Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            className="w-full bg-rose-400/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-rose-500 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300"
+            disabled={product.stock === 0}
+            className={`w-full px-6 py-3 rounded-full text-sm font-medium flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${
+              product.stock === 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                : 'bg-rose-400/90 backdrop-blur-sm text-white hover:bg-rose-500'
+            }`}
           >
-            {showAdded ? (
+            {product.stock === 0 ? (
+              <span>Agotado</span>
+            ) : showAdded ? (
               <>
                 <Check className="w-4 h-4" />
                 <span>Agregado</span>

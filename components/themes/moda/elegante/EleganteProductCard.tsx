@@ -90,6 +90,13 @@ export default function EleganteProductCard({ product, storeSlug }: EleganteProd
               Nuevo
             </div>
           )}
+
+          {/* Badge agotado */}
+          {product.stock === 0 && (
+            <div className="absolute top-4 right-4 bg-black text-white px-3 py-1 text-xs tracking-widest uppercase font-light z-10">
+              Agotado
+            </div>
+          )}
         </div>
 
         {/* Información del producto estilo elegante */}
@@ -121,9 +128,16 @@ export default function EleganteProductCard({ product, storeSlug }: EleganteProd
           {/* Fixed Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            className="w-full py-3 bg-black text-white text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors duration-300 flex items-center justify-center space-x-2"
+            disabled={product.stock === 0}
+            className={`w-full py-3 text-white text-xs uppercase tracking-widest transition-colors duration-300 flex items-center justify-center space-x-2 ${
+              product.stock === 0
+                ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                : 'bg-black hover:bg-gray-800'
+            }`}
           >
-            {showAdded ? (
+            {product.stock === 0 ? (
+              <span>Agotado</span>
+            ) : showAdded ? (
               <>
                 <Check className="w-4 h-4" />
                 <span>Agregado</span>

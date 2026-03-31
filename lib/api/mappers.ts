@@ -111,25 +111,28 @@ export function mapStoreEntityToStore(entity: StoreEntity): Store {
  * Convert backend ProductEntity to frontend Product type
  */
 export function mapProductEntityToProduct(entity: ProductEntity, categories?: CategoryEntity[]): Product {
-  // Parse specifications if it's a string
+  // metadata can contain tags, specifications, isFeatured
+  const metadata = (entity as any).metadata || {}
+
+  // Parse specifications: check metadata first, then direct field
   let specifications: Record<string, string> = {}
-  if (entity.specifications) {
+  const rawSpecs = metadata.specifications || entity.specifications
+  if (rawSpecs) {
     try {
-      specifications = typeof entity.specifications === 'string'
-        ? JSON.parse(entity.specifications)
-        : entity.specifications
+      specifications = typeof rawSpecs === 'string' ? JSON.parse(rawSpecs) : rawSpecs
     } catch (e) {
       console.error('Error parsing specifications:', e)
     }
   }
 
-  // Parse tags - handle both string and array formats
+  // Parse tags: check metadata first, then direct field
   let tags: string[] = []
-  if (entity.tags) {
-    if (typeof entity.tags === 'string') {
-      tags = entity.tags.split(',').map(t => t.trim())
-    } else if (Array.isArray(entity.tags)) {
-      tags = entity.tags
+  const rawTags = metadata.tags || entity.tags
+  if (rawTags) {
+    if (typeof rawTags === 'string') {
+      tags = rawTags.split(',').map(t => t.trim()).filter(Boolean)
+    } else if (Array.isArray(rawTags)) {
+      tags = rawTags
     }
   }
 
@@ -156,8 +159,8 @@ export function mapProductEntityToProduct(entity: ProductEntity, categories?: Ca
   // Get stock quantity - support both camelCase and snake_case
   const stockQuantity = entity.stockQuantity ?? entity.stock_quantity ?? 0
 
-  // Get isFeatured - support both camelCase and snake_case
-  const isFeatured = entity.isFeatured ?? entity.is_featured ?? false
+  // Get isFeatured - check metadata first, then direct fields
+  const isFeatured = metadata.isFeatured ?? entity.isFeatured ?? entity.is_featured ?? false
 
   return {
     id: entity.id,

@@ -116,6 +116,19 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                 ))}
               </div>
             )}
+            {/* Product Description */}
+        <div className="mt-16">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
+            <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Descripción del producto</h2>
+            <div className="prose prose-blue max-w-none">
+              <p className="text-[#A3A3A3] leading-relaxed">
+                {product.description || 'Este producto de alta calidad está diseñado para ofrecerte la mejor experiencia. Fabricado con materiales premium y atención al detalle, combina funcionalidad y estilo de manera excepcional.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+            
           </div>
 
           {/* Product Info */}
@@ -252,8 +265,22 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
               </div>
             </div>
 
+                {/* Specifications */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
+                <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Especificaciones</h2>
+                <div className="space-y-4">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between py-3 border-b border-[#2A2A2A]">
+                      <span className="text-[#A3A3A3] font-medium">{key}</span>
+                      <span className="text-[#F5F5F5] font-semibold">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {/* Benefits */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
               <div className="flex items-center space-x-3 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl">
                 <Truck className="w-8 h-8 text-[#D4AF37]" />
                 <div>
@@ -275,38 +302,11 @@ export default function ModernProductDetail({ product, store, relatedProducts = 
                   <p className="text-sm font-semibold text-[#F5F5F5]">30 días</p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
-        {/* Product Description & Specifications */}
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Description */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
-            <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Descripción del producto</h2>
-            <div className="prose prose-blue max-w-none">
-              <p className="text-[#A3A3A3] leading-relaxed">
-                {product.description || 'Este producto de alta calidad está diseñado para ofrecerte la mejor experiencia. Fabricado con materiales premium y atención al detalle, combina funcionalidad y estilo de manera excepcional.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Specifications */}
-          {product.specifications && Object.keys(product.specifications).length > 0 && (
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-3xl p-8">
-              <h2 className="text-2xl font-bold text-[#F5F5F5] mb-6">Especificaciones</h2>
-              <div className="space-y-4">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-3 border-b border-[#2A2A2A]">
-                    <span className="text-[#A3A3A3] font-medium">{key}</span>
-                    <span className="text-[#F5F5F5] font-semibold">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
+        
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">

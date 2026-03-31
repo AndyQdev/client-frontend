@@ -4,7 +4,8 @@ import { Store, Product, Category } from '@/lib/types'
 import CreativeStoreHeader from './CreativeStoreHeader'
 import CreativeProductCard from './CreativeProductCard'
 import CreativeCartSheet from './CreativeCartSheet'
-import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search, Loader2 } from 'lucide-react'
+import { Sparkles, Palette, Zap, Star, Rocket, Heart, Wand2, Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { getCategoryIcon } from '@/lib/category-icons'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useInfiniteProducts } from '@/hooks/useInfiniteProducts'
 import { useCart } from '@/lib/cart-context'
@@ -21,6 +22,11 @@ export default function CreativeStorePage({ store, products, categories }: Creat
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+
+  const scrollCategories = (dir: 'left' | 'right') => {
+    categoriesRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' })
+  }
 
   // Debounce del término de búsqueda
   useEffect(() => {
@@ -197,34 +203,59 @@ export default function CreativeStorePage({ store, products, categories }: Creat
             </div>
           </div>
 
-          {/* Pills de Categorías */}
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
+          {/* Pills de Categorías - Carousel */}
+          <div className="relative mb-16">
             <button
-              onClick={() => setSelectedCategory(null)}
-              disabled={isLoading}
-              className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 disabled:opacity-50 ${
-                selectedCategory === null
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-110'
-                  : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
-              }`}
+              onClick={() => scrollCategories('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
             >
-              Todas las Categorías
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            {categories.map((category, index) => (
+
+            <div
+              ref={categoriesRef}
+              className="flex gap-3 overflow-x-auto pb-2 scroll-smooth px-1 sm:px-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => setSelectedCategory(null)}
                 disabled={isLoading}
-                className={`px-8 py-3 rounded-full font-black text-sm transition-all duration-300 transform hover:scale-110 hover:rotate-2 disabled:opacity-50 ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg scale-110'
-                    : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
+                className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-full transition-all duration-300 transform hover:scale-110 disabled:opacity-50 ${
+                  selectedCategory === null ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-110' : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
                 }`}
-                style={{ animationDelay: `${index * 100}ms` }}
               >
-                {category.name}
+                <div className={`p-2 rounded-lg ${selectedCategory === null ? 'bg-white/20' : 'bg-purple-100'}`}>
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-black whitespace-nowrap">Todos</span>
               </button>
-            ))}
+
+              {categories.map((category) => {
+                const Icon = getCategoryIcon(category.name, category.icon)
+                const isActive = selectedCategory === category.id
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    disabled={isLoading}
+                    className={`shrink-0 flex flex-col items-center gap-1.5 px-5 py-3 rounded-full transition-all duration-300 transform hover:scale-110 disabled:opacity-50 ${
+                      isActive ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg scale-110' : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white shadow-md'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${isActive ? 'bg-white/20' : 'bg-purple-100'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-black whitespace-nowrap">{category.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => scrollCategories('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-md items-center justify-center hidden sm:flex"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Grid de Productos */}
@@ -249,8 +280,17 @@ export default function CreativeStorePage({ store, products, categories }: Creat
           </div>
 
           {isLoading && filteredProducts.length === 0 ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm animate-pulse">
+                  <div className="aspect-square bg-gradient-to-br from-purple-50 to-pink-50" />
+                  <div className="p-4">
+                    <div className="h-4 bg-purple-50 rounded-full w-3/4 mb-2" />
+                    <div className="h-3 bg-pink-50 rounded-full w-1/2 mb-4" />
+                    <div className="h-5 bg-purple-50 rounded-full w-1/3" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredProducts.length > 0 ? (
             <>
@@ -269,7 +309,11 @@ export default function CreativeStorePage({ store, products, categories }: Creat
               {/* Intersection Observer Target */}
               <div ref={loadMoreRef} className="flex justify-center py-8">
                 {isFetchingNextPage && (
-                  <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+                  <div className="flex items-center justify-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" />
+                  </div>
                 )}
               </div>
             </>

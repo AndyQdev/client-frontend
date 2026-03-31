@@ -120,7 +120,11 @@ export default function ModernProductCard({ product, storeSlug, index = 0 }: Mod
             )}
 
             {/* Stock Badge */}
-            {product.stock > 0 && product.stock < 5 && (
+            {product.stock === 0 ? (
+              <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider z-10">
+                Agotado
+              </div>
+            ) : product.stock < 5 && (
               <div className="absolute top-4 right-4 bg-orange-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider z-10">
                 ¡Solo {product.stock}!
               </div>

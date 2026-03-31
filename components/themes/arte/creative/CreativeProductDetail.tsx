@@ -285,28 +285,6 @@ export default function CreativeProductDetail({ product, store }: CreativeProduc
                   )}
                 </div>
 
-                {/* Tags - Creative Style */}
-                {product.tags && product.tags.length > 0 && (
-                  <div className="mt-8 pt-8 border-t-2 border-purple-200">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-600 mb-4 flex items-center space-x-2">
-                      <Zap className="w-4 h-4 text-purple-500" />
-                      <span>Etiquetas Mágicas:</span>
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {product.tags.map((tag, index) => {
-                        const tagColor = randomColors[index % randomColors.length]
-                        return (
-                          <span
-                            key={tag}
-                            className={`bg-gradient-to-r ${tagColor} text-white px-4 py-2 rounded-full text-sm font-bold hover:scale-110 transition-transform duration-300 cursor-pointer shadow-lg transform ${index % 2 === 0 ? 'rotate-2' : '-rotate-2'} hover:rotate-0`}
-                          >
-                            #{tag}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

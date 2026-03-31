@@ -18,7 +18,6 @@ export default function DarkModeProductDetail({ product, store }: DarkModeProduc
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'description' | 'specs'>('description')
   const { addToCart, isInCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
 
@@ -125,6 +124,29 @@ export default function DarkModeProductDetail({ product, store }: DarkModeProduc
                       />
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* Specifications */}
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
+                <div className="bg-zinc-800/30 rounded-lg border border-zinc-700/50 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-zinc-700/50">
+                    <h2 className="font-semibold uppercase tracking-wide text-yellow-500">Especificaciones</h2>
+                  </div>
+                  <table className="w-full">
+                    <tbody className="divide-y divide-zinc-700/50">
+                      {Object.entries(product.specifications).map(([key, value]) => (
+                        <tr key={key} className="hover:bg-zinc-800/50 transition-colors">
+                          <td className="px-6 py-4 text-sm font-semibold text-zinc-400 uppercase tracking-wide w-1/3">
+                            {key}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-zinc-300">
+                            {value}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
@@ -262,69 +284,19 @@ export default function DarkModeProductDetail({ product, store }: DarkModeProduc
             </div>
           </div>
 
-          {/* Tabs - Descripción y Especificaciones */}
+          {/* Description */}
           <div className="mt-16">
-            <div className="border-b border-zinc-800 flex gap-8 mb-8">
-              <button
-                onClick={() => setActiveTab('description')}
-                className={`pb-4 font-semibold uppercase tracking-wide transition-colors relative ${
-                  activeTab === 'description'
-                    ? 'text-yellow-500'
-                    : 'text-zinc-500 hover:text-zinc-400'
-                }`}
-              >
+            <div className="border-b border-zinc-800 mb-8">
+              <h2 className="pb-4 font-semibold uppercase tracking-wide text-yellow-500 relative inline-block">
                 Descripción
-                {activeTab === 'description' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></div>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('specs')}
-                className={`pb-4 font-semibold uppercase tracking-wide transition-colors relative ${
-                  activeTab === 'specs'
-                    ? 'text-yellow-500'
-                    : 'text-zinc-500 hover:text-zinc-400'
-                }`}
-              >
-                Especificaciones
-                {activeTab === 'specs' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></div>
-                )}
-              </button>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></div>
+              </h2>
             </div>
-
-            {activeTab === 'description' && (
-              <div className="prose prose-invert max-w-none">
-                <p className="text-zinc-300 text-lg leading-relaxed">
-                  {product.description || 'Descubre la excelencia en cada detalle. Este producto ha sido cuidadosamente seleccionado para ofrecerte la mejor calidad y experiencia. Diseñado con precisión y fabricado con los mejores materiales disponibles en el mercado.'}
-                </p>
-              </div>
-            )}
-
-            {activeTab === 'specs' && (
-              <div>
-                {product.specifications && Object.keys(product.specifications).length > 0 ? (
-                  <div className="bg-zinc-800/30 rounded-lg border border-zinc-700/50 overflow-hidden">
-                    <table className="w-full">
-                      <tbody className="divide-y divide-zinc-700/50">
-                        {Object.entries(product.specifications).map(([key, value]) => (
-                          <tr key={key} className="hover:bg-zinc-800/50 transition-colors">
-                            <td className="px-6 py-4 text-sm font-semibold text-zinc-400 uppercase tracking-wide w-1/3">
-                              {key}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-zinc-300">
-                              {value}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-zinc-500">No hay especificaciones disponibles.</p>
-                )}
-              </div>
-            )}
+            <div className="prose prose-invert max-w-none">
+              <p className="text-zinc-300 text-lg leading-relaxed">
+                {product.description || 'Descubre la excelencia en cada detalle. Este producto ha sido cuidadosamente seleccionado para ofrecerte la mejor calidad y experiencia. Diseñado con precisión y fabricado con los mejores materiales disponibles en el mercado.'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

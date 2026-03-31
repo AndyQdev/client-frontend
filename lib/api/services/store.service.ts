@@ -5,10 +5,10 @@ export class StoreService {
   private readonly basePath = '/store'
 
   /**
-   * Get all stores with optional filters
+   * Get all stores (public endpoint - no auth required)
    */
-  async findAll(query?: QueryDto): Promise<{ data: StoreEntity[]; countData?: number }> {
-    const response = await apiClient.get<ResponseMessage<StoreEntity[]>>(this.basePath, {
+  async findAllPublic(query?: QueryDto): Promise<{ data: StoreEntity[]; countData?: number }> {
+    const response = await apiClient.get<ResponseMessage<StoreEntity[]>>(`${this.basePath}/public`, {
       params: query,
     })
     return {

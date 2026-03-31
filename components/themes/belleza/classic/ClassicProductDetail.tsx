@@ -20,7 +20,7 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [showAdded, setShowAdded] = useState(false)
   const { addToCart, isInCart } = useCart()
-
+  console.log('Producto:', product)
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product)
@@ -139,6 +139,28 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
                     </div>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Specifications with Classic Layout */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="bg-gradient-to-br from-amber-50 to-cream-50 p-6 border-2 border-amber-200 shadow-md">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-px bg-amber-400"></div>
+                  <h2 className="text-2xl font-serif text-amber-900">Especificaciones</h2>
+                  <div className="flex-1 h-px bg-amber-400"></div>
+                </div>
+                <dl className="space-y-3">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex justify-between text-sm py-2 border-b border-amber-200 last:border-0"
+                    >
+                      <dt className="text-amber-700 font-serif">{key}</dt>
+                      <dd className="text-amber-900 font-serif font-semibold">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             )}
           </div>
@@ -294,48 +316,6 @@ export default function ClassicProductDetail({ product, store }: ClassicProductD
               </div>
             )}
 
-            {/* Specifications with Classic Layout */}
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <div className="bg-gradient-to-br from-amber-50 to-cream-50 p-6 border-2 border-amber-200 shadow-md">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-px bg-amber-400"></div>
-                  <h2 className="text-2xl font-serif text-amber-900">Especificaciones</h2>
-                  <div className="flex-1 h-px bg-amber-400"></div>
-                </div>
-                <dl className="space-y-3">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex justify-between text-sm py-2 border-b border-amber-200 last:border-0"
-                    >
-                      <dt className="text-amber-700 font-serif">{key}</dt>
-                      <dd className="text-amber-900 font-serif font-semibold">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
-
-            {/* Tags with Classic Style */}
-            {product.tags && product.tags.length > 0 && (
-              <div className="bg-white p-6 border-2 border-amber-200 shadow-md">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-px bg-amber-400"></div>
-                  <h2 className="text-2xl font-serif text-amber-900">Etiquetas</h2>
-                  <div className="flex-1 h-px bg-amber-400"></div>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {product.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-4 py-2 bg-amber-100 text-amber-800 border border-amber-300 font-serif text-sm hover:bg-amber-200 transition-colors"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

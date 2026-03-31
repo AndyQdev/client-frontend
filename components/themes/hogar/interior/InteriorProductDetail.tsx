@@ -77,6 +77,21 @@ export default function InteriorProductDetail({ store, product }: InteriorProduc
                 </button>
               ))}
             </div>
+
+            {/* Specifications */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="bg-white border border-stone-200 p-6 mt-6">
+                <h2 className="text-sm font-medium uppercase tracking-wider text-stone-900 mb-4">Especificaciones</h2>
+                <dl className="grid grid-cols-2 gap-4">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex flex-col">
+                      <dt className="font-medium text-stone-900 mb-1">{key}</dt>
+                      <dd className="text-stone-600">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
           </div>
 
           {/* Info */}
@@ -168,7 +183,7 @@ export default function InteriorProductDetail({ store, product }: InteriorProduc
         {/* Tabs */}
         <div className="bg-white border border-stone-200 p-8">
           <div className="flex gap-8 border-b border-stone-200 mb-8">
-            {['description', 'specifications', 'shipping'].map((tab) => (
+            {['description', 'shipping'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -177,7 +192,6 @@ export default function InteriorProductDetail({ store, product }: InteriorProduc
                 }`}
               >
                 {tab === 'description' && 'Descripción'}
-                {tab === 'specifications' && 'Especificaciones'}
                 {tab === 'shipping' && 'Envío'}
                 {activeTab === tab && (
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-stone-800"></span>
@@ -191,16 +205,6 @@ export default function InteriorProductDetail({ store, product }: InteriorProduc
               <div className="text-stone-600 leading-relaxed">
                 <p>{product.description}</p>
               </div>
-            )}
-            {activeTab === 'specifications' && product.specifications && (
-              <dl className="grid grid-cols-2 gap-4">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex flex-col">
-                    <dt className="font-medium text-stone-900 mb-1">{key}</dt>
-                    <dd className="text-stone-600">{value}</dd>
-                  </div>
-                ))}
-              </dl>
             )}
             {activeTab === 'shipping' && (
               <div className="text-stone-600">

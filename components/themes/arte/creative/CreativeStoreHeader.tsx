@@ -27,6 +27,7 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
   }
 
   return (
+    <>
     <header className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Elementos decorativos animados */}
       <div className="absolute inset-0 overflow-hidden">
@@ -142,13 +143,15 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
         themeVariant="creative"
       />
 
-      {/* Customer registration drawer */}
-      <CustomerDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
-        themeVariant="creative"
-      />
     </header>
+
+    {/* Customer registration drawer */}
+    <CustomerDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onRegister={handleRegister}
+      themeVariant="creative"
+    />
+    </>
   )
 }
