@@ -58,31 +58,31 @@ export default function ModernStoreHeader({ store, onCartClick, onMenuClick }: M
           </Link>
 
           {/* Menú de navegación */}
-          <nav className="hidden md:flex flex-1 items-ce  nter justify-center space-x-8">
-            <a
-              href="#inicio"
+          <nav className="hidden md:flex flex-1 items-center justify-center space-x-8">
+            <Link
+              href={`/${store.slug}`}
               className="text-[#A3A3A3] hover:text-[#D4AF37] font-medium transition-colors duration-300"
             >
               Inicio
-            </a>
-            <a
-              href="#productos"
+            </Link>
+            <Link
+              href={`/${store.slug}#productos`}
               className="text-[#A3A3A3] hover:text-[#D4AF37] font-medium transition-colors duration-300"
             >
               Productos
-            </a>
-            <a
-              href="#about"
+            </Link>
+            <Link
+              href={`/${store.slug}#about`}
               className="text-[#A3A3A3] hover:text-[#D4AF37] font-medium transition-colors duration-300"
             >
               Nosotros
-            </a>
-            <a
-              href="#contact"
+            </Link>
+            <Link
+              href={`/${store.slug}#contact`}
               className="text-[#A3A3A3] hover:text-[#D4AF37] font-medium transition-colors duration-300"
             >
               Contacto
-            </a>
+            </Link>
           </nav>
 
           {/* Acciones del usuario */}

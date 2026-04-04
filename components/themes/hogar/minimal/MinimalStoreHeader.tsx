@@ -32,7 +32,7 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo minimalista */}
-          <Link href={`/${store.slug}#inicio`} className="flex items-center space-x-3">
+          <Link href={`/${store.slug}`} className="flex items-center space-x-3">
             {store.logoUrl ? (
               <Image
                 src={store.logoUrl}
@@ -53,18 +53,18 @@ export default function MinimalStoreHeader({ store, onCartClick }: MinimalStoreH
 
           {/* Navegación central ultra minimal */}
           <nav className="hidden md:flex items-center space-x-12">
-            <a href="#inicio" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+            <Link href={`/${store.slug}`} className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
               Inicio
-            </a>
-            <a href="#productos" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+            </Link>
+            <Link href={`/${store.slug}#productos`} className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
               Productos
-            </a>
-            <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+            </Link>
+            <Link href={`/${store.slug}#about`} className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
               Nosotros
-            </a>
-            <a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+            </Link>
+            <Link href={`/${store.slug}#contact`} className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
               Contacto
-            </a>
+            </Link>
           </nav>
 
           {/* Acciones mínimas */}

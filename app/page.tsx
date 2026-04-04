@@ -3,7 +3,7 @@ import MarketplaceHeader from '@/components/MarketplaceHeader'
 import StoreGrid from '@/components/StoreGrid'
 import MarketplaceSearch from '@/components/MarketplaceSearch'
 import { getAllStores } from '@/lib/api'
-import { Store } from 'lucide-react'
+import { VendfyIcon, VendfyLogo } from '@/components/shared/VendfyLogo'
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>
@@ -22,7 +22,7 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
       <section className="bg-gradient-to-b from-slate-900 to-slate-800 pt-16 pb-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-            <Store className="w-4 h-4" />
+            <VendfyIcon size={18} dark />
             Marketplace de tiendas online
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
@@ -55,11 +55,9 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
         <StoreGrid stores={stores} />
 
         {/* Footer */}
-        <footer className="mt-20 pb-10 text-center">
-          <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
-            <Store className="w-4 h-4" />
-            <span>Vendfy - Digitaliza tu negocio</span>
-          </div>
+        <footer className="mt-20 pb-10 flex flex-col items-center gap-2">
+          <VendfyLogo variant="full" size={28} />
+          <span className="text-xs text-gray-400">Digitaliza tu negocio</span>
         </footer>
       </section>
     </main>

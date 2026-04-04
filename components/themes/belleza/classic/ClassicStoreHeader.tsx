@@ -67,7 +67,7 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
             </button>
 
             {/* Logo clásico */}
-            <Link href={`/${store.slug}#inicio`} className="flex items-center space-x-4">
+            <Link href={`/${store.slug}`} className="flex items-center space-x-4">
               <div className="relative">
                 {store.logoUrl ? (
                   <Image
@@ -99,34 +99,34 @@ export default function ClassicStoreHeader({ store, onCartClick }: ClassicStoreH
 
             {/* Navegación clásica */}
             <nav className="hidden lg:flex items-center space-x-12">
-              <a
-                href="#inicio"
+              <Link
+                href={`/${store.slug}`}
                 className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
               >
                 Inicio
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a
-                href="#productos"
+              </Link>
+              <Link
+                href={`/${store.slug}#productos`}
                 className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
               >
                 Productos
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a
-                href="#about"
+              </Link>
+              <Link
+                href={`/${store.slug}#about`}
                 className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
               >
                 Nosotros
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                href={`/${store.slug}#contact`}
                 className="text-amber-800 hover:text-amber-600 transition-colors font-serif text-lg relative group"
               >
                 Contacto
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-              </a>
+              </Link>
             </nav>
 
             {/* Acciones clásicas */}

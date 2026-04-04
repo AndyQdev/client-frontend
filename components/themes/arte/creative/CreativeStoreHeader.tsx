@@ -76,16 +76,21 @@ export default function CreativeStoreHeader({ store, onCartClick }: CreativeStor
 
           {/* Navegación creativa */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {['Galería', 'Colecciones', 'Artistas', 'Experimentos', 'Estudio'].map((item, index) => (
+            {[
+              { label: 'Inicio', href: `/${store.slug}` },
+              { label: 'Productos', href: `/${store.slug}#productos` },
+              { label: 'Nosotros', href: `/${store.slug}#about` },
+              { label: 'Contacto', href: `/${store.slug}#contact` }
+            ].map((item, index) => (
               <Link
-                key={item}
-                href="#"
+                key={item.label}
+                href={item.href}
                 className="relative text-white hover:text-pink-300 transition-colors duration-300 font-medium group"
                 style={{
                   transform: `rotate(${(index - 2) * 2}deg)`,
                 }}
               >
-                {item}
+                {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}

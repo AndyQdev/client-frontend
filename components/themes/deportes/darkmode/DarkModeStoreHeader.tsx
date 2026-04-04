@@ -49,9 +49,9 @@ export default function DarkModeStoreHeader({ store, onCartClick, onMenuClick }:
           <nav className="hidden lg:flex items-center space-x-8">
             {[
               { label: 'Inicio', href: `/${store.slug}` },
-              { label: 'Novedades', href: '#' },
-              { label: 'Colecciones', href: '#' },
-              { label: 'Ofertas', href: '#' }
+              { label: 'Productos', href: `/${store.slug}#productos` },
+              { label: 'Nosotros', href: `/${store.slug}#about` },
+              { label: 'Contacto', href: `/${store.slug}#contact` }
             ].map((item) => (
               <Link
                 key={item.label}

@@ -67,7 +67,7 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
             </button>
 
             {/* Logo central */}
-            <Link href={`/${store.slug}#inicio`} className="flex-1 lg:flex-none lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2">
+            <Link href={`/${store.slug}`} className="flex-1 lg:flex-none lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2">
               <div className="flex items-center justify-center lg:justify-start space-x-3">
                 {store.logoUrl ? (
                   <Image
@@ -95,18 +95,18 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
 
             {/* Navegación desktop */}
             <nav className="hidden lg:flex items-center space-x-12">
-              <a href="#inicio" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+              <Link href={`/${store.slug}`} className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
                 Inicio
-              </a>
-              <a href="#productos" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+              </Link>
+              <Link href={`/${store.slug}#productos`} className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
                 Productos
-              </a>
-              <a href="#about" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+              </Link>
+              <Link href={`/${store.slug}#about`} className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
                 Nosotros
-              </a>
-              <a href="#contact" className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
+              </Link>
+              <Link href={`/${store.slug}#contact`} className="text-sm text-gray-800 hover:text-black transition-colors duration-300 uppercase tracking-widest font-light">
                 Contacto
-              </a>
+              </Link>
             </nav>
 
             {/* Acciones elegantes */}
