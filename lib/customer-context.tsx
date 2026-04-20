@@ -6,9 +6,10 @@ import { customerService, CustomerEntity, CustomerAddress } from '@/lib/api/serv
 interface CustomerContextType {
   customer: CustomerEntity | null
   isLoading: boolean
+  identify: (storeId: string, name: string, phone: string, country: string) => Promise<CustomerEntity>
   login: (storeId: string, name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => Promise<void>
   logout: () => void
-  addAddress: (address: CustomerAddress) => Promise<void>
+  addAddress: (address: CustomerAddress) => Promise<CustomerEntity>
 }
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined)
@@ -37,27 +38,41 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     loadCustomer()
   }, [])
 
-  const login = async (storeId: string, name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+  const persistCustomer = (next: CustomerEntity) => {
+    setCustomer(next)
+    localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(next))
+  }
+
+  const addAddressInternal = async (customerId: string, address: CustomerAddress) => {
+    const updated = await customerService.addAddress(customerId, address)
+    persistCustomer(updated)
+    return updated
+  }
+
+  const identify = async (storeId: string, name: string, phone: string, country: string) => {
     try {
       setIsLoading(true)
-      
-      // Construir addresses array si se proporciona un addressObject
-      const addresses = addressObject ? [addressObject] : undefined
-      
-      const newCustomer = await customerService.createByStore(storeId, {
-        name,
-        phone,
-        country,
-        addresses,
-      })
-      
-      setCustomer(newCustomer)
-      localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(newCustomer))
+      // Upsert por country+phone+storeOwner. NO mandamos addresses para no pisar las existentes.
+      const next = await customerService.createByStore(storeId, { name, phone, country })
+      persistCustomer(next)
+      return next
     } catch (error) {
-      console.error('Error creating customer:', error)
+      console.error('Error identifying customer:', error)
       throw error
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const login = async (storeId: string, name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
+    const next = await identify(storeId, name, phone, country)
+    if (addressObject) {
+      const alreadyExists = next.addresses?.some(
+        (a) => a.latitude === addressObject.latitude && a.longitude === addressObject.longitude,
+      )
+      if (!alreadyExists) {
+        await addAddressInternal(next.id, addressObject)
+      }
     }
   }
 
@@ -73,13 +88,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsLoading(true)
-      // Usar el nuevo endpoint público que solo agrega la dirección
-      const updatedCustomer = await customerService.addAddress(
-        customer.id,
-        address
-      )
-      setCustomer(updatedCustomer)
-      localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(updatedCustomer))
+      return await addAddressInternal(customer.id, address)
     } catch (error) {
       console.error('Error adding address:', error)
       throw error
@@ -89,7 +98,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CustomerContext.Provider value={{ customer, isLoading, login, logout, addAddress }}>
+    <CustomerContext.Provider value={{ customer, isLoading, identify, login, logout, addAddress }}>
       {children}
     </CustomerContext.Provider>
   )

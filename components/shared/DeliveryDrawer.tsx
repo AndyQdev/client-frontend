@@ -11,6 +11,11 @@ declare global {
   }
 }
 
+interface DeliveryConfig {
+  type: 'pending' | 'free' | 'fixed' | 'calculated'
+  value: number
+}
+
 interface DeliveryDrawerProps {
   isOpen: boolean
   onClose: () => void
@@ -18,6 +23,7 @@ interface DeliveryDrawerProps {
   storeCoordinates?: { latitude: number; longitude: number }
   customerAddresses: CustomerAddress[]
   onAddAddress: () => void
+  deliveryConfig?: DeliveryConfig
   themeVariant?: 'classic' | 'modern' | 'elegante' | 'minimal' | 'darkmode' | 'creative' | 'interior'
   cartItems?: Array<{ product: { name: string; price: number }; quantity: number }>
   subtotal?: number
@@ -117,6 +123,7 @@ export default function DeliveryDrawer({
   storeCoordinates,
   customerAddresses,
   onAddAddress,
+  deliveryConfig,
   themeVariant = 'classic',
   cartItems = [],
   subtotal = 0,
@@ -124,6 +131,7 @@ export default function DeliveryDrawer({
   isCreatingOrder = false,
   onDeliveryCostCalculated,
 }: DeliveryDrawerProps) {
+  const deliveryType = deliveryConfig?.type ?? 'pending'
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0)
   const [distance, setDistance] = useState<number>(0)
   const [deliveryCost, setDeliveryCost] = useState<number>(0)
@@ -148,7 +156,7 @@ export default function DeliveryDrawer({
     }
   }, [])
 
-  // Calcular distancia y costo cuando cambia la dirección seleccionada
+  // Calcular distancia (siempre) y costo (según el tipo) cuando cambia la dirección
   useEffect(() => {
     if (
       storeCoordinates &&
@@ -163,15 +171,16 @@ export default function DeliveryDrawer({
         customerAddr.longitude
       )
       setDistance(dist)
-      const calculatedCost = calculateDeliveryCost(dist)
-      setDeliveryCost(calculatedCost)
-      
-      // Actualizar estado en componente padre
-      if (onDeliveryCostCalculated) {
-        onDeliveryCostCalculated(calculatedCost)
-      }
+
+      let cost = 0
+      if (deliveryType === 'calculated') cost = calculateDeliveryCost(dist)
+      else if (deliveryType === 'fixed') cost = deliveryConfig?.value ?? 0
+      // free / pending → 0
+
+      setDeliveryCost(cost)
+      onDeliveryCostCalculated?.(cost)
     }
-  }, [selectedAddressIndex, storeCoordinates, customerAddresses, onDeliveryCostCalculated])
+  }, [selectedAddressIndex, storeCoordinates, customerAddresses, deliveryType, deliveryConfig?.value, onDeliveryCostCalculated])
 
   // Cargar Google Maps y mostrar ruta
   useEffect(() => {
@@ -305,8 +314,12 @@ export default function DeliveryDrawer({
             <div className="flex items-center space-x-3">
               <Package className="w-6 h-6" />
               <div>
-                <h2 className="text-xl font-bold">Calcular Envío</h2>
-                <p className="text-sm opacity-90">Selecciona tu dirección de entrega</p>
+                <h2 className="text-xl font-bold">Dirección de Entrega</h2>
+                <p className="text-sm opacity-90">
+                  {deliveryType === 'calculated'
+                    ? 'Selecciona tu dirección y calcularemos el envío'
+                    : 'Confirma a dónde llegará tu pedido'}
+                </p>
               </div>
             </div>
             <button
@@ -407,7 +420,11 @@ export default function DeliveryDrawer({
                 <div className="flex justify-between items-center pt-2 border-t border-gray-300" style={{ fontVariantNumeric: 'lining-nums' }}>
                   <span className="text-sm font-medium text-gray-600">Costo de Envío:</span>
                   <span className={`font-semibold ${styles.text}`}>
-                    Bs {deliveryCost.toFixed(2)}
+                    {deliveryType === 'free'
+                      ? 'Gratis'
+                      : deliveryType === 'pending'
+                        ? 'Por definir'
+                        : `Bs ${deliveryCost.toFixed(2)}`}
                   </span>
                 </div>
 
@@ -415,7 +432,9 @@ export default function DeliveryDrawer({
                 <div className="flex justify-between items-center pt-3 border-t-2 border-gray-400" style={{ fontVariantNumeric: 'lining-nums' }}>
                   <span className="text-lg font-bold text-gray-700">Total:</span>
                   <span className={`text-2xl font-bold ${styles.text}`}>
-                    Bs {(subtotal + deliveryCost).toFixed(2)}
+                    {deliveryType === 'pending'
+                      ? `Bs ${subtotal.toFixed(2)} + envío`
+                      : `Bs ${(subtotal + deliveryCost).toFixed(2)}`}
                   </span>
                 </div>
               </div>
@@ -440,6 +459,8 @@ export default function DeliveryDrawer({
                   </svg>
                   Procesando...
                 </>
+              ) : deliveryType === 'pending' ? (
+                'Confirmar Pedido (envío por definir)'
               ) : (
                 `Confirmar Pedido (Bs ${(subtotal + deliveryCost).toFixed(2)})`
               )}

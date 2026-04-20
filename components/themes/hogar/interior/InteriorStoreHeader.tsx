@@ -4,7 +4,6 @@ import { Store } from '@/lib/types'
 import { ShoppingCart, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { useCustomer } from '@/lib/customer-context'
 import MobileMenu from '@/components/shared/MobileMenu'
 import CustomerPopover from '@/components/shared/CustomerPopover'
 import CustomerDrawer from '@/components/shared/CustomerDrawer'
@@ -17,13 +16,8 @@ interface InteriorStoreHeaderProps {
 }
 
 export default function InteriorStoreHeader({ store, onCartClick, onMenuClick, cartItemsCount = 0 }: InteriorStoreHeaderProps) {
-  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-
-  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
-    await login(store.id, name, phone, country, addressObject)
-  }
 
   return (
     <>
@@ -129,7 +123,7 @@ export default function InteriorStoreHeader({ store, onCartClick, onMenuClick, c
     <CustomerDrawer
       isOpen={isDrawerOpen}
       onClose={() => setIsDrawerOpen(false)}
-      onRegister={handleRegister}
+      storeId={store.id}
       themeVariant="interior"
     />
     </>

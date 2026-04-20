@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, Phone, Mail, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
-import { useCustomer } from '@/lib/customer-context'
 import { useState } from 'react'
 import MobileMenu from '@/components/shared/MobileMenu'
 import CustomerPopover from '@/components/shared/CustomerPopover'
@@ -18,13 +17,8 @@ interface EleganteStoreHeaderProps {
 
 export default function EleganteStoreHeader({ store, onCartClick }: EleganteStoreHeaderProps) {
   const { getTotalItems } = useCart()
-  const { login } = useCustomer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-
-  const handleRegister = async (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => {
-    await login(store.id, name, phone, country, addressObject)
-  }
 
   return (
     <>
@@ -145,7 +139,7 @@ export default function EleganteStoreHeader({ store, onCartClick }: EleganteStor
       <CustomerDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        onRegister={handleRegister}
+        storeId={store.id}
         themeVariant="elegante"
       />
     </>

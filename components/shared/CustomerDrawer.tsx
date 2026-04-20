@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
-import { X } from 'lucide-react'
+import { useState, FormEvent, useEffect } from 'react'
+import { X, MapPin, Plus, Check } from 'lucide-react'
 import LocationPicker from './LocationPicker'
+import { useCustomer } from '@/lib/customer-context'
+import type { CustomerAddress } from '@/lib/api/services/customer.service'
 
 interface CustomerDrawerProps {
   isOpen: boolean
   onClose: () => void
-  onRegister: (name: string, phone: string, country: string, addressObject?: { name: string; latitude: number; longitude: number }) => Promise<void>
+  storeId: string
+  onComplete?: () => void
   themeVariant?: 'classic' | 'modern' | 'elegante' | 'minimal' | 'darkmode' | 'creative' | 'interior'
 }
 
@@ -33,6 +36,7 @@ const THEME_STYLES = {
     accent: 'bg-amber-600 hover:bg-amber-700',
     border: 'border-amber-200',
     input: 'border-amber-200 focus:border-amber-500 focus:ring-amber-500',
+    selected: 'border-amber-600 bg-amber-100',
   },
   modern: {
     bg: 'bg-slate-50',
@@ -40,6 +44,7 @@ const THEME_STYLES = {
     accent: 'bg-blue-600 hover:bg-blue-700',
     border: 'border-slate-200',
     input: 'border-slate-200 focus:border-blue-500 focus:ring-blue-500',
+    selected: 'border-blue-600 bg-blue-100',
   },
   elegante: {
     bg: 'bg-rose-50',
@@ -47,6 +52,7 @@ const THEME_STYLES = {
     accent: 'bg-rose-600 hover:bg-rose-700',
     border: 'border-rose-200',
     input: 'border-rose-200 focus:border-rose-500 focus:ring-rose-500',
+    selected: 'border-rose-600 bg-rose-100',
   },
   minimal: {
     bg: 'bg-gray-50',
@@ -54,6 +60,7 @@ const THEME_STYLES = {
     accent: 'bg-gray-900 hover:bg-gray-800',
     border: 'border-gray-200',
     input: 'border-gray-200 focus:border-gray-900 focus:ring-gray-900',
+    selected: 'border-gray-900 bg-gray-200',
   },
   darkmode: {
     bg: 'bg-slate-900',
@@ -61,6 +68,7 @@ const THEME_STYLES = {
     accent: 'bg-emerald-600 hover:bg-emerald-700',
     border: 'border-slate-700',
     input: 'border-slate-700 bg-slate-800 text-white focus:border-emerald-500 focus:ring-emerald-500',
+    selected: 'border-emerald-500 bg-slate-800',
   },
   creative: {
     bg: 'bg-purple-50',
@@ -68,6 +76,7 @@ const THEME_STYLES = {
     accent: 'bg-purple-600 hover:bg-purple-700',
     border: 'border-purple-200',
     input: 'border-purple-200 focus:border-purple-500 focus:ring-purple-500',
+    selected: 'border-purple-600 bg-purple-100',
   },
   interior: {
     bg: 'bg-stone-50',
@@ -75,10 +84,15 @@ const THEME_STYLES = {
     accent: 'bg-stone-700 hover:bg-stone-800',
     border: 'border-stone-200',
     input: 'border-stone-200 focus:border-stone-500 focus:ring-stone-500',
+    selected: 'border-stone-700 bg-stone-200',
   },
 }
 
-export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVariant = 'classic' }: CustomerDrawerProps) {
+type Step = 'data' | 'addresses' | 'newAddress'
+
+export default function CustomerDrawer({ isOpen, onClose, storeId, onComplete, themeVariant = 'classic' }: CustomerDrawerProps) {
+  const { customer, identify, addAddress } = useCustomer()
+
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [countryCode, setCountryCode] = useState('+52')
@@ -87,76 +101,114 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
   const [coordinates, setCoordinates] = useState({ lat: 0, lng: 0 })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState(1) // 1 = datos básicos, 2 = dirección
+  const [step, setStep] = useState<Step>('data')
+  const [existingAddresses, setExistingAddresses] = useState<CustomerAddress[]>([])
 
   const styles = THEME_STYLES[themeVariant]
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
-  const handleNext = () => {
+  // Pre-llenar el formulario si ya hay un cliente logueado
+  useEffect(() => {
+    if (isOpen && customer) {
+      setName(customer.name)
+      setPhone(customer.phone)
+      if (customer.country) setCountryCode(customer.country)
+    }
+  }, [isOpen, customer])
+
+  const resetForm = () => {
+    setName('')
+    setPhone('')
+    setCountryCode('+52')
+    setAddress('')
+    setLocationName('')
+    setCoordinates({ lat: 0, lng: 0 })
+    setStep('data')
+    setExistingAddresses([])
+    setError('')
+  }
+
+  const handleClose = () => {
+    resetForm()
+    onClose()
+  }
+
+  const handleNext = async () => {
     setError('')
     if (!name.trim() || !phone.trim()) {
       setError('Por favor completa todos los campos')
       return
     }
-    setStep(2)
-  }
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError('')
 
     try {
       setIsSubmitting(true)
-      // Construir objeto de dirección si hay coordenadas
-      const addressObject = coordinates.lat !== 0 && coordinates.lng !== 0 ? {
-        name: locationName.trim() || 'Mi dirección',
-        latitude: coordinates.lat,
-        longitude: coordinates.lng
-      } : undefined
-      
-      await onRegister(name.trim(), phone.trim(), countryCode, addressObject)
-      
-      // Reset form
-      setName('')
-      setPhone('')
-      setCountryCode('+52')
-      setAddress('')
-      setLocationName('')
-      setCoordinates({ lat: 0, lng: 0 })
-      setStep(1)
-      onClose()
+      const result = await identify(storeId, name.trim(), phone.trim(), countryCode)
+      const addresses = result.addresses || []
+      setExistingAddresses(addresses)
+      setStep(addresses.length > 0 ? 'addresses' : 'newAddress')
     } catch (err) {
-      setError('Error al registrar. Por favor intenta de nuevo.')
-      console.error('Error registering customer:', err)
+      setError('No pudimos guardar tus datos. Intenta de nuevo.')
+      console.error('Error identifying customer:', err)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleClose = () => {
-    setStep(1)
+  const handleAddNewAddress = async (e: FormEvent) => {
+    e.preventDefault()
     setError('')
+
+    if (coordinates.lat === 0 && coordinates.lng === 0) {
+      setError('Selecciona la ubicación en el mapa')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      await addAddress({
+        name: locationName.trim() || 'Mi dirección',
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+      })
+      finish()
+    } catch (err) {
+      setError('No pudimos guardar la dirección. Intenta de nuevo.')
+      console.error('Error adding address:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleFinishWithExisting = () => {
+    finish()
+  }
+
+  const finish = () => {
+    resetForm()
     onClose()
+    onComplete?.()
   }
 
   if (!isOpen) return null
 
+  const headerTitle =
+    step === 'data'
+      ? customer ? 'Confirmar tus datos' : 'Identifícate'
+      : step === 'addresses'
+        ? 'Tus direcciones'
+        : 'Agregar dirección'
+
   return (
     <>
-      {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50 z-40 transition-opacity"
         onClick={handleClose}
       />
 
-      {/* Drawer */}
-      <div className={`fixed bottom-0 left-0 right-0 ${styles.bg} rounded-t-3xl shadow-2xl z-50 transform transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`fixed bottom-0 left-0 right-0 ${styles.bg} rounded-t-3xl shadow-2xl z-50 transform transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-full'} max-h-[90vh] overflow-y-auto`}>
         <div className="max-w-2xl mx-auto w-full px-6 py-6">
-          {/* Header - Fixed */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-2xl font-bold ${styles.text}`}>
-              {step === 1 ? 'Registrarse' : 'Dirección de Entrega'}
-            </h2>
+            <h2 className={`text-2xl font-bold ${styles.text}`}>{headerTitle}</h2>
             <button
               onClick={handleClose}
               className={`p-2 ${styles.text} hover:opacity-70 transition-opacity`}
@@ -165,10 +217,8 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
             </button>
           </div>
 
-          {/* Paso 1: Datos Básicos */}
-          {step === 1 && (
+          {step === 'data' && (
             <div className="space-y-4">
-              {/* Name Input */}
               <div>
                 <label htmlFor="name" className={`block text-sm font-medium ${styles.text} mb-2`}>
                   Nombre Completo
@@ -185,9 +235,7 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                 />
               </div>
 
-              {/* Country Code y Phone en la misma fila */}
               <div className="grid grid-cols-3 gap-3">
-                {/* Country Code Select */}
                 <div>
                   <label htmlFor="country" className={`block text-sm font-medium ${styles.text} mb-2`}>
                     País
@@ -207,7 +255,6 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                   </select>
                 </div>
 
-                {/* Phone Input */}
                 <div className="col-span-2">
                   <label htmlFor="phone" className={`block text-sm font-medium ${styles.text} mb-2`}>
                     Número de Teléfono
@@ -225,34 +272,80 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                 </div>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
-              {/* Botón Siguiente */}
               <button
                 type="button"
                 onClick={handleNext}
                 disabled={isSubmitting}
                 className={`w-full ${styles.accent} text-white px-6 py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                Siguiente
+                {isSubmitting ? 'Buscando...' : 'Siguiente'}
               </button>
 
-              {/* Info */}
               <p className={`text-center text-sm ${styles.text} opacity-70`}>
-                Tus datos se guardarán de forma segura
+                Si ya te has registrado, cargaremos tus direcciones automáticamente
               </p>
             </div>
           )}
 
-          {/* Paso 2: Dirección */}
-          {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nombre de la ubicación */}
+          {step === 'addresses' && (
+            <div className="space-y-4">
+              <p className={`text-sm ${styles.text} opacity-80`}>
+                ¡Hola de nuevo! Estas son las direcciones que tenemos registradas.
+              </p>
+
+              <div className="space-y-2">
+                {existingAddresses.map((addr, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 ${styles.border} bg-white/50`}
+                  >
+                    <MapPin className={`w-5 h-5 ${styles.text} flex-shrink-0`} />
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium ${styles.text} truncate`}>{addr.name}</p>
+                      <p className={`text-xs ${styles.text} opacity-60 truncate`}>
+                        {addr.latitude.toFixed(5)}, {addr.longitude.toFixed(5)}
+                      </p>
+                    </div>
+                    <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setStep('newAddress')}
+                disabled={isSubmitting}
+                className={`w-full flex items-center justify-center gap-2 border-2 ${styles.border} ${styles.text} px-6 py-3 rounded-lg font-semibold transition-colors hover:opacity-80 disabled:opacity-50`}
+              >
+                <Plus className="w-5 h-5" />
+                Agregar otra dirección
+              </button>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleFinishWithExisting}
+                disabled={isSubmitting}
+                className={`w-full ${styles.accent} text-white px-6 py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                Listo
+              </button>
+            </div>
+          )}
+
+          {step === 'newAddress' && (
+            <form onSubmit={handleAddNewAddress} className="space-y-4">
               <div>
                 <label htmlFor="locationName" className={`block text-sm font-medium ${styles.text} mb-2`}>
                   Nombre de la Ubicación
@@ -268,10 +361,9 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                 />
               </div>
 
-              {/* Location Picker */}
               <div>
                 <label className={`block text-sm font-medium ${styles.text} mb-2`}>
-                  Ubicación en el Mapa (Opcional)
+                  Ubicación en el Mapa
                 </label>
                 <LocationPicker
                   address={address}
@@ -283,18 +375,16 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                 />
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
-              {/* Botones */}
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(existingAddresses.length > 0 ? 'addresses' : 'data')}
                   disabled={isSubmitting}
                   className={`flex-1 border-2 ${styles.border} ${styles.text} px-6 py-4 rounded-lg font-semibold transition-colors hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
@@ -305,14 +395,9 @@ export default function CustomerDrawer({ isOpen, onClose, onRegister, themeVaria
                   disabled={isSubmitting}
                   className={`flex-1 ${styles.accent} text-white px-6 py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {isSubmitting ? 'Registrando...' : 'Crear Cuenta'}
+                  {isSubmitting ? 'Guardando...' : 'Guardar y continuar'}
                 </button>
               </div>
-
-              {/* Info */}
-              <p className={`text-center text-sm ${styles.text} opacity-70`}>
-                Puedes omitir la dirección si lo prefieres
-              </p>
             </form>
           )}
         </div>

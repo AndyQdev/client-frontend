@@ -52,8 +52,11 @@ export function useDelivery({ deliveryConfig, storeCoordinates }: UseDeliveryPro
     setDeliveryCost(cost)
   }
 
+  // El drawer siempre se muestra al menos una vez para que el cliente
+  // elija (o confirme) la dirección y vea la ruta hacia la tienda,
+  // sin importar el tipo de delivery.
   const shouldShowDeliveryDrawer = (isCustomerLoggedIn: boolean) => {
-    return isCustomerLoggedIn && getDeliveryType() === 'calculated' && deliveryCost === 0
+    return isCustomerLoggedIn && selectedAddress === null
   }
 
   return {

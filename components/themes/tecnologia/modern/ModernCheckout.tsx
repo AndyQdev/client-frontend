@@ -32,13 +32,14 @@ interface ModernCheckoutProps {
 export default function ModernCheckout({ store }: ModernCheckoutProps) {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCart()
-  const { customer, login, addAddress } = useCustomer()
+  const { customer, addAddress } = useCustomer()
   
   const deliveryConfig = store.config?.delivery
   const storeCoordinates = store.config?.contact?.coordinates
   
   const {
     deliveryCost,
+    selectedAddress,
     getDeliveryText,
     getDeliveryType,
     handleDeliveryConfirm,
@@ -80,18 +81,8 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
   const tax = subtotal * 0.19
   const total = subtotal + deliveryCost + tax
 
-  const handleCustomerRegister = async (
-    name: string,
-    phone: string,
-    country: string,
-    addressObject?: { name: string; latitude: number; longitude: number }
-  ) => {
-    await login(store.id, name, phone, country, addressObject)
-    setShowCustomerDrawer(false)
-    
-    if (getDeliveryType() === 'calculated') {
-      setTimeout(() => setShowDeliveryDrawer(true), 300)
-    }
+  const handleCustomerRegistered = () => {
+    setTimeout(() => setShowDeliveryDrawer(true), 300)
   }
 
   const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
@@ -100,13 +91,13 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
   }
 
   const handleConfirmPayment = async () => {
-    // Si no está registrado, mostrar drawer de registro
     if (!customer) {
       setShowCustomerDrawer(true)
       return
     }
 
-    // Si es calculated y no se ha calculado el costo, mostrar drawer de delivery
+    // Para todos los tipos de delivery: el cliente debe confirmar dirección
+    // (y ver el mapa con la ruta a la tienda) antes de generar la orden.
     if (shouldShowDeliveryDrawer(!!customer)) {
       setShowDeliveryDrawer(true)
       return
@@ -117,18 +108,18 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
 
   const createOrder = async () => {
     if (!customer) return
-    
+
     setIsCreatingOrder(true)
     try {
-      // Crear la orden en el backend
       const deliveryType = getDeliveryType()
       const subtotal = getTotalPrice()
       const finalDeliveryCost = deliveryType === 'calculated' ? calculatedDeliveryCost : deliveryCost
       const totalWithDelivery = subtotal + finalDeliveryCost
-      
+      const shippingAddress = selectedAddress ?? customer.addresses?.[0]
+
       const orderData = {
         totalAmount: totalWithDelivery,
-        type: deliveryType === 'calculated' ? 'delivery' as const : 'quick' as const,
+        type: 'delivery' as const,
         paymentMethod: 'pending',
         paymentDate: new Date().toISOString(),
         totalReceived: 0,
@@ -138,39 +129,39 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
           quantity: item.quantity,
           price: item.product.price,
         })),
-        notes: `Pedido desde tienda web - ${deliveryType === 'calculated' ? 'Con delivery' : 'Sin delivery'}`,
-        ...(deliveryType === 'calculated' && {
+        notes: `Pedido desde tienda web - delivery: ${deliveryType}`,
+        ...(shippingAddress && {
           deliveryInfo: {
-            address: customer.addresses?.[0]?.name || 'Dirección del cliente',
+            address: shippingAddress.name,
             cost: finalDeliveryCost,
             coordinates: {
-              latitude: customer.addresses?.[0]?.latitude || 0,
-              longitude: customer.addresses?.[0]?.longitude || 0,
+              latitude: shippingAddress.latitude,
+              longitude: shippingAddress.longitude,
             },
-            notes: '',
+            notes: deliveryType === 'pending' ? 'Costo de envío por definir' : '',
           },
         }),
       }
 
       const createdOrder = await orderService.createFromStore(store.id, orderData)
 
-      console.log('📦 [ModernCheckout] deliveryType:', deliveryType)
-      console.log('📦 [ModernCheckout] deliveryCost (hook):', deliveryCost)
-      console.log('📦 [ModernCheckout] calculatedDeliveryCost:', calculatedDeliveryCost)
-      console.log('📦 [ModernCheckout] finalDeliveryCost:', finalDeliveryCost)
-      console.log('📦 [ModernCheckout] totalWithDelivery:', totalWithDelivery)
-      console.log('📦 [ModernCheckout] subtotal:', subtotal)
-
       // Enviar notificación WhatsApp a la tienda
       try {
         const storePhone = store.config?.contact?.phone || ''
         if (storePhone) {
-          const itemsList = items.map((item, index) => 
+          const itemsList = items.map((item, index) =>
             `${index + 1}. ${item.product.name} x${item.quantity} - Bs ${(item.product.price * item.quantity).toFixed(2)}`
           ).join('\n')
 
-          const deliveryText = deliveryType === 'calculated' 
-            ? `\n📍 *Dirección:* ${customer.addresses?.[0]?.name || 'Sin dirección'}\n🚚 *Costo de Envío:* Bs ${finalDeliveryCost.toFixed(2)}\n📍 *Ubicación:* https://maps.google.com/?q=${customer.addresses?.[0]?.latitude},${customer.addresses?.[0]?.longitude}`
+          const costLine =
+            deliveryType === 'pending'
+              ? '🚚 *Costo de Envío:* Por definir'
+              : deliveryType === 'free'
+                ? '🚚 *Costo de Envío:* Gratis'
+                : `🚚 *Costo de Envío:* Bs ${finalDeliveryCost.toFixed(2)}`
+
+          const deliveryText = shippingAddress
+            ? `\n📍 *Dirección:* ${shippingAddress.name}\n${costLine}\n📍 *Ubicación:* https://maps.google.com/?q=${shippingAddress.latitude},${shippingAddress.longitude}`
             : ''
 
           const message = `🛍️ *NUEVO PEDIDO RECIBIDO*\n\n` +
@@ -190,7 +181,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              from: '59164528384_ALORA', // Bot userId
+              from: 'test123', // Bot userId
               to: storePhone,
               message: message,
             }),
@@ -574,7 +565,8 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
       <CustomerDrawer
         isOpen={showCustomerDrawer}
         onClose={() => setShowCustomerDrawer(false)}
-        onRegister={handleCustomerRegister}
+        storeId={store.id}
+        onComplete={handleCustomerRegistered}
         themeVariant="modern"
       />
 
@@ -593,6 +585,7 @@ export default function ModernCheckout({ store }: ModernCheckoutProps) {
           setShowDeliveryDrawer(false)
           setShowAddAddressDialog(true)
         }}
+        deliveryConfig={deliveryConfig}
         themeVariant="modern"
         cartItems={items}
         subtotal={subtotal}

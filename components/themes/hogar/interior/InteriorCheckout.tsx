@@ -22,13 +22,14 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
   const { items, getTotalPrice, clearCart } = useCart()
   const router = useRouter()
 
-  const { customer, login, addAddress } = useCustomer()
+  const { customer, addAddress } = useCustomer()
 
   const deliveryConfig = store.config?.delivery
   const storeCoordinates = store.config?.contact?.coordinates
 
   const {
     deliveryCost,
+    selectedAddress,
     getDeliveryText,
     getDeliveryType,
     handleDeliveryConfirm,
@@ -44,18 +45,8 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
   const subtotal = getTotalPrice()
   const total = subtotal + deliveryCost
 
-  const handleCustomerRegister = async (
-    name: string,
-    phone: string,
-    country: string,
-    addressObject?: { name: string; latitude: number; longitude: number }
-  ) => {
-    await login(store.id, name, phone, country, addressObject)
-    setShowCustomerDrawer(false)
-    
-    if (getDeliveryType() === 'calculated') {
-      setTimeout(() => setShowDeliveryDrawer(true), 300)
-    }
+  const handleCustomerRegistered = () => {
+    setTimeout(() => setShowDeliveryDrawer(true), 300)
   }
 
   const handleAddAddress = async (addressObject: { name: string; latitude: number; longitude: number }) => {
@@ -84,14 +75,14 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
     
     setIsCreatingOrder(true)
     try {
-      // Crear la orden en el backend
       const deliveryType = getDeliveryType()
       const finalDeliveryCost = deliveryType === 'calculated' ? calculatedDeliveryCost : deliveryCost
       const actualTotal = subtotal + finalDeliveryCost
-      
+      const shippingAddress = selectedAddress ?? customer.addresses?.[0]
+
       const orderData = {
         totalAmount: actualTotal,
-        type: deliveryType === 'calculated' ? 'delivery' as const : 'quick' as const,
+        type: 'delivery' as const,
         paymentMethod: 'pending',
         paymentDate: new Date().toISOString(),
         totalReceived: 0,
@@ -101,16 +92,16 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
           quantity: item.quantity,
           price: item.product.price,
         })),
-        notes: `Pedido desde tienda web - ${deliveryType === 'calculated' ? 'Con delivery' : 'Sin delivery'}`,
-        ...(deliveryType === 'calculated' && {
+        notes: `Pedido desde tienda web - delivery: ${deliveryType}`,
+        ...(shippingAddress && {
           deliveryInfo: {
-            address: customer.addresses?.[0]?.name || 'Dirección del cliente',
+            address: shippingAddress.name,
             cost: finalDeliveryCost,
             coordinates: {
-              latitude: customer.addresses?.[0]?.latitude || 0,
-              longitude: customer.addresses?.[0]?.longitude || 0,
+              latitude: shippingAddress.latitude,
+              longitude: shippingAddress.longitude,
             },
-            notes: '',
+            notes: deliveryType === 'pending' ? 'Costo de envío por definir' : '',
           },
         }),
       }
@@ -132,8 +123,15 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
             `${index + 1}. ${item.product.name} x${item.quantity} - Bs ${(item.product.price * item.quantity).toFixed(2)}`
           ).join('\n')
 
-          const deliveryText = deliveryType === 'calculated' 
-            ? `\n📍 *Dirección:* ${customer.addresses?.[0]?.name || 'Sin dirección'}\n🚚 *Costo de Envío:* Bs ${finalDeliveryCost.toFixed(2)}\n📍 *Ubicación:* https://maps.google.com/?q=${customer.addresses?.[0]?.latitude},${customer.addresses?.[0]?.longitude}`
+          const costLine =
+            deliveryType === 'pending'
+              ? '🚚 *Costo de Envío:* Por definir'
+              : deliveryType === 'free'
+                ? '🚚 *Costo de Envío:* Gratis'
+                : `🚚 *Costo de Envío:* Bs ${finalDeliveryCost.toFixed(2)}`
+
+          const deliveryText = shippingAddress
+            ? `\n📍 *Dirección:* ${shippingAddress.name}\n${costLine}\n📍 *Ubicación:* https://maps.google.com/?q=${shippingAddress.latitude},${shippingAddress.longitude}`
             : ''
 
           const message = `🛍️ *NUEVO PEDIDO RECIBIDO*\n\n` +
@@ -153,7 +151,7 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              from: '59164528384_ALORA', // Bot userId
+              from: 'test123', // Bot userId
               to: storePhone,
               message: message,
             }),
@@ -320,7 +318,8 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
       <CustomerDrawer
         isOpen={showCustomerDrawer}
         onClose={() => setShowCustomerDrawer(false)}
-        onRegister={handleCustomerRegister}
+        storeId={store.id}
+        onComplete={handleCustomerRegistered}
         themeVariant="interior"
       />
 
@@ -339,6 +338,7 @@ export default function InteriorCheckout({ store }: InteriorCheckoutProps) {
           setShowDeliveryDrawer(false)
           setShowAddAddressDialog(true)
         }}
+        deliveryConfig={deliveryConfig}
         themeVariant="interior"
         cartItems={items}
         subtotal={subtotal}
